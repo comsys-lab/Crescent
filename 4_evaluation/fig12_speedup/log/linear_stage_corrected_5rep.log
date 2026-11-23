@@ -1,0 +1,29 @@
+built 224 layers for each variant
+  _warn_once(
+rep0 M=  2048  fwd: true=   75.02 sel=   81.51   gemm: true=  28.08 sel=  34.72
+rep0 M=  4096  fwd: true=  210.28 sel=  224.13   gemm: true=  51.85 sel=  65.81
+rep0 M=  8192  fwd: true=  671.94 sel=  700.12   gemm: true= 100.89 sel= 128.91
+rep1 M=  2048  fwd: true=   75.16 sel=   81.81   gemm: true=  28.20 sel=  34.78
+rep1 M=  4096  fwd: true=  210.90 sel=  224.80   gemm: true=  52.05 sel=  65.98
+rep1 M=  8192  fwd: true=  673.64 sel=  701.80   gemm: true= 101.07 sel= 129.28
+rep2 M=  2048  fwd: true=   75.22 sel=   81.85   gemm: true=  28.33 sel=  34.90
+rep2 M=  4096  fwd: true=  210.94 sel=  224.94   gemm: true=  52.01 sel=  66.10
+rep2 M=  8192  fwd: true=  674.01 sel=  702.09   gemm: true= 101.47 sel= 129.46
+rep3 M=  2048  fwd: true=   75.25 sel=   81.88   gemm: true=  28.31 sel=  34.87
+rep3 M=  4096  fwd: true=  211.05 sel=  225.05   gemm: true=  52.13 sel=  66.20
+rep3 M=  8192  fwd: true=  674.81 sel=  704.24   gemm: true= 101.75 sel= 129.62
+rep4 M=  2048  fwd: true=   75.49 sel=   82.14   gemm: true=  28.35 sel=  34.98
+rep4 M=  4096  fwd: true=  211.84 sel=  225.92   gemm: true=  52.21 sel=  66.21
+rep4 M=  8192  fwd: true=  677.24 sel=  705.15   gemm: true= 101.79 sel= 129.60
+
+SUMMARY (avg of 5 runs, +/- is min..max range)
+M=  2048
+  FULL FWD : true_avg=   75.23 sel_avg=   81.83 delta_avg=   6.60 (range 6.48..6.64)  pct=8.78%
+  GEMM ONLY: true_avg=   28.25 sel_avg=   34.85 delta_avg=   6.60 (range 6.56..6.64)  pct=23.35%
+M=  4096
+  FULL FWD : true_avg=  211.00 sel_avg=  224.97 delta_avg=  13.97 (range 13.85..14.08)  pct=6.62%
+  GEMM ONLY: true_avg=   52.05 sel_avg=   66.06 delta_avg=  14.01 (range 13.93..14.09)  pct=26.92%
+M=  8192
+  FULL FWD : true_avg=  674.33 sel_avg=  702.68 delta_avg=  28.35 (range 27.91..29.42)  pct=4.20%
+  GEMM ONLY: true_avg=  101.39 sel_avg=  129.37 delta_avg=  27.98 (range 27.81..28.21)  pct=27.59%
+DONE

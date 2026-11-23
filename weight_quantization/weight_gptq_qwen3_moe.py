@@ -46,18 +46,12 @@ function already degrades gracefully.
 
 Device: gate_up_proj/down_proj require device_map="auto" across the free
 GPUs (30.5B total / 3.3B active doesn't fit one 24GB card, same as the
-activation-side real_moe_qwen3.py) -- the experts-forward patch MUST be
-applied BEFORE from_pretrained (accelerate captures each module's forward
-at load time; see HANDOFF_MOE_UPGRADE.md's device_map gotcha, re-hit and
-re-confirmed by every *_moe_qwen3.py script in this project so far).
+activation-side scripts) -- the experts-forward patch MUST be applied BEFORE
+from_pretrained (accelerate captures each module's forward at load time).
 
-Cache: gate_up_proj/down_proj are nn.Parameter, not nn.Linear.weight, so
-this cache is NOT loadable by quant_targets.load_weights_from_cache --
-saved separately at ptq_cache/{fmt}/qwen3_moe/ptq_cache_NVFP4.pt, keyed
-by Linear name for Q/K/V/O and by full parameter name (e.g.
-"model.layers.5.mlp.experts.gate_up_proj", the WHOLE [128, ...] tensor,
-not per-expert) for the two expert tensors. load_moe_cache() below is
-this file's own loader.
+Cache: $PTQ_CACHE_ROOT/{fmt}/qwen3_moe/ptq_cache_NVFP4.pt, keyed by Linear name for Q/K/V/O and by full
+parameter name (e.g. "model.layers.5.mlp.experts.gate_up_proj", the whole [128, ...] tensor) for the two
+expert tensors; common/ppl_w4a4.load_cache_into handles both.
 
 Usage: GPTQ_CPU=0 CUDA_VISIBLE_DEVICES=<free GPUs only> python3 weight_gptq_qwen3_moe.py <nvfp4|mxfp4>
 """
@@ -84,27 +78,9 @@ from formats import quantize_tensor_config
 from quant_targets import replace_linear_modules
 from qwen3_moe_targets import MODEL_NAME, patch_eager_qwen3_moe, patch_qwen3_moe_experts
 
-# Activation-side format config (block_size + base_config string), NOT the
-# weight-side FORMAT_CONFIG imported above (different schema: that one has
-# scale_format/has_tensor_scale for GPTQ's own scale search) -- matches H3's
-# ppl_moe_qwen3.py exactly, needed here for the combined Weight_Activation_
-# BOTH arm below.
-ACT_FORMAT_CONFIG = {
-    "nvfp4": dict(block_size=16, base_config="E2M1_amax_E4M3"),
-    "mxfp4": dict(block_size=32, base_config="E2M1_mxfp4_ue8m0"),
-}
-
-
-def identity(x):
-    return x
-
 torch.manual_seed(1111)
 
 PTQ_CACHE_ROOT = os.environ.get("PTQ_CACHE_ROOT", os.path.expanduser("~/ptq_cache"))
-RESULTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "results")
-os.makedirs(RESULTS_DIR, exist_ok=True)
-
-
 def cache_path_for(fmt: str) -> str:
     return os.path.join(PTQ_CACHE_ROOT, fmt, "qwen3_moe", "ptq_cache_NVFP4.pt")
 
@@ -171,11 +147,7 @@ def patch_qwen3_moe_experts_calib(mod):
 
 
 @torch.no_grad()
-def build_cache(fmt: str, calib_ids: torch.Tensor, rotate_group: int = 0, prepare_model=None) -> dict:
-    """rotate_group > 0: micro-rotated GPTQ (common/micro_rotation.py) -- the cache then holds the quantized
-    ROTATED weights (each matrix rotated along its input dim, Hessian rotated by the same R). rotate_group == -1:
-    full (QuaRot-style) rotation. prepare_model(model) runs right after loading (RMSNorm folding), i.e. before the
-    Hessians are collected and the weights are copied out."""
+def build_cache(fmt: str, calib_ids: torch.Tensor) -> dict:
     import transformers.models.qwen3_moe.modeling_qwen3_moe as attn_mod
     experts_cls, orig_experts_forward, hessians = patch_qwen3_moe_experts_calib(attn_mod)
 
@@ -196,8 +168,6 @@ def build_cache(fmt: str, calib_ids: torch.Tensor, rotate_group: int = 0, prepar
     model.eval()
     if hasattr(model.config, "use_cache"):
         model.config.use_cache = False
-    if prepare_model is not None:
-        prepare_model(model)
 
     # id(module) -> (layer_name, module) so accumulated Hessians (keyed by id(self)) can be
     # traced back to a name after the patched forward has already run and returned.
@@ -277,7 +247,7 @@ def build_cache(fmt: str, calib_ids: torch.Tensor, rotate_group: int = 0, prepar
     layer_meta = {lname: (n_exp, gu.shape, gu.dtype, dn.shape, dn.dtype)
                   for lname, (mid, n_exp, gu, dn) in expert_layers.items()}
     t0 = time.time()
-    results, rels = run_jobs(jobs(), fmt, n_devices, procs_per_device, rotate_group=rotate_group)
+    results, rels = run_jobs(jobs(), fmt, n_devices, procs_per_device)
     r = torch.tensor(list(rels.values()))
     print(f"quantized {len(results)} matrices in {time.time() - t0:.0f}s ({n_fallback['n']} expert matrices used the "
           f"identity-Hessian fallback); relative weight MSE: mean={r.mean():.4f} median={r.median():.4f} max={r.max():.4f}", flush=True)
@@ -297,173 +267,20 @@ def build_cache(fmt: str, calib_ids: torch.Tensor, rotate_group: int = 0, prepar
     return cache
 
 
-def set_module_by_name(model: nn.Module, name: str, new_module: nn.Module) -> None:
-    parts = name.split(".")
-    parent = get_module_by_name(model, ".".join(parts[:-1])) if len(parts) > 1 else model
-    setattr(parent, parts[-1], new_module)
-
-
-def load_moe_cache(model: nn.Module, cache: dict) -> int:
-    """This file's own loader (quant_targets.load_weights_from_cache assumes
-    a plain nn.Linear.weight target -- doesn't apply to the two batched
-    expert nn.Parameter tensors here)."""
-    modules = dict(model.named_modules())
-    params = dict(model.named_parameters())
-    n = 0
-    for key, w in cache.items():
-        if key in modules:
-            modules[key].weight.data.copy_(w.to(modules[key].weight.device, modules[key].weight.dtype))
-        elif key in params:
-            params[key].data.copy_(w.to(params[key].device, params[key].dtype))
-        else:
-            raise KeyError(f"cache key {key!r} matches neither a module nor a parameter in the model")
-        n += 1
-    return n
-
-
-@torch.no_grad()
-def measure_weight_only(fmt: str, cache: dict, encodings) -> dict:
-    from transformers import AutoModelForCausalLM
-
-    same_seeds()
-    model = AutoModelForCausalLM.from_pretrained(MODEL_NAME, torch_dtype=torch.bfloat16,
-                                                   low_cpu_mem_usage=True, device_map="auto")
-    model.eval()
-    bf16_ppl = measure_ppl(model, encodings, "qwen3_moe__BF16", model.device)
-    del model
-    cleanup_cuda()
-
-    same_seeds()
-    model = AutoModelForCausalLM.from_pretrained(MODEL_NAME, torch_dtype=torch.bfloat16,
-                                                   low_cpu_mem_usage=True, device_map="auto")
-    model.eval()
-    n = load_moe_cache(model, cache)
-    weight_ppl = measure_ppl(model, encodings, "qwen3_moe__Weight_ONLY", model.device)
-    del model
-    cleanup_cuda()
-
-    # weight-only measurement (matches weight_gptq.py / weight_gptq_deepseek_moe.py) -- the combined
-    # weight+activation arm (measure_both, below) is kept in this file for reference but no longer
-    # called here; this project's weight-quantization results are weight-only across all three models.
-    print(f"[{fmt}][qwen3_moe] BF16={bf16_ppl:.6f}  Weight_ONLY={weight_ppl:.6f} "
-          f"(+{weight_ppl - bf16_ppl:.4f})  n_tensors={n}", flush=True)
-    return {"format": fmt, "model": "qwen3_moe", "bf16_ppl": bf16_ppl, "weight_only_ppl": weight_ppl,
-            "increase": weight_ppl - bf16_ppl, "n_tensors": n}
-
-
-@torch.no_grad()
-def measure_both(fmt: str, cache: dict, encodings) -> float:
-    """Load the GPTQ weight cache (load_moe_cache) AND wrap Q/K/V/O_proj +
-    Q/K attention tensors + expert gateup/down activations with the same
-    plain_fn H3's ppl_moe_qwen3.py *_ALL arm uses -- weight and activation
-    quantization error compound in the SAME forward pass, matching a real
-    deployed quantized model rather than two independent measurements added
-    after the fact. Mirrors H0_activation_isolation/weight_only.py's
-    measure_both for the dense models."""
-    cfg = ACT_FORMAT_CONFIG[fmt]
-
-    def plain_fn(x):
-        return quantize_tensor_config(x.detach().to(torch.float32), cfg["base_config"], cfg["block_size"]).to(x.dtype)
-
-    import transformers.models.qwen3_moe.modeling_qwen3_moe as attn_mod
-    attn_cls, orig_attn_forward = patch_eager_qwen3_moe(attn_mod, plain_fn, plain_fn, identity, identity)
-    experts_cls, orig_experts_forward = patch_qwen3_moe_experts(attn_mod, plain_fn, plain_fn)
-
-    from transformers import AutoModelForCausalLM
-    model = AutoModelForCausalLM.from_pretrained(MODEL_NAME, torch_dtype=torch.bfloat16,
-                                                   low_cpu_mem_usage=True, attn_implementation="eager",
-                                                   device_map="auto")
-    model.eval()
-    n_weight = load_moe_cache(model, cache)
-    n_linear = replace_linear_modules(model, plain_fn)
-    print(f"[{fmt}][qwen3_moe] BOTH: loaded {n_weight} weight tensors from ptq_cache, "
-          f"wrapped {n_linear} linear layers for activation quant", flush=True)
-    try:
-        ppl = measure_ppl(model, encodings, "qwen3_moe__Weight_Activation_BOTH", model.device)
-    finally:
-        attn_cls.forward = orig_attn_forward
-        experts_cls.forward = orig_experts_forward
-    del model
-    cleanup_cuda()
-    return ppl
-
-
-@torch.no_grad()
-def measure_weight_naive(fmt: str, encodings) -> float:
-    """Apply the SAME plain block-quantization format (quantize_tensor_config)
-    directly to Q/K/V/O_proj weights AND the batched gate_up_proj/down_proj
-    nn.Parameter tensors -- NO GPTQ/Hessian calibration, NO OBS error
-    propagation, NO tensor-level s_T search. quantize_tensor_config blocks
-    the last dimension regardless of how many leading dims the tensor has,
-    so it applies to gate_up_proj/down_proj's [num_experts, out, in] shape
-    exactly the same way it applies to a plain 2D Linear.weight -- the naive
-    baseline weight_gptq_qwen3_moe.py's build_cache pipeline is meant to
-    improve on."""
-    cfg = ACT_FORMAT_CONFIG[fmt]
-
-    def plain_fn(x):
-        return quantize_tensor_config(x.detach().to(torch.float32), cfg["base_config"], cfg["block_size"]).to(x.dtype)
-
-    from transformers import AutoModelForCausalLM
-    model = AutoModelForCausalLM.from_pretrained(MODEL_NAME, torch_dtype=torch.bfloat16,
-                                                   low_cpu_mem_usage=True, device_map="auto")
-    model.eval()
-    n = 0
-    for name, module in model.named_modules():
-        if isinstance(module, nn.Linear) and not should_skip_linear(name):
-            module.weight.data.copy_(plain_fn(module.weight.data))
-            n += 1
-        if hasattr(module, "gate_up_proj") and hasattr(module, "down_proj") and hasattr(module, "num_experts"):
-            # Per-expert, not the whole [num_experts, out, in] tensor in one
-            # plain_fn call -- a single call on the whole batched tensor
-            # (e.g. [128, 1536, 2048]) creates several GB of float32
-            # temporaries (sign/abs/rounding intermediates inside quantize_
-            # tensor_config) on top of the already-tight per-GPU headroom
-            # this model runs with, and OOM'd on a real run even with
-            # PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True. The GPTQ
-            # pipeline never hits this because gptq_quantize_weight already
-            # operates one expert (~16MB) at a time -- matching that here.
-            for e in range(module.num_experts):
-                module.gate_up_proj.data[e] = plain_fn(module.gate_up_proj.data[e])
-                module.down_proj.data[e] = plain_fn(module.down_proj.data[e])
-            n += 2
-    print(f"[{fmt}][qwen3_moe] naive-quantized {n} weight tensors (no GPTQ/Hessian calibration)", flush=True)
-    ppl = measure_ppl(model, encodings, "qwen3_moe__Weight_NAIVE", model.device)
-    del model
-    cleanup_cuda()
-    return ppl
-
-
 def main():
     fmt = sys.argv[1]
-    same_seeds()
-    calib_text = load_wikitext2_calib_text()
-    _, calib_encodings = load_tokenizer_and_encodings(MODEL_NAME, calib_text)
-
     path = cache_path_for(fmt)
     if os.path.exists(path):
-        print(f"[{fmt}][qwen3_moe] cache already exists -> {path} (loading, not rebuilding)", flush=True)
-        cache = torch.load(path, map_location="cpu")
-    else:
-        t0 = time.time()
-        cache = build_cache(fmt, calib_encodings.input_ids)
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        torch.save(cache, path + ".tmp")
-        os.replace(path + ".tmp", path)
-        print(f"[{fmt}][qwen3_moe] cache saved -> {path} ({time.time() - t0:.1f}s)", flush=True)
-
-    if os.environ.get("GPTQ_SKIP_PPL", "0") == "1":  # cache-only run: no PPL measurement
+        print(f"[{fmt}][qwen3_moe] cache already exists -> {path}", flush=True)
         return
-    full_text = load_wikitext2_text()
-    _, encodings = load_tokenizer_and_encodings(MODEL_NAME, full_text)
-    row = measure_weight_only(fmt, cache, encodings)
-
-    csv_path = os.path.join(RESULTS_DIR, f"weight_gptq_ppl_{fmt}_qwen3_moe.csv")
-    with open(csv_path, "w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=["format", "model", "bf16_ppl", "weight_only_ppl", "increase", "n_tensors"])
-        w.writeheader()
-        w.writerow(row)
-    print(f"Saved -> {csv_path}", flush=True)
+    same_seeds()
+    _, calib_encodings = load_tokenizer_and_encodings(MODEL_NAME, load_wikitext2_calib_text())
+    t0 = time.time()
+    cache = build_cache(fmt, calib_encodings.input_ids)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    torch.save(cache, path + ".tmp")
+    os.replace(path + ".tmp", path)
+    print(f"[{fmt}][qwen3_moe] cache saved -> {path} ({time.time() - t0:.1f}s)", flush=True)
 
 
 if __name__ == "__main__":

@@ -1,44 +1,21 @@
-"""Weight GPTQ + Hessian-weighted scaling-factor search -- WEIGHT
-quantization only. No rotation, no activation boost, no QK handling
-(rotation will be added later; see weight_gptq_llama.py, the rotation+
-boost 8-arm Llama-only reference this was distilled from).
+"""Weight GPTQ with a Hessian-weighted scaling-factor search, for the dense model (Llama-3.1-8B).
+The MoE models have their own drivers: weight_gptq_qwen3_moe.py, weight_gptq_deepseek_moe.py.
 
-Two-level scale search per weight tensor, both levels chosen to minimize
-Hessian-diagonal-weighted squared error (same recipe as weight_gptq_llama.
-py's block_gptq_quantize_weight(use_hessiandiag_sT=True) / find_best_s_T_
-hessiandiag / quantize_*_blocks_hessiandiag, ported here on top of this
-project's own FP4 primitives instead of duplicating them):
-  1. s_T (NVFP4 only): ONE global scale multiplier for the whole weight
-     tensor, found by scanning log2 octaves around a reference scale.
-  2. per-block scale: block_size (16 NVFP4 / 32 MXFP4) columns at a time,
-     scanning e4m3-rounded (NVFP4) or ue8m0 octave-shifted (MXFP4)
-     candidates on top of s_T.
-Between blocks, the standard GPTQ/OBS step propagates each block's
-quantization error into the not-yet-quantized columns via the Hessian
-inverse (Cholesky-based), before those columns are calibrated.
+Two-level scale search per weight tensor, both levels chosen to minimize Hessian-diagonal-weighted
+squared error:
+  1. s_T (NVFP4 only): one global scale multiplier for the whole weight tensor, found by scanning log2
+     octaves around a reference scale.
+  2. per-block scale: block_size (16 NVFP4 / 32 MXFP4) columns at a time, scanning E4M3-rounded (NVFP4)
+     or UE8M0 octave-shifted (MXFP4) candidates on top of s_T.
+Between blocks, the GPTQ/OBS step propagates each block's quantization error into the not-yet-quantized
+columns via the Cholesky-based Hessian inverse.
 
-Calibration/eval split: unlike weight_gptq_llama.py (which calibrates and
-evaluates PPL on the SAME wikitext2 test-split text), this uses eval_utils.
-load_wikitext2_calib_text() (train split) for Hessian collection and
-load_wikitext2_text() (test split) for PPL -- matching this project's
-established train/test separation (see eval_utils.py's own comment on
-why) instead of the older script's overlap.
+Calibration: WikiText-2 train split (load_wikitext2_calib_text).
 
-Output: ptq_cache/{fmt}/{model_key}/ptq_cache_NVFP4.pt -- path AND
-filename convention (filename literally always says "NVFP4" regardless of
-fmt) match common/quant_targets.py's CACHE_PATH_TEMPLATE/
-load_weights_from_cache exactly, so H0_activation_isolation/weight_only.py
-can load these caches with zero changes.
+Output: $PTQ_CACHE_ROOT/{fmt}/{model_key}/ptq_cache_NVFP4.pt (default PTQ_CACHE_ROOT=~/ptq_cache; the file
+name says NVFP4 for both formats).
 
-Qwen3-30B-A3B is out of scope here: its MoE experts (gate_up_proj/
-down_proj) are batched nn.Parameter tensors, not nn.Linear -- GPTQ's
-column-block OBS update assumes a 2D [out_features, in_features] nn.Linear
-weight, which doesn't apply the same way to a [num_experts, ...] batched
-tensor (per-expert calibration would need separate Hessians gathered only
-from that expert's routed tokens). Left for later, same as the activation
-scripts (see common/qwen3_moe_targets.py's module docstring).
-
-Usage: python3 weight_gptq.py <nvfp4|mxfp4> [model ...]   (default: llama ministral)
+Usage: python3 weight_gptq.py <nvfp4|mxfp4> [model_key ...]   (default: llama_base)
 """
 import csv
 import os
@@ -73,16 +50,10 @@ GPTQ_CALIB_SEQ_LEN = int(os.environ.get("GPTQ_CALIB_SEQ_LEN", "512"))
 GPTQ_CALIB_STRIDE = int(os.environ.get("GPTQ_CALIB_STRIDE", "512"))
 GPTQ_CALIB_STEPS = int(os.environ.get("GPTQ_CALIB_STEPS", "8"))
 GPTQ_DAMP_PERCENT = float(os.environ.get("GPTQ_DAMP_PERCENT", "0.01"))
-SKIP_PPL = os.environ.get("GPTQ_SKIP_PPL", "0") == "1"  # 1: only build the ptq_cache, no PPL measurement
-
 PTQ_CACHE_ROOT = os.environ.get("PTQ_CACHE_ROOT", os.path.expanduser("~/ptq_cache"))
-RESULTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "results")
-os.makedirs(RESULTS_DIR, exist_ok=True)
-
-
 def cache_path_for(fmt: str, model_key: str) -> str:
     # filename always literally "ptq_cache_NVFP4.pt" regardless of fmt -- matches
-    # common/quant_targets.py's CACHE_PATH_TEMPLATE quirk exactly, see module docstring.
+    # common/ppl_w4a4.py's cache_path_for.
     return os.path.join(PTQ_CACHE_ROOT, fmt, model_key, "ptq_cache_NVFP4.pt")
 
 
@@ -356,76 +327,24 @@ def build_cache(fmt: str, model_key: str, calib_ids: torch.Tensor) -> dict:
     return cache
 
 
-@torch.no_grad()
-def measure_weight_only(fmt: str, model_key: str, cache: dict, encodings) -> dict:
-    model_name = MODEL_CONFIG[model_key]["model_name"]
-    from transformers import AutoModelForCausalLM
-
-    same_seeds()
-    model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.bfloat16, low_cpu_mem_usage=True)
-    model.to(DEVICE); model.eval()
-    bf16_ppl = measure_ppl(model, encodings, f"{model_key}__BF16", DEVICE)
-    del model
-    cleanup_cuda()
-
-    same_seeds()
-    model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.bfloat16, low_cpu_mem_usage=True)
-    model.to(DEVICE); model.eval()
-    modules = dict(model.named_modules())
-    n = 0
-    for name, w in cache.items():
-        modules[name].weight.data.copy_(w.to(DEVICE, torch.bfloat16))
-        n += 1
-    weight_ppl = measure_ppl(model, encodings, f"{model_key}__Weight_ONLY", DEVICE)
-    del model
-    cleanup_cuda()
-
-    print(f"[{fmt}][{model_key}] BF16={bf16_ppl:.6f}  Weight_ONLY={weight_ppl:.6f} (+{weight_ppl - bf16_ppl:.4f})  n_layers={n}", flush=True)
-    return {"format": fmt, "model": model_key, "bf16_ppl": bf16_ppl, "weight_only_ppl": weight_ppl,
-            "increase": weight_ppl - bf16_ppl, "n_layers": n}
-
-
 def main():
     fmt = sys.argv[1]
     model_keys = sys.argv[2:] if len(sys.argv) > 2 else ["llama_base"]
-
     same_seeds()
     calib_text = load_wikitext2_calib_text()
-
-    rows = []
     for model_key in model_keys:
         path = cache_path_for(fmt, model_key)
         if os.path.exists(path):
-            print(f"[{fmt}][{model_key}] cache already exists -> {path} (loading, not rebuilding)", flush=True)
-            cache = torch.load(path, map_location="cpu")
-        else:
-            model_name = MODEL_CONFIG[model_key]["model_name"]
-            _, calib_encodings = load_tokenizer_and_encodings(model_name, calib_text)
-            t0 = time.time()
-            cache = build_cache(fmt, model_key, calib_encodings.input_ids)
-            os.makedirs(os.path.dirname(path), exist_ok=True)
-            torch.save(cache, path)
-            print(f"[{fmt}][{model_key}] cache saved -> {path} ({time.time() - t0:.1f}s)", flush=True)
-
-        if SKIP_PPL:  # cache-only run: no PPL measurement
-            del cache
-            cleanup_cuda()
+            print(f"[{fmt}][{model_key}] cache already exists -> {path}", flush=True)
             continue
-        full_text = load_wikitext2_text()
-        _, encodings = load_tokenizer_and_encodings(MODEL_CONFIG[model_key]["model_name"], full_text)
-        rows.append(measure_weight_only(fmt, model_key, cache, encodings))
+        _, calib_encodings = load_tokenizer_and_encodings(MODEL_CONFIG[model_key]["model_name"], calib_text)
+        t0 = time.time()
+        cache = build_cache(fmt, model_key, calib_encodings.input_ids)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        torch.save(cache, path)
+        print(f"[{fmt}][{model_key}] cache saved -> {path} ({time.time() - t0:.1f}s)", flush=True)
         del cache
         cleanup_cuda()
-
-    if not rows:
-        return
-    csv_path = os.path.join(RESULTS_DIR, f"weight_gptq_ppl_{fmt}.csv")
-    with open(csv_path, "w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=["format", "model", "bf16_ppl", "weight_only_ppl", "increase", "n_layers"])
-        w.writeheader()
-        for row in rows:
-            w.writerow(row)
-    print(f"Saved -> {csv_path}", flush=True)
 
 
 if __name__ == "__main__":

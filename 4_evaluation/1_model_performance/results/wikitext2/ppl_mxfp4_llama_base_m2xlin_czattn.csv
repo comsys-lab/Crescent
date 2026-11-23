@@ -1,3 +1,0 @@
-format,model,setting,ppl,increase,elapsed_sec
-mxfp4,llama_base,BF16,5.696896965321543,0.0,27.1
-mxfp4,llama_base,W4A4_M2XFPLinear_CzardasAttn,7.316071111406992,1.6191741460854487,701.9

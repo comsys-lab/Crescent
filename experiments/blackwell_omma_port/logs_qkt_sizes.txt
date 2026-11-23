@@ -1,5 +1,0 @@
-2026-10-23 05:09:50 == llama_qkt_M4096 (qkt M=4096 N=4096 K=128)
-  zero=UR36 static tie PCs=128 {'ties_dropped': 524288, 'omma': 262144, 'omma_with_2_tied': 262144, 'omma_with_aliased_packed': 16384, 'ties_unconsumed': 1120}
-2026-10-23 05:11:59 == llama_qkt_M2048 (qkt M=2048 N=2048 K=128)
-  zero=UR36 static tie PCs=128 {'ties_dropped': 131072, 'omma': 65536, 'omma_with_2_tied': 65536, 'omma_with_aliased_packed': 4096, 'ties_unconsumed': 1120}
-2026-10-23 05:19:33 all done

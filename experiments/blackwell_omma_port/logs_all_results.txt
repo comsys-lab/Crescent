@@ -1,7 +1,0 @@
-RESULT all_llama_gateup_M8192 label=llama_gateup_M8192 M=8192 N=14336 K=4096 12op=9469265 widened=9469086 pct=-0.0019%
-RESULT all_llama_qkt_M8192 label=llama_qkt_M8192 M=8192 N=8192 K=128 12op=546988 widened=551001 pct=+0.7337%
-RESULT all_llama_qkt_M8192 label=llama_qkt_M8192 M=8192 N=8192 K=128 12op=546988 widened=551001 pct=+0.7337%
-FAILED all_ds_routed_gu_M8192
-RESULT all_llama_qkt_M4096 label=llama_qkt_M4096 M=4096 N=4096 K=128 12op=133442 widened=135413 pct=+1.4770%
-RESULT all_llama_qkt_M2048 label=llama_qkt_M2048 M=2048 N=2048 K=128 12op=41071 widened=41430 pct=+0.8741%
-RESULT all_ds_routed_gu_M8192 label=ds_routed_gu_M8192 M=768 N=1408 K=2048 12op=154362 widened=150545 pct=-2.4728%

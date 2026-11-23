@@ -1,2 +1,0 @@
-format,model,bf16_ppl,weight_only_ppl,increase,n_layers
-mxfp4,deepseek_moe_16b,10.084284268067622,10.625541115724548,0.5412568476569266,5380

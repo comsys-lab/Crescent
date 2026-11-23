@@ -1,0 +1,22 @@
+  _warn_once(
+rep0 M=  2048  real_fused_attn_bf16=   31.91ms
+rep0 M=  4096  real_fused_attn_bf16=  120.88ms
+rep0 M=  8192  real_fused_attn_bf16=  471.98ms
+rep1 M=  2048  real_fused_attn_bf16=   32.10ms
+rep1 M=  4096  real_fused_attn_bf16=  121.44ms
+rep1 M=  8192  real_fused_attn_bf16=  472.24ms
+rep2 M=  2048  real_fused_attn_bf16=   32.10ms
+rep2 M=  4096  real_fused_attn_bf16=  121.54ms
+rep2 M=  8192  real_fused_attn_bf16=  472.38ms
+rep3 M=  2048  real_fused_attn_bf16=   32.09ms
+rep3 M=  4096  real_fused_attn_bf16=  121.56ms
+rep3 M=  8192  real_fused_attn_bf16=  472.63ms
+rep4 M=  2048  real_fused_attn_bf16=   32.07ms
+rep4 M=  4096  real_fused_attn_bf16=  122.30ms
+rep4 M=  8192  real_fused_attn_bf16=  472.48ms
+
+SUMMARY (avg of 5 runs)
+M=  2048  avg=   32.05  range=31.91..32.10  reps=['31.91', '32.10', '32.10', '32.09', '32.07']
+M=  4096  avg=  121.54  range=120.88..122.30  reps=['120.88', '121.44', '121.54', '121.56', '122.30']
+M=  8192  avg=  472.34  range=471.98..472.63  reps=['471.98', '472.24', '472.38', '472.63', '472.48']
+DONE
