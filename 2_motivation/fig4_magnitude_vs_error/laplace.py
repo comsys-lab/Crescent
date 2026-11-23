@@ -1,4 +1,4 @@
-"""H1 premise check on synthetic i.i.d. Laplace data (real.py / real_moe.py measure the same on real activations).
+"""Figure 4 (Laplace model) on synthetic i.i.d. Laplace data (dense.py / moe.py measure the same on real activations).
 
 Same three metrics, computed by the SAME block_stats() as the real-activation runs:
   match_rate                   : P(argmax_i |a_i| == argmax_i eps_i^2) over blocks (eps = quantization error)
@@ -17,7 +17,7 @@ import sys
 import torch
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from real import block_stats, FORMAT_CONFIG, RESULTS_DIR, DEVICE  # noqa: E402
+from dense import block_stats, FORMAT_CONFIG, RESULTS_DIR, DEVICE  # noqa: E402
 
 CHUNK = 8 * 2**20  # elements per chunk (keeps GPU memory small)
 SCALE_B = 1.0 / math.sqrt(2.0)  # Laplace scale b for unit variance: Var = 2 b^2 = 1

@@ -1,3 +1,0 @@
-format,model,setting,ppl,increase,elapsed_sec
-mxfp4,qwen3_moe,BF16,7.68219930892583,0.0,30.2
-mxfp4,qwen3_moe,W4A4_baseline,10.626022801627313,2.9438234927014832,729.8

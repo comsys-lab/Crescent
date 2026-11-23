@@ -1,0 +1,101 @@
+# Environment captured 2026-10-21T00:51:10+09:00 on super
+## nvidia-smi
+index, name, compute_cap, driver_version, memory.total [MiB], clocks.max.sm [MHz]
+0, NVIDIA RTX PRO 4000 Blackwell, 12.0, 590.48.01, 24467 MiB, 3090 MHz
+1, NVIDIA RTX PRO 4000 Blackwell, 12.0, 590.48.01, 24467 MiB, 3090 MHz
+2, NVIDIA RTX PRO 4000 Blackwell, 12.0, 590.48.01, 24467 MiB, 3090 MHz
+3, NVIDIA RTX PRO 4000 Blackwell, 12.0, 590.48.01, 24467 MiB, 3090 MHz
+| NVIDIA-SMI 590.48.01              Driver Version: 590.48.01      CUDA Version: 13.1     |
++-----------------------------------------+------------------------+----------------------+
+## nvcc
+nvcc: NVIDIA (R) Cuda compiler driver
+Copyright (c) 2005-2026 NVIDIA Corporation
+Built on Thu_Mar_19_11:12:51_PM_PDT_2026
+Cuda compilation tools, release 13.2, V13.2.78
+Build cuda_13.2.r13.2/compiler.37668154_0
+## nvdisasm
+nvdisasm: NVIDIA (R) CUDA disassembler
+Copyright (c) 2005-2026 NVIDIA Corporation
+Built on Thu_Mar_19_11:09:51_PM_PDT_2026
+Cuda compilation tools, release 13.2, V13.2.78
+Build cuda_13.2.r13.2/compiler.37668154_0
+## cuobjdump
+cuobjdump: NVIDIA (R) fat binary listing tool
+Copyright (c) 2005-2026 NVIDIA Corporation
+Built on Thu_Mar_19_11:12:51_PM_PDT_2026
+Cuda compilation tools, release 13.2, V13.2.78
+Build cuda_13.2.r13.2/compiler.37668154_0
+## gcc
+gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+## other CUDA installs
+~/cuda-12.8.1
+/usr/local/cuda
+/usr/local/cuda-13
+/usr/local/cuda-13.2
+## CUTLASS (~/workspace/cutlass)
+147295a3d4b75f3aeff247c25b8927cea9a7006a Tue Sep 8 14:20:12 2026 +0800 [CuTeDSL] Fix blockwise GEMM opt-level version gate (#3563)
+v4.8.0dev-7-g147295a3
+#define CUTLASS_MAJOR 4
+#define CUTLASS_MINOR 8
+#define CUTLASS_PATCH 0
+ M include/cutlass/gemm/collective/sm120_blockscaled_mma_tma.hpp
+## Accel-Sim
+64653015f85fb5664c84a10f48527e8897d289d0 Tue Aug 25 14:28:04 2026 -0400 Set the v2.0.0 release date in the release notes (#555)
+blackwell-omma-port
+## Accel-Sim tested configs
+SM3_KEPLER_TITAN
+SM6_TITANX
+SM75_RTX2060
+SM75_RTX2060_S
+SM7_GV100
+SM7_QV100
+SM7_TITANV
+SM80_A100
+SM86_RTX3070
+SM90_H100
+SM90_H200
+## Accel-Sim ISA defs
+accelwattch_component_mapping.h
+ampere_opcode.h
+hopper_opcode.h
+kepler_opcode.h
+pascal_opcode.h
+trace_opcode.h
+turing_opcode.h
+volta_opcode.h
+## Blackwell/OMMA mentions in Accel-Sim tree
+~/workspace/activation_quantization/accel-sim-framework/release.notes.md:14:> **Roadmap:** experimental **Blackwell (B200 / RTX 5090)** support and **multi-GPU / NVLink**
+~/workspace/activation_quantization/accel-sim-framework/mlperf.md:170:Run the simulation with the following command:
+~/workspace/activation_quantization/accel-sim-framework/mlperf.md:205:There you'll find a `run.sh` script with the computation command.
+~/workspace/activation_quantization/accel-sim-framework/mlperf.md:211:Copy the profiling command and prepend it to the execution line inside:
+~/workspace/activation_quantization/accel-sim-framework/mlperf.md:241:Follow the same approach: prepend this command to the `cmd` in `customize.py`.
+~/workspace/activation_quantization/accel-sim-framework/README.md:28:> **Roadmap:** experimental **Blackwell (B200 / RTX 5090)** and **multi-GPU / NVLink** support are incoming shortly.
+~/workspace/activation_quantization/accel-sim-framework/README.md:195:To trace **any other command** — your own binary, a Python script, a serving framework — use the `run.sh` wrapper instead: it sets up the NVBit tracing environment and then `exec`s whatever you hand it.
+~/workspace/activation_quantization/accel-sim-framework/README.md:305:The `run.sh` wrapper sets up the NVBit tracing environment and execs the command you give it.
+~/workspace/activation_quantization/accel-sim-framework/README.md:469:`cupti.sh` exports the PM-sampling configuration, points `CUDA_INJECTION64_PATH` at the injection library, and then `exec`s the command you gave it — so it profiles any CUDA program without recompiling it.
+~/workspace/activation_quantization/accel-sim-framework/README.md:491:Change them by editing the script (or a copy of it); `-m` is the only knob exposed on the command line.
+~/workspace/activation_quantization/accel-sim-framework/util/hw_stats/get_posted_hw_stats.py:32:    help="Comma seperated list of cards to download. Available cards: {0}".format(
+~/workspace/activation_quantization/accel-sim-framework/util/hw_stats/run_hw.py:58:    help="a comma seperated list of benchmark suites to run. See apps/define-*.yml for "
+~/workspace/activation_quantization/accel-sim-framework/util/hw_stats/run_hw.py:297:                extract_command = (
+~/workspace/activation_quantization/accel-sim-framework/util/hw_stats/run_hw.py:301:                profile_command = (
+~/workspace/activation_quantization/accel-sim-framework/util/hw_stats/run_hw.py:323:                    + profile_command
+~/workspace/activation_quantization/accel-sim-framework/util/hw_stats/run_hw.py:329:                    + extract_command
+~/workspace/activation_quantization/accel-sim-framework/util/hw_stats/run_hw.py:388:                profile_command = (
+~/workspace/activation_quantization/accel-sim-framework/util/hw_stats/run_hw.py:399:                extract_command = (
+~/workspace/activation_quantization/accel-sim-framework/util/hw_stats/run_hw.py:409:                    + profile_command
+~/workspace/activation_quantization/accel-sim-framework/util/hw_stats/run_hw.py:415:                    +extract_command
+## NVBit: Accel-Sim install_nvbit.sh pins
+wget https://github.com/NVlabs/NVBit/releases/download/v1.8/nvbit-Linux-x86_64-1.8.tar.bz2
+## Notes
+- Driver 590.48.01 reports max CUDA 13.1; toolkit is 13.2 (relies on CUDA minor-version compatibility; cubins compiled for sm_120 directly).
+- ~/workspace/cutlass has a LOCAL MODIFICATION (sm120_blockscaled_mma_tma.hpp) - not touched by this work.
+- No Blackwell support in Accel-Sim v2.0.0, origin/dev (acc3ab9) or any public branch/PR (checked 2026-10-21). README: "Roadmap: experimental Blackwell ... incoming shortly".
+- Tracer limit: util/tracer_nvbit/tracer_tool/common.h MAX_SRC=5.
+## GPGPU-Sim
+repo https://github.com/accel-sim/gpgpu-sim_distribution.git, no tags; using dev HEAD
+d922cf39c3ac82c2b027236349098e49e46b878e (2026-10-20) = Accel-Sim-2.0 Hopper model e10018b6 + CI/doc/warning fixes only.
+Work branch: blackwell-omma-port (both repos).
+## NVBit
+1.8 (pinned by Accel-Sim v2.0.0 install_nvbit.sh). Note: NVBit 1.8.1 (2026-09-29) "Fixed URZ uniform register index decoding on Blackwell".
+## Build deps
+bison/flex/makedepend/zstd via micromamba into 4_evaluation/fig12_speedup/blackwell_omma_port/tools (no sudo). See env.sh.

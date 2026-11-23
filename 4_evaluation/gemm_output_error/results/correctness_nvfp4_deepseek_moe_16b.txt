@@ -1,6 +1,0 @@
-[check1 Native-FP4-matches-module] layer=model.layers.0.self_attn.q_proj max_abs_diff=0.000000e+00 PASS
-[check2 Czardas-boost-fraction-and-error-drop] expected=0.1250 actual=0.1216 improved=True PASS
-[check3 FullBoost-affects-most-elements] full_frac=0.6922 (vs Czardas 0.1216) PASS
-[check4 same-operand-across-methods] same source tensor reused for all 5 settings: PASS
-[check5 attn-decomposition-cross-term-dropped] harness_vs_manual=0.000000e+00 decomp_vs_naive=9.317601e-02 PASS
-ALL_PASSED=True

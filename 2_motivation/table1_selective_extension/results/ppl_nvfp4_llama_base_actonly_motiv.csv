@@ -1,3 +1,0 @@
-format,model,setting,ppl,increase,elapsed_sec
-nvfp4,llama_base,BF16,5.696896965321543,0.0,27.2
-nvfp4,llama_base,Motiv_Top12.5_E2M3_ActOnly,5.953549555709094,0.2566525903875503,1212.8

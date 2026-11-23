@@ -1,3 +1,0 @@
-format,model,setting,ppl,increase,elapsed_sec
-mxfp4,deepseek_moe_16b,BF16,10.084284268067622,0.0,38.6
-mxfp4,deepseek_moe_16b,Weight_NAIVE,10.827018846916896,0.7427345788492747,31.9

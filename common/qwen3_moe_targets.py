@@ -1,14 +1,11 @@
-"""Shared Qwen3-30B-A3B (qwen3_moe) monkeypatch infra -- the MoE analog of
-quant_targets.py's patch_eager_ropegqa/patch_eager_ropegqa_decomposed, used
-by every Hn hypothesis script's *_moe_qwen3.py variant (H2's real_moe_qwen3.py,
-H3/H4/H5's real_moe_qwen3.py + ppl_moe_qwen3.py).
+"""Qwen3-30B-A3B (qwen3_moe) patches -- the MoE counterpart of quant_targets.py's
+patch_eager_ropegqa / patch_eager_ropegqa_decomposed.
 
-Two real differences from quant_targets.py's dense-model patches (found by
-reading the actual transformers source -- see HANDOFF_MOE_UPGRADE.md):
+Two differences from the dense-model patches:
 
 1. Qwen3MoeAttention has QK-Norm (self.q_norm/self.k_norm, a per-head
    RMSNorm) applied to Q/K right after the reshape, BEFORE RoPE -- no
-   analog in Llama/Mistral/Ministral.
+   analog in Llama.
 2. The FFN experts (Qwen3MoeExperts) are NOT nn.Linear modules -- gate_up_proj/
    down_proj are raw nn.Parameter tensors of shape [num_experts, ...], matmul'd
    per active expert via nn.functional.linear(x, self.gate_up_proj[expert_idx])
@@ -38,7 +35,7 @@ MODEL_NAME = "Qwen/Qwen3-30B-A3B"
 def patch_eager_qwen3_moe(mod, q_fn, k_fn, v_fn, p_fn):
     """Plain (non-decomposed) Qwen3MoeAttention patch -- q_fn/k_fn/v_fn:
     tensor->tensor, p_fn: attn_weights->attn_weights (post-softmax). Use for
-    probe-only (H2 style, q_fn/k_fn are identity-returning side-effect
+    probe-only (q_fn/k_fn are identity-returning side-effect
     probes) or single-precision-level arms (e.g. the *_ALL plain arm, no
     base/boost split needed since there's no delta x delta cross term to
     drop)."""

@@ -1,3 +1,0 @@
-format,model,setting,ppl,increase,elapsed_sec
-mxfp4,llama_base,BF16,5.696896965321543,0.0,27.1
-mxfp4,llama_base,W4A4_Czardas_VP_perblock,7.681136386299863,1.9842394209783194,1023.6

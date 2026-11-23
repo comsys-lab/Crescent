@@ -1,3 +1,0 @@
-format,model,setting,ppl,increase,elapsed_sec
-nvfp4,qwen3_moe,BF16,7.68219930892583,0.0,29.6
-nvfp4,qwen3_moe,W4A4_Magnitude_top2,8.03618424901297,0.3539849400871411,2141.4

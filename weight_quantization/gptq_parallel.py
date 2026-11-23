@@ -8,10 +8,7 @@ search and the ill-conditioning guard are exactly weight_gptq's; only WHEN each 
 matrix runs changes. Jobs are pulled lazily from a generator (so the caller can pop each
 Hessian/weight as it is dispatched and memory falls while the run progresses).
 
-run_jobs(jobs, fmt, n_devices, procs_per_device, rotate_group=0) -> ({key: quantized cpu tensor}, {key: rel_err})
-rotate_group == -1: each (weight, Hessian) is FULL-rotated (common/full_rotation.py, whole input dim);
-rotate_group > 0: each (weight, Hessian) is micro-rotated first (weight columns and Hessian by the same
-block-diagonal Hadamard) and the returned tensor is the quantized ROTATED weight.
+run_jobs(jobs, fmt, n_devices, procs_per_device) -> ({key: quantized cpu tensor}, {key: rel_err})
 """
 import os
 import sys
@@ -24,7 +21,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "common"))
 
 
-def _worker(dev_index, fmt, in_q, out_q, rotate_group=0):
+def _worker(dev_index, fmt, in_q, out_q):
     os.environ["GPTQ_CPU"] = "0"  # GPTQ math on the worker's GPU (weight.device)
     torch.multiprocessing.set_sharing_strategy("file_system")
     import weight_gptq as W  # after GPTQ_CPU is set: it is read at import time
@@ -41,14 +38,6 @@ def _worker(dev_index, fmt, in_q, out_q, rotate_group=0):
         key, w, h = item
         try:
             wd = w.to(dev)
-            if rotate_group < 0:  # full rotation (QuaRot-style, whole input dim): weight cols and Hessian, same R
-                from full_rotation import full_rotate_last_dim, full_rotate_hessian
-                wd = full_rotate_last_dim(wd)                                # fp32
-                h = full_rotate_hessian(h.to(dev, torch.float32))
-            elif rotate_group:  # micro rotation (block-diagonal, group = rotate_group)
-                from micro_rotation import hadamard_transform_last_dim, rotate_hessian
-                wd = hadamard_transform_last_dim(wd, rotate_group)          # fp32
-                h = rotate_hessian(h.to(dev, torch.float32), rotate_group)
             q = W.gptq_quantize_weight(wd, h, fmt)
             w32, q32 = wd.float(), q.float()
             rel = float(((w32 - q32) ** 2).sum() / (w32 ** 2).sum().clamp(min=1e-30))
@@ -57,13 +46,13 @@ def _worker(dev_index, fmt, in_q, out_q, rotate_group=0):
             out_q.put(("err", key, repr(e)))
 
 
-def run_jobs(jobs, fmt: str, n_devices: int, procs_per_device: int, log_every: int = 200, rotate_group: int = 0):
+def run_jobs(jobs, fmt: str, n_devices: int, procs_per_device: int, log_every: int = 200):
     torch.multiprocessing.set_sharing_strategy("file_system")
     ctx = mp.get_context("spawn")
     n_workers = n_devices * procs_per_device
     in_q = ctx.Queue(maxsize=n_workers * 2)
     out_q = ctx.Queue()
-    procs = [ctx.Process(target=_worker, args=(i % n_devices, fmt, in_q, out_q, rotate_group), daemon=True) for i in range(n_workers)]
+    procs = [ctx.Process(target=_worker, args=(i % n_devices, fmt, in_q, out_q), daemon=True) for i in range(n_workers)]
     for p in procs:
         p.start()
 

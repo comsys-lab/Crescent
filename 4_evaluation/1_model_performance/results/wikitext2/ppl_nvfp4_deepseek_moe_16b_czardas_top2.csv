@@ -1,3 +1,0 @@
-format,model,setting,ppl,increase,elapsed_sec
-nvfp4,deepseek_moe_16b,BF16,10.084284268067622,0.0,54.7
-nvfp4,deepseek_moe_16b,W4A4_Czardas_top2,10.828644628532649,0.7443603604650271,1310.4

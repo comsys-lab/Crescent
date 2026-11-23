@@ -1,3 +1,0 @@
-format,model,setting,ppl,increase,elapsed_sec
-mxfp4,qwen3_moe,BF16,7.68219930892583,0.0,30.2
-mxfp4,qwen3_moe,Weight_NAIVE,8.1016200801165,0.419420771190671,277.9

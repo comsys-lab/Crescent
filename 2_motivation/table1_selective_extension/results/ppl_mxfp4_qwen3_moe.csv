@@ -1,0 +1,4 @@
+format,model,setting,ppl,increase,elapsed_sec
+mxfp4,qwen3_moe,BF16,7.68219930892583,0.0,30.2
+mxfp4,qwen3_moe,Native,9.500003621432278,1.817804312506448,723.2
+mxfp4,qwen3_moe,Selective_E2M3,7.9806898090544,0.2984905001285707,1914.1

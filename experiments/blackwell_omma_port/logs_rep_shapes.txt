@@ -1,8 +1,0 @@
-2026-10-22 22:49:47 == llama_gateup_M8192 (linear M=8192 N=14336 K=4096)
-  zero=UR36 static tie PCs=64 {'ties_dropped': 58720256, 'omma': 58720256, 'omma_with_1_tied': 58720256, 'omma_with_aliased_packed': 41287680, 'ties_unconsumed': 0}
-2026-10-23 00:09:43 == llama_qkt_M8192 (qkt M=8192 N=8192 K=128)
-  zero=UR36 static tie PCs=128 {'ties_dropped': 2097152, 'omma': 1048576, 'omma_with_2_tied': 1048576, 'omma_with_aliased_packed': 65536, 'ties_unconsumed': 1120}
-2026-10-23 04:52:14 == ds_routed_gu_M8192 (linear M=768 N=1408 K=2048)
-  zero=UR36 static tie PCs=64 {'ties_dropped': 270336, 'omma': 270336, 'omma_with_1_tied': 270336, 'omma_with_aliased_packed': 185856, 'ties_unconsumed': 0}
-./run_all_shapes.sh: line 81: syntax error near unexpected token `fi'
-./run_all_shapes.sh: line 81: `    fi'

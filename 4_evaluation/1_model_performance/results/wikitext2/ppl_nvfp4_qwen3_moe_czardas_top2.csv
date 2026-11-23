@@ -1,3 +1,0 @@
-format,model,setting,ppl,increase,elapsed_sec
-nvfp4,qwen3_moe,BF16,7.68219930892583,0.0,29.6
-nvfp4,qwen3_moe,W4A4_Czardas_top2,7.910237422129301,0.22803811320347123,2128.2

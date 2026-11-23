@@ -1,1 +1,0 @@
-RESULT m3tie_linear_2048x4096x4096 waves=4 ctas=280 12op=825893 widened=822530 pct=-0.407%

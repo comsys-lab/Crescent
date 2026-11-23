@@ -1,3 +1,0 @@
-format,model,setting,ppl,increase,elapsed_sec
-nvfp4,llama_base,BF16,5.696896965321543,0.0,27.2
-nvfp4,llama_base,Weight_NAIVE,6.016939789216679,0.32004282389513605,26.6
