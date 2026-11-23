@@ -1,0 +1,3 @@
+[check1 global-selects-exactly-k-per-block] k=2 frac_blocks_with_exactly_k=0.9596 PASS
+[check2 local-vs-global-diverge-on-same-half-case] n_diverging_blocks=660865/1400832 found_same_half_case=True PASS
+ALL_PASSED=True

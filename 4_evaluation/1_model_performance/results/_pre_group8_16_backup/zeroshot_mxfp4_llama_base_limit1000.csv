@@ -1,0 +1,6 @@
+format,model,setting,arc_easy,arc_challenge,hellaswag,piqa,lambada_openai,winogrande,avg
+mxfp4,llama_base,BF16,0.82,0.545,0.705,0.817,0.76,0.733,0.73
+mxfp4,llama_base,Native_FP4,0.68,0.401,0.607,0.749,0.598,0.618,0.6088333333333333
+mxfp4,llama_base,Ours,0.752,0.473,0.651,0.764,0.683,0.661,0.664
+mxfp4,llama_base,Magnitude,0.739,0.454,0.654,0.778,0.666,0.651,0.657
+mxfp4,llama_base,Full_Boost,0.79,0.507,0.679,0.795,0.731,0.705,0.7011666666666666

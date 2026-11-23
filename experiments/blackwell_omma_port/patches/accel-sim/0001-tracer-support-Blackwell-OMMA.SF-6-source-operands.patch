@@ -1,0 +1,131 @@
+From 0cc381fb724b78c3cfd8da7c35db606727f98562 Mon Sep 17 00:00:00 2001
+From: minseong <minseong7859@gmail.com>
+Date: Wed, 21 Oct 2026 01:10:55 +0900
+Subject: [PATCH 1/7] tracer: support Blackwell OMMA.SF (6 source operands)
+
+OMMA.SF.16864.F32.E2M1.E2M1.UE4M3.4X (sm_120 block-scaled FP4 MMA) has
+6 sources: A, B, C, SFA, SFB (GPRs) + a uniform register holding the
+scale byte/thread-id selectors. With MAX_SRC=5 the tracer aborted with
+`Assertion srcNum < MAX_SRC` (tracer_tool.cu:497) while instrumenting.
+
+- MAX_SRC 5 -> 8 (6 for OMMA + room for one extra source).
+- instrument_inst() takes srcReg6..8 / srcReg6Val..8Val.
+- Add one 32-bit pad arg so the 64-bit args that follow stay 8-byte
+  aligned: with an odd number of preceding 32-bit args every
+  instrumented kernel failed with cudaErrorIllegalAddress on
+  sm_120 / NVBit 1.8 (bisected: extra args after the 64-bit args are
+  fine; one extra 32-bit arg before them breaks).
+- TEMPORARY: TRACE_DEBUG_OPCODE=<prefix> prints NVBit's decoded operands
+  and the register IDs written to the trace at instrumentation time.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ util/tracer_nvbit/tracer_tool/common.h        |  5 ++++-
+ util/tracer_nvbit/tracer_tool/inject_funcs.cu | 16 ++++++++++++--
+ util/tracer_nvbit/tracer_tool/tracer_tool.cu  | 21 +++++++++++++++++++
+ 3 files changed, 39 insertions(+), 3 deletions(-)
+
+diff --git a/util/tracer_nvbit/tracer_tool/common.h b/util/tracer_nvbit/tracer_tool/common.h
+index 8ae3d3c..14b77ec 100644
+--- a/util/tracer_nvbit/tracer_tool/common.h
++++ b/util/tracer_nvbit/tracer_tool/common.h
+@@ -9,7 +9,10 @@ static __managed__ bool stop_report = false;
+ 
+ /* information collected in the instrumentation function and passed
+  * on the channel from the GPU to the CPU */
+-#define MAX_SRC 5
++// Blackwell OMMA.SF (block-scaled FP4 MMA) has 6 sources: A, B, C, SFA, SFB
++// (GPRs) + a uniform register holding the scale byte/thread-id selectors.
++// 8 leaves room for one extra (e.g. correction-data) source register.
++#define MAX_SRC 8
+ // Unified registers are offset by 256 from the regular registers
+ #define UREG_OFFSET 256
+ 
+diff --git a/util/tracer_nvbit/tracer_tool/inject_funcs.cu b/util/tracer_nvbit/tracer_tool/inject_funcs.cu
+index 3d8e7b6..e899cf7 100644
+--- a/util/tracer_nvbit/tracer_tool/inject_funcs.cu
++++ b/util/tracer_nvbit/tracer_tool/inject_funcs.cu
+@@ -42,13 +42,16 @@ instrument_inst(int pred, int opcode_id, int32_t vpc, bool is_tma,
+                 uint64_t tma_param_handle, uint32_t tma_param_handle_size,
+                 bool is_mem, uint64_t addr, int32_t width, int32_t desReg,
+                 int32_t srcReg1, int32_t srcReg2, int32_t srcReg3,
+-                int32_t srcReg4, int32_t srcReg5, int32_t srcNum,
++                int32_t srcReg4, int32_t srcReg5, int32_t srcReg6,
++                int32_t srcReg7, int32_t srcReg8, int32_t srcNum,
++                int32_t pad_align64, // see tracer_tool.cu: keeps 64-bit args aligned
+                 uint64_t immediate, uint64_t immediate2, uint64_t pchannel_dev,
+                 uint64_t ptotal_dynamic_instr_counter,
+                 uint64_t preported_dynamic_instr_counter, uint64_t pstop_report,
+                 uint32_t line_num, uint32_t instr_idx, uint32_t desRegVal,
+                 uint32_t srcReg1Val, uint32_t srcReg2Val, uint32_t srcReg3Val,
+-                uint32_t srcReg4Val, uint32_t srcReg5Val, uint32_t auxRegVal,
++                uint32_t srcReg4Val, uint32_t srcReg5Val, uint32_t srcReg6Val,
++                uint32_t srcReg7Val, uint32_t srcReg8Val, uint32_t auxRegVal,
+                 bool is_gmma_commit_group) {
+   const int active_mask = __ballot_sync(__activemask(), 1);
+   const int predicate_mask = __ballot_sync(__activemask(), pred);
+@@ -117,6 +120,9 @@ instrument_inst(int pred, int opcode_id, int32_t vpc, bool is_tma,
+     trace.inst.regular.GPRSrcs[2] = srcReg3;
+     trace.inst.regular.GPRSrcs[3] = srcReg4;
+     trace.inst.regular.GPRSrcs[4] = srcReg5;
++    trace.inst.regular.GPRSrcs[5] = srcReg6;
++    trace.inst.regular.GPRSrcs[6] = srcReg7;
++    trace.inst.regular.GPRSrcs[7] = srcReg8;
+     trace.inst.regular.numSrcs = srcNum;
+     trace.inst.regular.imm = immediate;
+     trace.inst.regular.imm2 = immediate2;
+@@ -134,6 +140,12 @@ instrument_inst(int pred, int opcode_id, int32_t vpc, bool is_tma,
+           __shfl_sync(active_mask, srcReg4Val, tid);
+       trace.inst.regular.srcRegVals[4][tid] =
+           __shfl_sync(active_mask, srcReg5Val, tid);
++      trace.inst.regular.srcRegVals[5][tid] =
++          __shfl_sync(active_mask, srcReg6Val, tid);
++      trace.inst.regular.srcRegVals[6][tid] =
++          __shfl_sync(active_mask, srcReg7Val, tid);
++      trace.inst.regular.srcRegVals[7][tid] =
++          __shfl_sync(active_mask, srcReg8Val, tid);
+       trace.inst.regular.auxRegVals[tid] =
+           __shfl_sync(active_mask, auxRegVal, tid);
+     }
+diff --git a/util/tracer_nvbit/tracer_tool/tracer_tool.cu b/util/tracer_nvbit/tracer_tool/tracer_tool.cu
+index 5db9ff7..3ac19b2 100644
+--- a/util/tracer_nvbit/tracer_tool/tracer_tool.cu
++++ b/util/tracer_nvbit/tracer_tool/tracer_tool.cu
+@@ -513,6 +513,22 @@ void instrument_function_if_needed(CUcontext ctx, CUfunction func) {
+         // Skip here
+       }
+ 
++      // TEMPORARY debug (Blackwell OMMA port): for opcodes starting with
++      // $TRACE_DEBUG_OPCODE, dump NVBit's decoded operands and the register
++      // IDs that will be written to the trace (UREGs are +UREG_OFFSET).
++      if (const char *dbg = std::getenv("TRACE_DEBUG_OPCODE")) {
++        if (*dbg && strncmp(instr->getOpcode(), dbg, strlen(dbg)) == 0) {
++          printf("[TRACE_DEBUG] pc=0x%x sass=\"%s\"\n", instr->getOffset(),
++                 instr->getSass());
++          instr->printDecoded();
++          printf("[TRACE_DEBUG]   trace dst=%d srcNum=%d srcs=", dst_oprd,
++                 srcNum);
++          for (int s = 0; s < srcNum; s++)
++            printf("%d ", src_oprd[s]);
++          printf("\n");
++        }
++      }
++
+       do {
+         /* insert call to the instrumentation function with its
+          * arguments */
+@@ -563,6 +579,11 @@ void instrument_function_if_needed(CUcontext ctx, CUfunction func) {
+           nvbit_add_call_arg_const_val32(instr, static_cast<uint32_t>(-1));
+         }
+         nvbit_add_call_arg_const_val32(instr, srcNum);
++        // Keep the following 64-bit args 8-byte aligned: NVBit packs call
++        // args back to back, so the number of 32-bit args before `immediate`
++        // must stay even (MAX_SRC=8 makes it odd). Observed on sm_120 / NVBit
++        // 1.8: an odd count gives cudaErrorIllegalAddress in every kernel.
++        nvbit_add_call_arg_const_val32(instr, 0);
+ 
+         /* immediate info (up to two immediates) */
+         nvbit_add_call_arg_const_val64(instr, imm_value);
+-- 
+2.43.0
+

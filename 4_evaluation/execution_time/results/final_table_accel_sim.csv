@@ -1,0 +1,4 @@
+total_tokens,llama_pct,qwen_pct,deepseek_pct
+2048,7.19,2.21,1.60
+4096,6.07,2.19,1.07
+8192,4.53,1.10,0.87

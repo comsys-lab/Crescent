@@ -1,0 +1,4 @@
+format,model,setting,ppl,increase,elapsed_sec
+mxfp4,deepseek_moe_16b,BF16,15.75850582372904,0.0,131.8
+mxfp4,deepseek_moe_16b,Native_FP4,20.615932528262846,4.857426704533806,886.5
+mxfp4,deepseek_moe_16b,Ours,17.873865954782698,2.1153601310536576,1839.1

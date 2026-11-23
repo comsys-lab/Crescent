@@ -1,0 +1,2 @@
+format,model,k,boost_mant_bits,ppl,elapsed_sec
+nvfp4,llama_base,2,3,5.9344962982231,467.317

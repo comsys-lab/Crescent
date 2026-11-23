@@ -1,0 +1,100 @@
+From 607b583e88462d75f202e42b89a9d0e5c1c786b9 Mon Sep 17 00:00:00 2001
+From: minseong <minseong7859@gmail.com>
+Date: Wed, 21 Oct 2026 01:25:25 +0900
+Subject: [PATCH 1/2] stats: report register-file reads/writes; count partial
+ writebacks
+
+- Print gpgpu_n_regfile_reads / gpgpu_n_regfile_writes (thread-register
+  units), previously only visible through AccelWattch.
+- opndcoll_rfu_t::writeback(): count every register whose bank write is
+  allocated. On a bank conflict it returns false and
+  shader_core_ctx::writeback() ignores that, so the old count (taken only
+  on success) reported 0 writes for multi-destination writebacks such as
+  a 4-register MMA accumulator. Timing is unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ src/gpgpu-sim/shader.cc | 28 +++++++++++++++++++++++++---
+ src/gpgpu-sim/shader.h  |  1 +
+ 2 files changed, 26 insertions(+), 3 deletions(-)
+
+diff --git a/src/gpgpu-sim/shader.cc b/src/gpgpu-sim/shader.cc
+index 96656943..d1638f29 100644
+--- a/src/gpgpu-sim/shader.cc
++++ b/src/gpgpu-sim/shader.cc
+@@ -736,6 +736,17 @@ void shader_core_stats::print(FILE *fout) const {
+   fprintf(fout, "gpu_reg_bank_conflict_stalls = %d\n",
+           gpu_reg_bank_conflict_stalls);
+ 
++  // Register-file accesses counted by the operand collector / writeback
++  // (normally only reported through AccelWattch). Units: thread-registers
++  // (one warp-wide register read = warp_size).
++  unsigned long long rf_reads = 0, rf_writes = 0;
++  for (unsigned i = 0; i < m_config->num_shader(); i++) {
++    rf_reads += m_read_regfile_acesses[i];
++    rf_writes += m_write_regfile_acesses[i];
++  }
++  fprintf(fout, "gpgpu_n_regfile_reads = %llu\n", rf_reads);
++  fprintf(fout, "gpgpu_n_regfile_writes = %llu\n", rf_writes);
++
+   fprintf(fout, "Warp Occupancy Distribution:\n");
+   fprintf(fout, "Stall:%llu\t", shader_cycle_distro[2]);
+   fprintf(fout, "W0_Idle:%llu\t", shader_cycle_distro[0]);
+@@ -5205,7 +5216,11 @@ unsigned register_bank(int regnum, int wid, unsigned num_banks,
+ bool opndcoll_rfu_t::writeback(warp_inst_t &inst) {
+   assert(!inst.empty());
+ 
+-  std::list<unsigned> regs = m_shader->get_regs_written(inst);
++  // Count each register whose bank write is allocated. On a bank conflict
++  // this returns false and shader_core_ctx::writeback() ignores it, so the
++  // remaining registers are never written to a bank; the old count (taken
++  // only on success) reported 0 writes for such multi-destination writebacks.
++  unsigned regs_allocated = 0;
+   for (unsigned op = 0; op < MAX_REG_OPERANDS; op++) {
+     int reg_num = inst.arch_reg.dst[op];  // this math needs to match that used
+                                           // in function_info::ptx_decode_inst
+@@ -5218,12 +5233,20 @@ bool opndcoll_rfu_t::writeback(warp_inst_t &inst) {
+             bank, op_t(&inst, reg_num, m_num_banks, sub_core_model,
+                        m_num_banks_per_sched, inst.get_schd_id()));
+         inst.arch_reg.dst[op] = -1;
++        regs_allocated++;
+       } else {
++        count_regfile_writes(inst, regs_allocated);
+         return false;
+       }
+     }
+   }
+-  for (unsigned i = 0; i < (unsigned)regs.size(); i++) {
++  count_regfile_writes(inst, regs_allocated);
++  return true;
++}
++
++void opndcoll_rfu_t::count_regfile_writes(const warp_inst_t &inst,
++                                          unsigned nregs) {
++  for (unsigned i = 0; i < nregs; i++) {
+     if (m_shader->get_config()->gpgpu_clock_gated_reg_file) {
+       unsigned active_count = 0;
+       for (unsigned i = 0; i < m_shader->get_config()->warp_size;
+@@ -5242,7 +5265,6 @@ bool opndcoll_rfu_t::writeback(warp_inst_t &inst) {
+           m_shader->get_config()->warp_size);  // inst.active_count());
+     }
+   }
+-  return true;
+ }
+ 
+ void opndcoll_rfu_t::dispatch_ready_cu() {
+diff --git a/src/gpgpu-sim/shader.h b/src/gpgpu-sim/shader.h
+index 8d5b7617..cbd3f32d 100644
+--- a/src/gpgpu-sim/shader.h
++++ b/src/gpgpu-sim/shader.h
+@@ -1071,6 +1071,7 @@ class opndcoll_rfu_t
+ 
+   // modifiers
+   virtual bool writeback(warp_inst_t &warp) override;
++  void count_regfile_writes(const warp_inst_t &inst, unsigned nregs);
+ 
+   virtual void step() override {
+     dispatch_ready_cu();
+-- 
+2.43.0
+

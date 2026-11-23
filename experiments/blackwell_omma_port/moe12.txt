@@ -1,0 +1,12 @@
+ds_routed_gu_M8192 linear 768 1408 2048
+ds_routed_down_M8192 linear 768 2048 1408
+ds_routed_gu_M4096 linear 384 1408 2048
+ds_routed_down_M4096 linear 384 2048 1408
+qwen_gateup_M8192 linear 512 768 2048
+qwen_down_M8192 linear 512 2048 768
+qwen_gateup_M4096 linear 256 768 2048
+qwen_down_M4096 linear 256 2048 768
+ds_routed_gu_M2048 linear 128 1408 2048
+ds_routed_down_M2048 linear 128 2048 1408
+qwen_gateup_M2048 linear 128 768 2048
+qwen_down_M2048 linear 128 2048 768

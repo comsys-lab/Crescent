@@ -1,0 +1,14 @@
+model,config,surface,mse_rel_g,ppl,elapsed_sec
+deepseek_moe_16b,BF16,-,0.0,10.084284268067622,31.312
+deepseek_moe_16b,E2M1_amax_E4M3,Linear,0.008739231770556256,10.913890685016973,254.624
+deepseek_moe_16b,E2M1_amax_E4M3,Q,0.00898863172291645,,
+deepseek_moe_16b,E2M1_amax_E4M3,K,0.00898794291008796,,
+deepseek_moe_16b,E2M1_optimal_none,Linear,0.006635613277667089,10.593772203497911,4319.859
+deepseek_moe_16b,E2M1_optimal_none,Q,0.006610435932608587,,
+deepseek_moe_16b,E2M1_optimal_none,K,0.006618101582197207,,
+deepseek_moe_16b,E8M1_amax_E4M3,Linear,0.007409756571428012,10.781157114383127,254.748
+deepseek_moe_16b,E8M1_amax_E4M3,Q,0.00808612019422331,,
+deepseek_moe_16b,E8M1_amax_E4M3,K,0.00803040325575109,,
+deepseek_moe_16b,E2M7_amax_E4M3,Linear,2.9909749779610317e-06,10.08089613559452,254.494
+deepseek_moe_16b,E2M7_amax_E4M3,Q,2.8601185947861396e-06,,
+deepseek_moe_16b,E2M7_amax_E4M3,K,2.877369914650834e-06,,

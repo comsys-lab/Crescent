@@ -1,0 +1,61 @@
+### rep1 QKT_bf16 m=2048
+  bf16 GEMM (cuBLAS):   0.0345 ms/iter   (31.1 TFLOP/s)
+### rep1 PV_bf16 m=2048
+  bf16 GEMM (cuBLAS):   0.0164 ms/iter   (65.5 TFLOP/s)
+### rep1 QKT_bf16 m=4096
+  bf16 GEMM (cuBLAS):   0.1143 ms/iter   (37.6 TFLOP/s)
+### rep1 PV_bf16 m=4096
+  bf16 GEMM (cuBLAS):   0.0433 ms/iter   (99.3 TFLOP/s)
+### rep1 QKT_bf16 m=8192
+  bf16 GEMM (cuBLAS):   0.5264 ms/iter   (32.6 TFLOP/s)
+### rep1 PV_bf16 m=8192
+  bf16 GEMM (cuBLAS):   0.2578 ms/iter   (66.6 TFLOP/s)
+### rep2 QKT_bf16 m=2048
+  bf16 GEMM (cuBLAS):   0.0349 ms/iter   (30.8 TFLOP/s)
+### rep2 PV_bf16 m=2048
+  bf16 GEMM (cuBLAS):   0.0164 ms/iter   (65.6 TFLOP/s)
+### rep2 QKT_bf16 m=4096
+  bf16 GEMM (cuBLAS):   0.1298 ms/iter   (33.1 TFLOP/s)
+### rep2 PV_bf16 m=4096
+  bf16 GEMM (cuBLAS):   0.0522 ms/iter   (82.3 TFLOP/s)
+### rep2 QKT_bf16 m=8192
+  bf16 GEMM (cuBLAS):   0.5168 ms/iter   (33.2 TFLOP/s)
+### rep2 PV_bf16 m=8192
+  bf16 GEMM (cuBLAS):   0.2661 ms/iter   (64.6 TFLOP/s)
+### rep3 QKT_bf16 m=2048
+  bf16 GEMM (cuBLAS):   0.0349 ms/iter   (30.8 TFLOP/s)
+### rep3 PV_bf16 m=2048
+  bf16 GEMM (cuBLAS):   0.0162 ms/iter   (66.4 TFLOP/s)
+### rep3 QKT_bf16 m=4096
+  bf16 GEMM (cuBLAS):   0.1283 ms/iter   (33.5 TFLOP/s)
+### rep3 PV_bf16 m=4096
+  bf16 GEMM (cuBLAS):   0.0430 ms/iter   (99.8 TFLOP/s)
+### rep3 QKT_bf16 m=8192
+  bf16 GEMM (cuBLAS):   0.5040 ms/iter   (34.1 TFLOP/s)
+### rep3 PV_bf16 m=8192
+  bf16 GEMM (cuBLAS):   0.2632 ms/iter   (65.3 TFLOP/s)
+### rep4 QKT_bf16 m=2048
+  bf16 GEMM (cuBLAS):   0.0350 ms/iter   (30.7 TFLOP/s)
+### rep4 PV_bf16 m=2048
+  bf16 GEMM (cuBLAS):   0.0163 ms/iter   (65.7 TFLOP/s)
+### rep4 QKT_bf16 m=4096
+  bf16 GEMM (cuBLAS):   0.1203 ms/iter   (35.7 TFLOP/s)
+### rep4 PV_bf16 m=4096
+  bf16 GEMM (cuBLAS):   0.0434 ms/iter   (99.0 TFLOP/s)
+### rep4 QKT_bf16 m=8192
+  bf16 GEMM (cuBLAS):   0.5061 ms/iter   (33.9 TFLOP/s)
+### rep4 PV_bf16 m=8192
+  bf16 GEMM (cuBLAS):   0.2649 ms/iter   (64.9 TFLOP/s)
+### rep5 QKT_bf16 m=2048
+  bf16 GEMM (cuBLAS):   0.0349 ms/iter   (30.8 TFLOP/s)
+### rep5 PV_bf16 m=2048
+  bf16 GEMM (cuBLAS):   0.0162 ms/iter   (66.1 TFLOP/s)
+### rep5 QKT_bf16 m=4096
+  bf16 GEMM (cuBLAS):   0.1228 ms/iter   (35.0 TFLOP/s)
+### rep5 PV_bf16 m=4096
+  bf16 GEMM (cuBLAS):   0.0479 ms/iter   (89.8 TFLOP/s)
+### rep5 QKT_bf16 m=8192
+  bf16 GEMM (cuBLAS):   0.5108 ms/iter   (33.6 TFLOP/s)
+### rep5 PV_bf16 m=8192
+  bf16 GEMM (cuBLAS):   0.2580 ms/iter   (66.6 TFLOP/s)
+DONE

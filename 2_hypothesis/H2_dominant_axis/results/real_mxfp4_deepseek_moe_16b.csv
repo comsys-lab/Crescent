@@ -1,0 +1,14 @@
+model,config,surface,mse_rel_g,ppl,elapsed_sec
+deepseek_moe_16b,BF16,-,0.0,10.084284268067622,31.6
+deepseek_moe_16b,E2M1_mxfp4_ue8m0,Linear,0.017340127832977777,12.317533758207578,218.46
+deepseek_moe_16b,E2M1_mxfp4_ue8m0,Q,0.015912596402423724,,
+deepseek_moe_16b,E2M1_mxfp4_ue8m0,K,0.015918421292943612,,
+deepseek_moe_16b,E2M1_optimal_none,Linear,0.00904141101566563,10.839887629379936,4322.822
+deepseek_moe_16b,E2M1_optimal_none,Q,0.008718840910920076,,
+deepseek_moe_16b,E2M1_optimal_none,K,0.008694946998730302,,
+deepseek_moe_16b,E8M1_mxfp4_ue8m0,Linear,0.010734288805614707,11.729905199999937,220.172
+deepseek_moe_16b,E8M1_mxfp4_ue8m0,Q,0.010687398624473385,,
+deepseek_moe_16b,E8M1_mxfp4_ue8m0,K,0.010707565250673465,,
+deepseek_moe_16b,E2M7_mxfp4_ue8m0,Linear,2.268866199319983e-06,10.080526803968475,219.289
+deepseek_moe_16b,E2M7_mxfp4_ue8m0,Q,1.6296584236995062e-06,,
+deepseek_moe_16b,E2M7_mxfp4_ue8m0,K,1.6245422378753055e-06,,

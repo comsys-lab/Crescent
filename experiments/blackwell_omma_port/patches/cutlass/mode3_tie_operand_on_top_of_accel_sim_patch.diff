@@ -1,0 +1,61 @@
+--- /tmp/claude-1002/-home-minseong/15a4a267-5df7-4566-b463-a1ae037fdef8/scratchpad/mode3_orig.hpp	2026-10-22 00:18:04.930223389 +0900
++++ cutlass_mode3/include/cutlass/gemm/collective/sm120_blockscaled_mma_tma.hpp	2026-10-22 00:22:44.804454803 +0900
+@@ -1233,6 +1233,23 @@
+     // CTA-tile at the very end (see below), isolating the packing compute itself
+     // from the cost of a per-k_block global store.
+     uint32_t pack_accum = 0;
++#ifndef NVFP4_META_TIE_OPERAND
++#define NVFP4_META_TIE_OPERAND 0
++#endif
++    // NVFP4_META_TIE_OPERAND=1 (simulation build only): without a consumer the
++    // packing is scheduled after the k_block's MMAs. To get the schedule of an
++    // instruction that reads the packed register, each MMA's accumulator (its C/D
++    // register group) gets an in-place, value-preserving
++    //   lop3 acc, acc, packed, tie_zero, 0x78    // acc ^ (packed & 0)
++    // per packed operand (A's, then B's for QK^T). tie_zero is 0 at run time but
++    // opaque to nvcc/ptxas, so ptxas keeps a real data dependency packed -> acc ->
++    // OMMA. The accumulator is updated in place by the OMMAs anyway, so removing
++    // these LOP3s from the trace leaves the OMMA->OMMA accumulator chain intact; the
++    // trace post-processor drops them and appends `packed` to the OMMA whose C
++    // register they wrote (13th operand, 14th for B).
++    uint32_t packedA_kb[MMA_M];
++    uint32_t packedB_kb[MMA_N];
++    const uint32_t tie_zero = uint32_t(k_tile_count) >> 31;   // k_tile_count >= 0
+     // A's metadata operand: one packed value PER M ATOM (MMA_M of them per k_block),
+     // not just one for the whole warp -- real SASS uses a different SFA register per
+     // M atom for exactly the same reason (A data differs by M atom), so the 13th
+@@ -1266,6 +1283,7 @@
+         // per-thread register accumulator (flushed once at the end of mma()) purely so
+         // the compiler can't prove this computation is unused and elide it.
+         pack_accum ^= packed;
++        packedA_kb[mm] = packed;
+       }
+ #if NVFP4_META_ON_B
+       CUTLASS_PRAGMA_UNROLL
+@@ -1275,6 +1293,7 @@
+         CUTLASS_PRAGMA_UNROLL
+         for (int g = 0; g < 2; ++g) packedB |= (uint32_t)((mB >> (8 * g)) & 0x1F) << (5 * g);
+         pack_accum ^= packedB;
++        packedB_kb[nn] = packedB;
+       }
+ #endif
+     };
+@@ -1382,6 +1401,18 @@
+     };
+ 
+     auto gemm_kblock = [&](auto k_block) {
++#if NVFP4_META_SW_CORRECT == 3 && NVFP4_META_TIE_OPERAND
++      CUTLASS_PRAGMA_UNROLL
++      for (int mm = 0; mm < MMA_M; ++mm) {
++        CUTLASS_PRAGMA_UNROLL
++        for (int nn = 0; nn < MMA_N; ++nn) {
++          asm volatile("lop3.b32 %0, %0, %1, %2, 0x78;" : "+f"(accum(0, mm, nn)) : "r"(packedA_kb[mm]), "r"(tie_zero));
++#if NVFP4_META_ON_B
++          asm volatile("lop3.b32 %0, %0, %1, %2, 0x78;" : "+f"(accum(0, mm, nn)) : "r"(packedB_kb[nn]), "r"(tie_zero));
++#endif
++        }
++      }
++#endif
+       // (V,M) x (V,N) => (V,M,N)
+       cute::gemm(tiled_mma, make_zip_tensor(tCrA(_,_,k_block), tCrSFA(_,_,k_block)), make_zip_tensor(tCrB(_,_,k_block), tCrSFB(_,_,k_block)), accum);
+ #if NVFP4_META_SW_CORRECT == 2

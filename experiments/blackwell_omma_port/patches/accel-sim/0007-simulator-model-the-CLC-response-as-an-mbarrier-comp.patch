@@ -1,0 +1,51 @@
+From c5dcaa274c758686cf89b160339ee6efc7b3b313 Mon Sep 17 00:00:00 2001
+From: minseong <minseong7859@gmail.com>
+Date: Wed, 21 Oct 2026 19:32:11 +0900
+Subject: [PATCH 7/7] simulator: model the CLC response as an mbarrier
+ complete_tx
+
+UGETNEXTWORKID completes a 16-byte (CLCResponse) transaction on the
+traced mbarrier, once per warp instruction. Without it every warp of a
+CUTLASS sm_120 persistent GEMM waits forever on the scheduler-pipeline
+mbarrier (deadlock). Response contents and CLC latency are not modeled;
+the trace already fixes the control flow that depends on them.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ gpu-simulator/trace-driven/trace_driven.cc | 20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
+
+diff --git a/gpu-simulator/trace-driven/trace_driven.cc b/gpu-simulator/trace-driven/trace_driven.cc
+index ca84322..6f40ecf 100644
+--- a/gpu-simulator/trace-driven/trace_driven.cc
++++ b/gpu-simulator/trace-driven/trace_driven.cc
+@@ -726,6 +726,26 @@ void trace_warp_inst_t::parseSASSInstruction(
+   }
+ 
+   // Handling SYNCS instructions
++  // Blackwell Cluster Launch Control query. The tracer records the mbarrier
++  // address; the response arrives as a 16-byte (CLCResponse) transaction on
++  // that mbarrier, completed once per warp instruction. The response contents
++  // and the CLC unit's latency are not modeled (trace already fixes the
++  // control flow that depends on the returned tile).
++  if (opcode1 == "UGETNEXTWORKID") {
++    syncs_operand operand;
++    memset(&operand, 0, sizeof(operand));
++    set_syncs_op(SYNCS_COMPELTE_TX);
++    bool first = true;
++    for (int i = 0; i < WARP_SIZE; i++) {
++      operand.addr[i] = trace.memadd_info->addrs[i];
++      if (((trace.mask >> i) & 1u) && first) {
++        operand.u.complete_tx.txCount[i] = 16;
++        first = false;
++      }
++    }
++    set_syncs_operand(operand);
++  }
++
+   if (opcode1 == "SYNCS") {
+     // All SYNCS instructions supported below need register value tracing
+     if (trace.reg_src_vals.empty()) {
+-- 
+2.43.0
+

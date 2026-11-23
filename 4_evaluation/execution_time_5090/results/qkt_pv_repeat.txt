@@ -1,0 +1,181 @@
+### rep1 QKT_true_base m=2048
+  nvfp4 GEMM       :   0.00644 ms/iter   (fc_nv4_p0)
+### rep1 QKT_sel m=2048
+  nvfp4 GEMM       :   0.0073 ms/iter   (148.0 TFLOP/s)
+  nvfp4 GEMM speedup vs bf16          : 1.71x
+  nvfp4 GEMM + quant vs bf16          : 0.46x
+  selection on A adds (compute-only) 0.0001 ms  -> +1.11% of (A-quant + nvfp4 GEMM = 0.0100 ms)
+  selection on A adds (SMEM store, fused kernel)   -0.0001 ms  -> -0.65% of (A-quant + nvfp4 GEMM = 0.0102 ms)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0024 ms  -> +18.49% of (A-quant + nvfp4 GEMM + meta-reload = 0.0129 ms)   [meta reload alone: 0.0026 ms]
+  selection-fusion adds 0.0002 ms -> +1.71% of (fused-quant-write + nvfp4 GEMM = 0.0099 ms)
+### rep1 PV_true_base m=2048
+  nvfp4 GEMM       :   0.00965 ms/iter   (fc_nv4_p0)
+### rep1 QKT_true_base m=4096
+  nvfp4 GEMM       :   0.01576 ms/iter   (fc_nv4_p0)
+### rep1 QKT_sel m=4096
+  nvfp4 GEMM       :   0.0174 ms/iter   (247.0 TFLOP/s)
+  nvfp4 GEMM speedup vs bf16          : 2.71x
+  nvfp4 GEMM + quant vs bf16          : 1.40x
+  selection on A adds (compute-only) -0.0001 ms  -> -0.38% of (A-quant + nvfp4 GEMM = 0.0204 ms)
+  selection on A adds (SMEM store, fused kernel)   0.0000 ms  -> +0.01% of (A-quant + nvfp4 GEMM = 0.0204 ms)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0032 ms  -> +13.70% of (A-quant + nvfp4 GEMM + meta-reload = 0.0233 ms)   [meta reload alone: 0.0031 ms]
+  selection-fusion adds 0.0002 ms -> +1.23% of (fused-quant-write + nvfp4 GEMM = 0.0201 ms)
+### rep1 PV_true_base m=4096
+  nvfp4 GEMM       :   0.01576 ms/iter   (fc_nv4_p0)
+### rep1 QKT_true_base m=8192
+  nvfp4 GEMM       :   0.08109 ms/iter   (fc_nv4_p0)
+### rep1 QKT_sel m=8192
+  nvfp4 GEMM       :   0.0811 ms/iter   (211.9 TFLOP/s)
+  nvfp4 GEMM speedup vs bf16          : 2.19x
+  nvfp4 GEMM + quant vs bf16          : 1.70x
+  selection on A adds (compute-only) 0.0000 ms  -> +0.06% of (A-quant + nvfp4 GEMM = 0.0857 ms)
+  selection on A adds (SMEM store, fused kernel)   0.0001 ms  -> +0.08% of (A-quant + nvfp4 GEMM = 0.0858 ms)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0031 ms  -> +3.52% of (A-quant + nvfp4 GEMM + meta-reload = 0.0885 ms)   [meta reload alone: 0.0029 ms]
+  selection-fusion adds 0.0002 ms -> +0.27% of (fused-quant-write + nvfp4 GEMM = 0.0856 ms)
+### rep1 PV_true_base m=8192
+  nvfp4 GEMM       :   0.02817 ms/iter   (fc_nv4_p0)
+### rep2 QKT_true_base m=2048
+  nvfp4 GEMM       :   0.00636 ms/iter   (fc_nv4_p0)
+### rep2 QKT_sel m=2048
+  nvfp4 GEMM       :   0.0072 ms/iter   (148.3 TFLOP/s)
+  nvfp4 GEMM speedup vs bf16          : 1.72x
+  nvfp4 GEMM + quant vs bf16          : 0.47x
+  selection on A adds (compute-only) 0.0000 ms  -> +0.49% of (A-quant + nvfp4 GEMM = 0.0100 ms)
+  selection on A adds (SMEM store, fused kernel)   0.0000 ms  -> +0.26% of (A-quant + nvfp4 GEMM = 0.0101 ms)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0026 ms  -> +20.73% of (A-quant + nvfp4 GEMM + meta-reload = 0.0125 ms)   [meta reload alone: 0.0025 ms]
+  selection-fusion adds -0.0001 ms -> -1.08% of (fused-quant-write + nvfp4 GEMM = 0.0100 ms)
+### rep2 PV_true_base m=2048
+  nvfp4 GEMM       :   0.00958 ms/iter   (fc_nv4_p0)
+### rep2 QKT_true_base m=4096
+  nvfp4 GEMM       :   0.01579 ms/iter   (fc_nv4_p0)
+### rep2 QKT_sel m=4096
+  nvfp4 GEMM       :   0.0174 ms/iter   (246.8 TFLOP/s)
+  nvfp4 GEMM speedup vs bf16          : 2.72x
+  nvfp4 GEMM + quant vs bf16          : 1.19x
+  selection on A adds (compute-only) 0.0001 ms  -> +0.65% of (A-quant + nvfp4 GEMM = 0.0205 ms)
+  selection on A adds (SMEM store, fused kernel)   0.0000 ms  -> +0.12% of (A-quant + nvfp4 GEMM = 0.0206 ms)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0027 ms  -> +11.56% of (A-quant + nvfp4 GEMM + meta-reload = 0.0237 ms)   [meta reload alone: 0.0029 ms]
+  selection-fusion adds -0.0000 ms -> -0.07% of (fused-quant-write + nvfp4 GEMM = 0.0205 ms)
+### rep2 PV_true_base m=4096
+  nvfp4 GEMM       :   0.01576 ms/iter   (fc_nv4_p0)
+### rep2 QKT_true_base m=8192
+  nvfp4 GEMM       :   0.08119 ms/iter   (fc_nv4_p0)
+### rep2 QKT_sel m=8192
+  nvfp4 GEMM       :   0.0810 ms/iter   (212.0 TFLOP/s)
+  nvfp4 GEMM speedup vs bf16          : 2.20x
+  nvfp4 GEMM + quant vs bf16          : 1.73x
+  selection on A adds (compute-only) 0.0001 ms  -> +0.06% of (A-quant + nvfp4 GEMM = 0.0857 ms)
+  selection on A adds (SMEM store, fused kernel)   0.0001 ms  -> +0.14% of (A-quant + nvfp4 GEMM = 0.0857 ms)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0034 ms  -> +3.86% of (A-quant + nvfp4 GEMM + meta-reload = 0.0889 ms)   [meta reload alone: 0.0033 ms]
+  selection-fusion adds 0.0002 ms -> +0.29% of (fused-quant-write + nvfp4 GEMM = 0.0859 ms)
+### rep2 PV_true_base m=8192
+  nvfp4 GEMM       :   0.02821 ms/iter   (fc_nv4_p0)
+### rep3 QKT_true_base m=2048
+  nvfp4 GEMM       :   0.00635 ms/iter   (fc_nv4_p0)
+### rep3 QKT_sel m=2048
+  nvfp4 GEMM       :   0.0072 ms/iter   (148.2 TFLOP/s)
+  nvfp4 GEMM speedup vs bf16          : 1.71x
+  nvfp4 GEMM + quant vs bf16          : 0.46x
+  selection on A adds (compute-only) -0.0000 ms  -> -0.21% of (A-quant + nvfp4 GEMM = 0.0102 ms)
+  selection on A adds (SMEM store, fused kernel)   0.0026 ms  -> +26.18% of (A-quant + nvfp4 GEMM = 0.0101 ms)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0030 ms  -> +23.03% of (A-quant + nvfp4 GEMM + meta-reload = 0.0130 ms)   [meta reload alone: 0.0030 ms]
+  selection-fusion adds 0.0000 ms -> +0.23% of (fused-quant-write + nvfp4 GEMM = 0.0104 ms)
+### rep3 PV_true_base m=2048
+  nvfp4 GEMM       :   0.00963 ms/iter   (fc_nv4_p0)
+### rep3 QKT_true_base m=4096
+  nvfp4 GEMM       :   0.01579 ms/iter   (fc_nv4_p0)
+### rep3 QKT_sel m=4096
+  nvfp4 GEMM       :   0.0174 ms/iter   (246.5 TFLOP/s)
+  nvfp4 GEMM speedup vs bf16          : 2.73x
+  nvfp4 GEMM + quant vs bf16          : 0.90x
+  selection on A adds (compute-only) 0.0003 ms  -> +1.27% of (A-quant + nvfp4 GEMM = 0.0221 ms)
+  selection on A adds (SMEM store, fused kernel)   -0.0000 ms  -> -0.01% of (A-quant + nvfp4 GEMM = 0.0226 ms)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0046 ms  -> +16.58% of (A-quant + nvfp4 GEMM + meta-reload = 0.0275 ms)   [meta reload alone: 0.0048 ms]
+  selection-fusion adds -0.0006 ms -> -2.70% of (fused-quant-write + nvfp4 GEMM = 0.0223 ms)
+### rep3 PV_true_base m=4096
+  nvfp4 GEMM       :   0.01576 ms/iter   (fc_nv4_p0)
+### rep3 QKT_true_base m=8192
+  nvfp4 GEMM       :   0.08106 ms/iter   (fc_nv4_p0)
+### rep3 QKT_sel m=8192
+  nvfp4 GEMM       :   0.0810 ms/iter   (212.1 TFLOP/s)
+  nvfp4 GEMM speedup vs bf16          : 2.19x
+  nvfp4 GEMM + quant vs bf16          : 1.76x
+  selection on A adds (compute-only) 0.0001 ms  -> +0.07% of (A-quant + nvfp4 GEMM = 0.0856 ms)
+  selection on A adds (SMEM store, fused kernel)   0.0001 ms  -> +0.13% of (A-quant + nvfp4 GEMM = 0.0856 ms)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0025 ms  -> +2.86% of (A-quant + nvfp4 GEMM + meta-reload = 0.0878 ms)   [meta reload alone: 0.0023 ms]
+  selection-fusion adds 0.0003 ms -> +0.36% of (fused-quant-write + nvfp4 GEMM = 0.0862 ms)
+### rep3 PV_true_base m=8192
+  nvfp4 GEMM       :   0.02823 ms/iter   (fc_nv4_p0)
+### rep4 QKT_true_base m=2048
+  nvfp4 GEMM       :   0.00635 ms/iter   (fc_nv4_p0)
+### rep4 QKT_sel m=2048
+  nvfp4 GEMM       :   0.0072 ms/iter   (148.5 TFLOP/s)
+  nvfp4 GEMM speedup vs bf16          : 1.72x
+  nvfp4 GEMM + quant vs bf16          : 0.50x
+  selection on A adds (compute-only) 0.0001 ms  -> +1.37% of (A-quant + nvfp4 GEMM = 0.0098 ms)
+  selection on A adds (SMEM store, fused kernel)   0.0001 ms  -> +0.97% of (A-quant + nvfp4 GEMM = 0.0098 ms)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0024 ms  -> +19.41% of (A-quant + nvfp4 GEMM + meta-reload = 0.0123 ms)   [meta reload alone: 0.0024 ms]
+  selection-fusion adds -0.0001 ms -> -1.19% of (fused-quant-write + nvfp4 GEMM = 0.0098 ms)
+### rep4 PV_true_base m=2048
+  nvfp4 GEMM       :   0.00967 ms/iter   (fc_nv4_p0)
+### rep4 QKT_true_base m=4096
+  nvfp4 GEMM       :   0.01575 ms/iter   (fc_nv4_p0)
+### rep4 QKT_sel m=4096
+  nvfp4 GEMM       :   0.0174 ms/iter   (246.9 TFLOP/s)
+  nvfp4 GEMM speedup vs bf16          : 2.73x
+  nvfp4 GEMM + quant vs bf16          : 1.21x
+  selection on A adds (compute-only) -0.0001 ms  -> -0.41% of (A-quant + nvfp4 GEMM = 0.0206 ms)
+  selection on A adds (SMEM store, fused kernel)   -0.0000 ms  -> -0.06% of (A-quant + nvfp4 GEMM = 0.0206 ms)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0029 ms  -> +12.46% of (A-quant + nvfp4 GEMM + meta-reload = 0.0234 ms)   [meta reload alone: 0.0028 ms]
+  selection-fusion adds -0.0002 ms -> -0.73% of (fused-quant-write + nvfp4 GEMM = 0.0205 ms)
+### rep4 PV_true_base m=4096
+  nvfp4 GEMM       :   0.01577 ms/iter   (fc_nv4_p0)
+### rep4 QKT_true_base m=8192
+  nvfp4 GEMM       :   0.08115 ms/iter   (fc_nv4_p0)
+### rep4 QKT_sel m=8192
+  nvfp4 GEMM       :   0.0811 ms/iter   (211.7 TFLOP/s)
+  nvfp4 GEMM speedup vs bf16          : 2.20x
+  nvfp4 GEMM + quant vs bf16          : 1.77x
+  selection on A adds (compute-only) 0.0000 ms  -> +0.04% of (A-quant + nvfp4 GEMM = 0.0865 ms)
+  selection on A adds (SMEM store, fused kernel)   0.0001 ms  -> +0.12% of (A-quant + nvfp4 GEMM = 0.0866 ms)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0024 ms  -> +2.67% of (A-quant + nvfp4 GEMM + meta-reload = 0.0885 ms)   [meta reload alone: 0.0021 ms]
+  selection-fusion adds 0.0003 ms -> +0.32% of (fused-quant-write + nvfp4 GEMM = 0.0864 ms)
+### rep4 PV_true_base m=8192
+  nvfp4 GEMM       :   0.02821 ms/iter   (fc_nv4_p0)
+### rep5 QKT_true_base m=2048
+  nvfp4 GEMM       :   0.00633 ms/iter   (fc_nv4_p0)
+### rep5 QKT_sel m=2048
+  nvfp4 GEMM       :   0.0072 ms/iter   (148.2 TFLOP/s)
+  nvfp4 GEMM speedup vs bf16          : 1.71x
+  nvfp4 GEMM + quant vs bf16          : 0.52x
+  selection on A adds (compute-only) 0.0000 ms  -> +0.46% of (A-quant + nvfp4 GEMM = 0.0097 ms)
+  selection on A adds (SMEM store, fused kernel)   0.0001 ms  -> +1.29% of (A-quant + nvfp4 GEMM = 0.0097 ms)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0021 ms  -> +17.40% of (A-quant + nvfp4 GEMM + meta-reload = 0.0120 ms)   [meta reload alone: 0.0022 ms]
+  selection-fusion adds -0.0018 ms -> -15.54% of (fused-quant-write + nvfp4 GEMM = 0.0116 ms)
+### rep5 PV_true_base m=2048
+  nvfp4 GEMM       :   0.00965 ms/iter   (fc_nv4_p0)
+### rep5 QKT_true_base m=4096
+  nvfp4 GEMM       :   0.01581 ms/iter   (fc_nv4_p0)
+### rep5 QKT_sel m=4096
+  nvfp4 GEMM       :   0.0174 ms/iter   (247.3 TFLOP/s)
+  nvfp4 GEMM speedup vs bf16          : 2.72x
+  nvfp4 GEMM + quant vs bf16          : 1.22x
+  selection on A adds (compute-only) -0.0002 ms  -> -0.90% of (A-quant + nvfp4 GEMM = 0.0206 ms)
+  selection on A adds (SMEM store, fused kernel)   0.0000 ms  -> +0.12% of (A-quant + nvfp4 GEMM = 0.0204 ms)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0029 ms  -> +12.65% of (A-quant + nvfp4 GEMM + meta-reload = 0.0233 ms)   [meta reload alone: 0.0028 ms]
+  selection-fusion adds -0.0001 ms -> -0.38% of (fused-quant-write + nvfp4 GEMM = 0.0204 ms)
+### rep5 PV_true_base m=4096
+  nvfp4 GEMM       :   0.01577 ms/iter   (fc_nv4_p0)
+### rep5 QKT_true_base m=8192
+  nvfp4 GEMM       :   0.08112 ms/iter   (fc_nv4_p0)
+### rep5 QKT_sel m=8192
+  nvfp4 GEMM       :   0.0811 ms/iter   (211.9 TFLOP/s)
+  nvfp4 GEMM speedup vs bf16          : 2.19x
+  nvfp4 GEMM + quant vs bf16          : 1.74x
+  selection on A adds (compute-only) 0.0001 ms  -> +0.09% of (A-quant + nvfp4 GEMM = 0.0857 ms)
+  selection on A adds (SMEM store, fused kernel)   0.0001 ms  -> +0.17% of (A-quant + nvfp4 GEMM = 0.0857 ms)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0033 ms  -> +3.70% of (A-quant + nvfp4 GEMM + meta-reload = 0.0888 ms)   [meta reload alone: 0.0031 ms]
+  selection-fusion adds 0.0003 ms -> +0.34% of (fused-quant-write + nvfp4 GEMM = 0.0863 ms)
+### rep5 PV_true_base m=8192
+  nvfp4 GEMM       :   0.02817 ms/iter   (fc_nv4_p0)
+DONE

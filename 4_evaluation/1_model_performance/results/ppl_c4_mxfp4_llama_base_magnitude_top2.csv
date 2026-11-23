@@ -1,0 +1,3 @@
+format,model,setting,ppl,increase,elapsed_sec
+mxfp4,llama_base,BF16,9.00005801054989,0.0,111.5
+mxfp4,llama_base,Magnitude_top2,11.740527269405494,2.7404692588556028,4454.1

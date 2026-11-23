@@ -1,0 +1,121 @@
+model,format,gemm_type,layer,setting,relative_mse,reduction_rate_pct,n_elements
+deepseek_moe_16b,nvfp4,linear,model.layers.0.mlp.down_proj,Native FP4,0.0019111095803416933,0.0,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.0.mlp.down_proj,Magnitude,0.0016605359792027153,13.111419863960766,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.0.mlp.down_proj,Czardas,0.001314225070355396,31.232354027526693,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.0.mlp.down_proj,Full Boost,0.0007534815055405252,60.57361057204225,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.0.mlp.gate_proj,Native FP4,0.004112712258356618,0.0,22413312
+deepseek_moe_16b,nvfp4,linear,model.layers.0.mlp.gate_proj,Magnitude,0.0036590802647046153,11.029995904290859,22413312
+deepseek_moe_16b,nvfp4,linear,model.layers.0.mlp.gate_proj,Czardas,0.0029653137274639274,27.89882828688762,22413312
+deepseek_moe_16b,nvfp4,linear,model.layers.0.mlp.gate_proj,Full Boost,0.0018772526025727452,54.35487618278286,22413312
+deepseek_moe_16b,nvfp4,linear,model.layers.0.mlp.up_proj,Native FP4,0.006196079354264071,0.0,22413312
+deepseek_moe_16b,nvfp4,linear,model.layers.0.mlp.up_proj,Magnitude,0.005533736600507531,10.689707408293984,22413312
+deepseek_moe_16b,nvfp4,linear,model.layers.0.mlp.up_proj,Czardas,0.0044757686651032665,27.764503822516517,22413312
+deepseek_moe_16b,nvfp4,linear,model.layers.0.mlp.up_proj,Full Boost,0.00280936766592187,54.65894632242735,22413312
+deepseek_moe_16b,nvfp4,linear,model.layers.0.self_attn.k_proj,Native FP4,0.00053300855898414,0.0,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.0.self_attn.k_proj,Magnitude,0.00044077612928747,17.304117943707247,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.0.self_attn.k_proj,Czardas,0.00039331506615825816,26.2084896145239,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.0.self_attn.k_proj,Full Boost,0.00032003594420757176,39.95669697733791,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.0.self_attn.o_proj,Native FP4,0.00219884610483904,0.0,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.0.self_attn.o_proj,Magnitude,0.0019072009581693125,13.263554280943035,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.0.self_attn.o_proj,Czardas,0.0015069921630374847,31.464409459078563,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.0.self_attn.o_proj,Full Boost,0.0008381265537899705,61.8833463630997,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.0.self_attn.q_proj,Native FP4,0.0003715787987677584,0.0,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.0.self_attn.q_proj,Magnitude,0.0003290459598036259,11.446519313045114,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.0.self_attn.q_proj,Czardas,0.00030825837275131555,17.040914666398642,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.0.self_attn.q_proj,Full Boost,0.0002773080937990558,25.370313182917364,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.0.self_attn.v_proj,Native FP4,0.014661978656863571,0.0,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.0.self_attn.v_proj,Magnitude,0.01358497061480387,7.345584571257937,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.0.self_attn.v_proj,Czardas,0.011670138739712073,20.40543085738948,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.0.self_attn.v_proj,Full Boost,0.006982959383135688,52.373690164479804,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.10.mlp.experts.0.down_proj,Native FP4,0.0126919139942703,0.0,344064
+deepseek_moe_16b,nvfp4,linear,model.layers.10.mlp.experts.0.down_proj,Magnitude,0.011504144780699638,9.35847196968775,344064
+deepseek_moe_16b,nvfp4,linear,model.layers.10.mlp.experts.0.down_proj,Czardas,0.009596094554984754,24.392061281561936,344064
+deepseek_moe_16b,nvfp4,linear,model.layers.10.mlp.experts.0.down_proj,Full Boost,0.006204857187288616,51.11172995586192,344064
+deepseek_moe_16b,nvfp4,linear,model.layers.10.mlp.experts.0.gate_proj,Native FP4,0.009845562583316788,0.0,236544
+deepseek_moe_16b,nvfp4,linear,model.layers.10.mlp.experts.0.gate_proj,Magnitude,0.008703828791519024,11.59643019010839,236544
+deepseek_moe_16b,nvfp4,linear,model.layers.10.mlp.experts.0.gate_proj,Czardas,0.00691638941395717,29.751201564886436,236544
+deepseek_moe_16b,nvfp4,linear,model.layers.10.mlp.experts.0.gate_proj,Full Boost,0.0043344214232830264,55.975888766095885,236544
+deepseek_moe_16b,nvfp4,linear,model.layers.10.mlp.experts.0.up_proj,Native FP4,0.011131268823776137,0.0,236544
+deepseek_moe_16b,nvfp4,linear,model.layers.10.mlp.experts.0.up_proj,Magnitude,0.00983615678491177,11.634900381689082,236544
+deepseek_moe_16b,nvfp4,linear,model.layers.10.mlp.experts.0.up_proj,Czardas,0.007799440168520921,29.932155156818297,236544
+deepseek_moe_16b,nvfp4,linear,model.layers.10.mlp.experts.0.up_proj,Full Boost,0.0048628233722647326,56.31384481634427,236544
+deepseek_moe_16b,nvfp4,linear,model.layers.10.mlp.shared_experts.down_proj,Native FP4,0.012729384395553042,0.0,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.10.mlp.shared_experts.down_proj,Magnitude,0.011325909887979222,11.025470391672027,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.10.mlp.shared_experts.down_proj,Czardas,0.009489947112533027,25.448499176061485,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.10.mlp.shared_experts.down_proj,Full Boost,0.007067845794675583,44.47613824008091,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.10.mlp.shared_experts.gate_proj,Native FP4,0.0044014818471747015,0.0,5767168
+deepseek_moe_16b,nvfp4,linear,model.layers.10.mlp.shared_experts.gate_proj,Magnitude,0.003985475238409218,9.451512540771168,5767168
+deepseek_moe_16b,nvfp4,linear,model.layers.10.mlp.shared_experts.gate_proj,Czardas,0.003339289558845819,24.13260636325697,5767168
+deepseek_moe_16b,nvfp4,linear,model.layers.10.mlp.shared_experts.gate_proj,Full Boost,0.002422823003469752,44.954379284218675,5767168
+deepseek_moe_16b,nvfp4,linear,model.layers.10.mlp.shared_experts.up_proj,Native FP4,0.013823464075915552,0.0,5767168
+deepseek_moe_16b,nvfp4,linear,model.layers.10.mlp.shared_experts.up_proj,Magnitude,0.01251458972021768,9.468497538025272,5767168
+deepseek_moe_16b,nvfp4,linear,model.layers.10.mlp.shared_experts.up_proj,Czardas,0.010435041925576505,24.512105878313474,5767168
+deepseek_moe_16b,nvfp4,linear,model.layers.10.mlp.shared_experts.up_proj,Full Boost,0.007446221182921762,46.1334645062288,5767168
+deepseek_moe_16b,nvfp4,linear,model.layers.10.self_attn.k_proj,Native FP4,0.002871576950295115,0.0,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.10.self_attn.k_proj,Magnitude,0.0026083137351111405,9.167896934014555,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.10.self_attn.k_proj,Czardas,0.0021318328275009603,25.76090195730713,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.10.self_attn.k_proj,Full Boost,0.001240094065745399,56.81487603464872,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.10.self_attn.o_proj,Native FP4,0.015647265899959024,0.0,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.10.self_attn.o_proj,Magnitude,0.014041009296606689,10.265413866051459,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.10.self_attn.o_proj,Czardas,0.011419552308031341,27.018864630777152,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.10.self_attn.o_proj,Full Boost,0.007572474501723664,51.60512673499403,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.10.self_attn.q_proj,Native FP4,0.004447730332622712,0.0,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.10.self_attn.q_proj,Magnitude,0.004050618574717254,8.928413554948863,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.10.self_attn.q_proj,Czardas,0.003309421596924741,25.593024994092655,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.10.self_attn.q_proj,Full Boost,0.0019098305394080303,57.06055905862771,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.10.self_attn.v_proj,Native FP4,0.019390042333844445,0.0,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.10.self_attn.v_proj,Magnitude,0.017774602676613543,8.331284838977501,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.10.self_attn.v_proj,Czardas,0.014605497089345693,24.675269718970878,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.10.self_attn.v_proj,Full Boost,0.008522559244396294,56.046721829376565,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.27.mlp.experts.0.down_proj,Native FP4,0.0022060524656725947,0.0,186368
+deepseek_moe_16b,nvfp4,linear,model.layers.27.mlp.experts.0.down_proj,Magnitude,0.001961859225210059,11.069239932518302,186368
+deepseek_moe_16b,nvfp4,linear,model.layers.27.mlp.experts.0.down_proj,Czardas,0.0015652161147642874,29.049007713101926,186368
+deepseek_moe_16b,nvfp4,linear,model.layers.27.mlp.experts.0.down_proj,Full Boost,0.0007626011519149898,65.43141363220101,186368
+deepseek_moe_16b,nvfp4,linear,model.layers.27.mlp.experts.0.gate_proj,Native FP4,0.0024886578393377313,0.0,128128
+deepseek_moe_16b,nvfp4,linear,model.layers.27.mlp.experts.0.gate_proj,Magnitude,0.0021839867560349852,12.242385372825039,128128
+deepseek_moe_16b,nvfp4,linear,model.layers.27.mlp.experts.0.gate_proj,Czardas,0.0016828917317380234,32.377536793653164,128128
+deepseek_moe_16b,nvfp4,linear,model.layers.27.mlp.experts.0.gate_proj,Full Boost,0.0009737898802758508,60.87088128856675,128128
+deepseek_moe_16b,nvfp4,linear,model.layers.27.mlp.experts.0.up_proj,Native FP4,0.002273715076975686,0.0,128128
+deepseek_moe_16b,nvfp4,linear,model.layers.27.mlp.experts.0.up_proj,Magnitude,0.001999540986641183,12.05841897742032,128128
+deepseek_moe_16b,nvfp4,linear,model.layers.27.mlp.experts.0.up_proj,Czardas,0.0015366568644995513,32.41647205227274,128128
+deepseek_moe_16b,nvfp4,linear,model.layers.27.mlp.experts.0.up_proj,Full Boost,0.0008759250552444853,61.47604138643569,128128
+deepseek_moe_16b,nvfp4,linear,model.layers.27.mlp.shared_experts.down_proj,Native FP4,0.0016096026586034408,0.0,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.27.mlp.shared_experts.down_proj,Magnitude,0.0013614592299721888,15.41644003288064,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.27.mlp.shared_experts.down_proj,Czardas,0.0010171179253784836,36.80937839274085,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.27.mlp.shared_experts.down_proj,Full Boost,0.00043615341966628837,72.90303806749962,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.27.mlp.shared_experts.gate_proj,Native FP4,0.0008516044897085445,0.0,5767168
+deepseek_moe_16b,nvfp4,linear,model.layers.27.mlp.shared_experts.gate_proj,Magnitude,0.0007618323386141398,10.541530978204278,5767168
+deepseek_moe_16b,nvfp4,linear,model.layers.27.mlp.shared_experts.gate_proj,Czardas,0.0005938407479860391,30.26801112928881,5767168
+deepseek_moe_16b,nvfp4,linear,model.layers.27.mlp.shared_experts.gate_proj,Full Boost,0.00037353249787479227,56.1377960791833,5767168
+deepseek_moe_16b,nvfp4,linear,model.layers.27.mlp.shared_experts.up_proj,Native FP4,0.0007379891744589642,0.0,5767168
+deepseek_moe_16b,nvfp4,linear,model.layers.27.mlp.shared_experts.up_proj,Magnitude,0.0006594195937539725,10.646440818402622,5767168
+deepseek_moe_16b,nvfp4,linear,model.layers.27.mlp.shared_experts.up_proj,Czardas,0.0005116225802525113,30.673430185802815,5767168
+deepseek_moe_16b,nvfp4,linear,model.layers.27.mlp.shared_experts.up_proj,Full Boost,0.0003198242152727198,56.66274976090403,5767168
+deepseek_moe_16b,nvfp4,linear,model.layers.27.self_attn.k_proj,Native FP4,0.0007496289267133713,0.0,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.27.self_attn.k_proj,Magnitude,0.000650229250930019,13.259850606239866,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.27.self_attn.k_proj,Czardas,0.0005065721339373878,32.423614419687254,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.27.self_attn.k_proj,Full Boost,0.0003062572710781398,59.14548383012965,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.27.self_attn.o_proj,Native FP4,0.0014746267653406296,0.0,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.27.self_attn.o_proj,Magnitude,0.001292330954276546,12.362166166295943,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.27.self_attn.o_proj,Czardas,0.0009967843448089265,32.40429590475556,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.27.self_attn.o_proj,Full Boost,0.0005173689191073534,64.91526321998879,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.27.self_attn.q_proj,Native FP4,0.0006329045418559209,0.0,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.27.self_attn.q_proj,Magnitude,0.0005441411352492546,14.024770046108015,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.27.self_attn.q_proj,Czardas,0.000422911539726816,33.17925346424663,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.27.self_attn.q_proj,Full Boost,0.0002561873391200527,59.52196229010897,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.27.self_attn.v_proj,Native FP4,0.009150826244545935,0.0,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.27.self_attn.v_proj,Magnitude,0.008210623202450173,10.274515294792536,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.27.self_attn.v_proj,Czardas,0.0066840493199108696,26.95687644714389,4194304
+deepseek_moe_16b,nvfp4,linear,model.layers.27.self_attn.v_proj,Full Boost,0.004348451398170764,52.48023203628718,4194304
+deepseek_moe_16b,nvfp4,attention,model.layers.0.self_attn.qk,Native FP4,0.0032365062785747302,0.0,67108864
+deepseek_moe_16b,nvfp4,attention,model.layers.0.self_attn.qk,Magnitude,0.0032502651778143405,-0.42511579015596224,67108864
+deepseek_moe_16b,nvfp4,attention,model.layers.0.self_attn.qk,Czardas,0.0021161887060694444,34.61502855476132,67108864
+deepseek_moe_16b,nvfp4,attention,model.layers.0.self_attn.qk,Full Boost,0.00039509141482885836,87.79265724141138,67108864
+deepseek_moe_16b,nvfp4,attention,model.layers.10.self_attn.qk,Native FP4,0.005737177152785821,0.0,67108864
+deepseek_moe_16b,nvfp4,attention,model.layers.10.self_attn.qk,Magnitude,0.005681564103785462,0.9693451591146109,67108864
+deepseek_moe_16b,nvfp4,attention,model.layers.10.self_attn.qk,Czardas,0.002648090658077535,53.84331723499783,67108864
+deepseek_moe_16b,nvfp4,attention,model.layers.10.self_attn.qk,Full Boost,0.0007038338324404775,87.73205334789576,67108864
+deepseek_moe_16b,nvfp4,attention,model.layers.27.self_attn.qk,Native FP4,0.00572007150384306,0.0,67108864
+deepseek_moe_16b,nvfp4,attention,model.layers.27.self_attn.qk,Magnitude,0.005681965824528737,0.6661748771623243,67108864
+deepseek_moe_16b,nvfp4,attention,model.layers.27.self_attn.qk,Czardas,0.003410913354255889,40.36939307551927,67108864
+deepseek_moe_16b,nvfp4,attention,model.layers.27.self_attn.qk,Full Boost,0.0005281230199734966,90.76719548665302,67108864

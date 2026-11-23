@@ -1,0 +1,68 @@
+From 822bc4c379ca40be540265d2c86e82a518f0a14c Mon Sep 17 00:00:00 2001
+From: minseong <minseong7859@gmail.com>
+Date: Wed, 21 Oct 2026 01:25:25 +0900
+Subject: [PATCH 4/7] configs: SM120_RTX_PRO_4000 trace config (OMMA
+ tensor-unit timing)
+
+Tensor unit (HMMA/IMMA/OMMA) latency,II = 29,16, calibrated against
+clock64 microbenchmarks of OMMA.SF.16864.F32.E2M1.E2M1.UE4M3.4X on an
+RTX PRO 4000 Blackwell: II 16 reproduces 16.0 cycles/OMMA per warp and
+4.0 cycles/OMMA per SM; the simulated dependent chain is 35 cycles vs
+29.2 measured. Other latencies are unvalidated Ampere (SM86) values.
+-trace_omma_reg_groups 1 (full register groups).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .../SM120_RTX_PRO_4000/trace.config           | 40 +++++++++++++++++++
+ 1 file changed, 40 insertions(+)
+ create mode 100644 gpu-simulator/configs/tested-cfgs/SM120_RTX_PRO_4000/trace.config
+
+diff --git a/gpu-simulator/configs/tested-cfgs/SM120_RTX_PRO_4000/trace.config b/gpu-simulator/configs/tested-cfgs/SM120_RTX_PRO_4000/trace.config
+new file mode 100644
+index 0000000..fb4255e
+--- /dev/null
++++ b/gpu-simulator/configs/tested-cfgs/SM120_RTX_PRO_4000/trace.config
+@@ -0,0 +1,40 @@
++# NVIDIA RTX PRO 4000 Blackwell (sm_120) trace-driven latencies.
++# Values not marked MEASURED are UNCERTAIN Ampere (SM86_RTX3070) values.
++-trace_opcode_latency_initiation_int 2,2
++-trace_opcode_latency_initiation_sp 2,1
++-trace_opcode_latency_initiation_dp 64,64
++-trace_opcode_latency_initiation_sfu 21,8
++-trace_opcode_latency_initiation_tensor 29,16
++
++#execute branch insts on spec unit 1
++#<enabled>,<num_units>,<max_latency>,<ID_OC_SPEC>,<OC_EX_SPEC>,<NAME>
++-specialized_unit_1 1,4,4,4,4,BRA
++-trace_opcode_latency_initiation_spec_op_1 4,4
++
++#TEX unit, make fixed latency for all tex insts
++-specialized_unit_2 1,4,200,4,4,TEX
++-trace_opcode_latency_initiation_spec_op_2 200,4
++
++#tensor unit: one per sub-core (4 per SM). HMMA/IMMA/OMMA all use it.
++# OMMA.SF.16864.F32.E2M1.E2M1.UE4M3.4X, MEASURED on this GPU (clock64,
++# results_hw_omma_microbench.txt): dependent-chain 29.2 cycles/OMMA,
++# one warp with independent OMMAs 16.1-16.2 cycles/OMMA, SM 4.00 cycles/OMMA.
++# Initiation interval 16 also matches NVIDIA spec: 1290 sparse FP4 TOPS -> 645
++# dense / (70 SM x 2.232 GHz) ~ 4096 FLOP/clk/SM = 1024/TC; 16384 FLOP/MMA.
++# <latency>,<II> = 29,16 (calibration: experiments/blackwell_omma_port/results/calibration.csv):
++#  - II 16 reproduces HW exactly: 1 warp 16.00 cycles/OMMA, SM 4.000 cycles/OMMA.
++#  - Simulated dependent chain = latency + 6 pipeline cycles = 35.0 (HW 29.2, +20%).
++#    latency 23 would match the dependent chain (29.0) but config latencies 23..26
++#    make the in-order warp issue OMMAs in bursts (1 warp: 17.9-18.3 cycles/OMMA,
++#    HW 16.1); >=27 is stable. 29 keeps 3 cycles of margin from that region.
++# HMMA/IMMA latencies on sm_120 were NOT measured; they get the same values.
++-specialized_unit_3 1,4,29,4,4,TENSOR
++-trace_opcode_latency_initiation_spec_op_3 29,16
++
++#UDP unit, for turing and above
++-specialized_unit_4 1,4,4,4,4,UDP
++-trace_opcode_latency_initiation_spec_op_4 4,1
++
++# OMMA register-file operand model (see trace_driven.cc set_omma_operands):
++# 1 = every register of A(4)/B(2)/C(4)/D(4) groups + SFA + SFB.
++-trace_omma_reg_groups 1
+-- 
+2.43.0
+

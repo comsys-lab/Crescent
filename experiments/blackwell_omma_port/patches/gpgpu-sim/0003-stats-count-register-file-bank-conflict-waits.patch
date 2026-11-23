@@ -1,0 +1,80 @@
+From fe8f6f69eab3c2cf03fd51aee7e76036f08be34c Mon Sep 17 00:00:00 2001
+From: minseong <minseong7859@gmail.com>
+Date: Thu, 22 Oct 2026 22:49:25 +0900
+Subject: [PATCH] stats: count register-file bank-conflict waits
+
+gpu_reg_bank_conflict_stalls was declared and printed but never
+incremented (always 0). It now accumulates, every operand-collector
+cycle, the register reads still queued after that cycle's bank grants
+(read-cycles spent waiting behind another read or a write to the same
+bank). 64-bit. Timing is unchanged.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ src/gpgpu-sim/shader.cc |  5 ++++-
+ src/gpgpu-sim/shader.h  | 12 +++++++++++-
+ 2 files changed, 15 insertions(+), 2 deletions(-)
+
+diff --git a/src/gpgpu-sim/shader.cc b/src/gpgpu-sim/shader.cc
+index d1638f29..0fdab5ff 100644
+--- a/src/gpgpu-sim/shader.cc
++++ b/src/gpgpu-sim/shader.cc
+@@ -733,7 +733,7 @@ void shader_core_stats::print(FILE *fout) const {
+   // "gpgpu_stall_shd_mem[l_mem_ld][wb_rsrv_fail] = %d\n",
+   // gpu_stall_shd_mem_breakdown[L_MEM_ST][WB_CACHE_RSRV_FAIL]);
+ 
+-  fprintf(fout, "gpu_reg_bank_conflict_stalls = %d\n",
++  fprintf(fout, "gpu_reg_bank_conflict_stalls = %llu\n",
+           gpu_reg_bank_conflict_stalls);
+ 
+   // Register-file accesses counted by the operand collector / writeback
+@@ -5340,6 +5340,9 @@ void opndcoll_rfu_t::allocate_cu(unsigned port_num) {
+ void opndcoll_rfu_t::allocate_reads() {
+   // process read requests that do not have conflicts
+   std::list<op_t> allocated = m_arbiter.allocate_reads();
++  // Reads still queued after this cycle's grants wait on a bank conflict
++  // (this counter was declared and printed but never incremented before).
++  m_shader->inc_reg_bank_conflict_stalls(m_arbiter.num_queued_reads());
+   std::map<unsigned, op_t> read_ops;
+   for (std::list<op_t>::iterator r = allocated.begin(); r != allocated.end();
+        r++) {
+diff --git a/src/gpgpu-sim/shader.h b/src/gpgpu-sim/shader.h
+index cbd3f32d..f8b968f3 100644
+--- a/src/gpgpu-sim/shader.h
++++ b/src/gpgpu-sim/shader.h
+@@ -1317,6 +1317,11 @@ class opndcoll_rfu_t
+     void reset_alloction() {
+       for (unsigned b = 0; b < m_num_banks; b++) m_allocated_bank[b].reset();
+     }
++    unsigned num_queued_reads() const {
++      unsigned n = 0;
++      for (unsigned b = 0; b < m_num_banks; b++) n += m_queue[b].size();
++      return n;
++    }
+ 
+    private:
+     unsigned m_num_banks;
+@@ -2422,7 +2427,9 @@ struct shader_core_stats_pod {
+   unsigned long long gpgpu_n_cmem_portconflict;
+   unsigned gpu_stall_shd_mem_breakdown[N_MEM_STAGE_ACCESS_TYPE]
+                                       [N_MEM_STAGE_STALL_TYPE];
+-  unsigned gpu_reg_bank_conflict_stalls;
++  // read-cycles register reads waited in a bank queue (another read of the
++  // same bank, or a write, was granted that cycle)
++  unsigned long long gpu_reg_bank_conflict_stalls;
+   unsigned long long *shader_cycle_distro;
+   unsigned *last_shader_cycle_distro;
+   unsigned *num_warps_issuable;
+@@ -3063,6 +3070,9 @@ class shader_core_ctx : public core_t {
+ 
+   void inc_warp_inst_count(warp_inst_t *&inst);
+ 
++  void inc_reg_bank_conflict_stalls(unsigned n) {
++    m_stats->gpu_reg_bank_conflict_stalls += n;
++  }
+   void incregfile_reads(unsigned active_count) {
+     m_stats->m_read_regfile_acesses[m_sid] =
+         m_stats->m_read_regfile_acesses[m_sid] + active_count;
+-- 
+2.43.0
+

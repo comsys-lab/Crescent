@@ -1,0 +1,14 @@
+model,config,surface,mse_rel_g,ppl,elapsed_sec
+llama_base,BF16,-,0.0,5.696896965321543,26.588
+llama_base,E2M1_mxfp4_ue8m0,Linear,0.017615137992834207,9.102160553809664,201.311
+llama_base,E2M1_mxfp4_ue8m0,Q,0.019431647087913007,,
+llama_base,E2M1_mxfp4_ue8m0,K,0.017946930922335014,,
+llama_base,E2M1_optimal_none,Linear,0.009079499148356263,6.392149006981781,5018.328
+llama_base,E2M1_optimal_none,Q,0.009446312964428216,,
+llama_base,E2M1_optimal_none,K,0.009125348151428625,,
+llama_base,E8M1_mxfp4_ue8m0,Linear,0.010725522071879823,7.52043587279964,202.513
+llama_base,E8M1_mxfp4_ue8m0,Q,0.01060947380028665,,
+llama_base,E8M1_mxfp4_ue8m0,K,0.010642817855114117,,
+llama_base,E2M7_mxfp4_ue8m0,Linear,2.364592437409385e-06,5.696877421804329,203.404
+llama_base,E2M7_mxfp4_ue8m0,Q,2.7635216710564237e-06,,
+llama_base,E2M7_mxfp4_ue8m0,K,2.323400025261435e-06,,

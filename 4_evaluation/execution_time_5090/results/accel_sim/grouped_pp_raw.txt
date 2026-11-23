@@ -1,0 +1,1261 @@
+### rep1 qwen_gateup_M2048 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.11042 ms
+  Kernel-only avg runtime : 0.109993 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.111224 ms
+  Kernel-only avg runtime : 0.111037 ms
+### rep1 qwen_gateup_M2048 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.110796 ms
+  Kernel-only avg runtime : 0.110372 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.109693 ms
+  Kernel-only avg runtime : 0.109549 ms
+### rep1 qwen_gateup_M2048 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.106655 ms
+  Kernel-only avg runtime : 0.106368 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.105883 ms
+  Kernel-only avg runtime : 0.105649 ms
+### rep2 qwen_gateup_M2048 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.11074 ms
+  Kernel-only avg runtime : 0.110476 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.10969 ms
+  Kernel-only avg runtime : 0.109588 ms
+### rep2 qwen_gateup_M2048 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.106628 ms
+  Kernel-only avg runtime : 0.106191 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.105775 ms
+  Kernel-only avg runtime : 0.105726 ms
+### rep2 qwen_gateup_M2048 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.11047 ms
+  Kernel-only avg runtime : 0.109912 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.111091 ms
+  Kernel-only avg runtime : 0.111015 ms
+### rep3 qwen_gateup_M2048 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.106723 ms
+  Kernel-only avg runtime : 0.106266 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.105749 ms
+  Kernel-only avg runtime : 0.10583 ms
+### rep3 qwen_gateup_M2048 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.111172 ms
+  Kernel-only avg runtime : 0.110322 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.111232 ms
+  Kernel-only avg runtime : 0.110929 ms
+### rep3 qwen_gateup_M2048 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.111803 ms
+  Kernel-only avg runtime : 0.110486 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.109596 ms
+  Kernel-only avg runtime : 0.109558 ms
+### rep4 qwen_gateup_M2048 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.110389 ms
+  Kernel-only avg runtime : 0.110234 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.111074 ms
+  Kernel-only avg runtime : 0.111034 ms
+### rep4 qwen_gateup_M2048 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.110269 ms
+  Kernel-only avg runtime : 0.110252 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.109609 ms
+  Kernel-only avg runtime : 0.109501 ms
+### rep4 qwen_gateup_M2048 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.106764 ms
+  Kernel-only avg runtime : 0.106448 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.105942 ms
+  Kernel-only avg runtime : 0.105677 ms
+### rep5 qwen_gateup_M2048 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.110715 ms
+  Kernel-only avg runtime : 0.110277 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.10949 ms
+  Kernel-only avg runtime : 0.109655 ms
+### rep5 qwen_gateup_M2048 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.106909 ms
+  Kernel-only avg runtime : 0.106338 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.10598 ms
+  Kernel-only avg runtime : 0.105878 ms
+### rep5 qwen_gateup_M2048 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.110517 ms
+  Kernel-only avg runtime : 0.110146 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.111039 ms
+  Kernel-only avg runtime : 0.110854 ms
+### rep1 qwen_gateup_M4096 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.145887 ms
+  Kernel-only avg runtime : 0.145412 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.145569 ms
+  Kernel-only avg runtime : 0.145622 ms
+### rep1 qwen_gateup_M4096 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.1459 ms
+  Kernel-only avg runtime : 0.145299 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.142807 ms
+  Kernel-only avg runtime : 0.142861 ms
+### rep1 qwen_gateup_M4096 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.139638 ms
+  Kernel-only avg runtime : 0.139447 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.131856 ms
+  Kernel-only avg runtime : 0.13197 ms
+### rep2 qwen_gateup_M4096 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.145777 ms
+  Kernel-only avg runtime : 0.145517 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.14237 ms
+  Kernel-only avg runtime : 0.142781 ms
+### rep2 qwen_gateup_M4096 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.13962 ms
+  Kernel-only avg runtime : 0.139115 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.131936 ms
+  Kernel-only avg runtime : 0.131801 ms
+### rep2 qwen_gateup_M4096 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.145774 ms
+  Kernel-only avg runtime : 0.145417 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.145512 ms
+  Kernel-only avg runtime : 0.145729 ms
+### rep3 qwen_gateup_M4096 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.139448 ms
+  Kernel-only avg runtime : 0.139132 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.131793 ms
+  Kernel-only avg runtime : 0.132172 ms
+### rep3 qwen_gateup_M4096 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.14598 ms
+  Kernel-only avg runtime : 0.145168 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.14599 ms
+  Kernel-only avg runtime : 0.145928 ms
+### rep3 qwen_gateup_M4096 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.146042 ms
+  Kernel-only avg runtime : 0.145421 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.142662 ms
+  Kernel-only avg runtime : 0.14279 ms
+### rep4 qwen_gateup_M4096 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.145517 ms
+  Kernel-only avg runtime : 0.145238 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.145765 ms
+  Kernel-only avg runtime : 0.145611 ms
+### rep4 qwen_gateup_M4096 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.145781 ms
+  Kernel-only avg runtime : 0.145297 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.142525 ms
+  Kernel-only avg runtime : 0.14302 ms
+### rep4 qwen_gateup_M4096 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.139507 ms
+  Kernel-only avg runtime : 0.138918 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.131731 ms
+  Kernel-only avg runtime : 0.131748 ms
+### rep5 qwen_gateup_M4096 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.145871 ms
+  Kernel-only avg runtime : 0.145578 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.142674 ms
+  Kernel-only avg runtime : 0.142385 ms
+### rep5 qwen_gateup_M4096 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.139771 ms
+  Kernel-only avg runtime : 0.139196 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.131718 ms
+  Kernel-only avg runtime : 0.131745 ms
+### rep5 qwen_gateup_M4096 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.146305 ms
+  Kernel-only avg runtime : 0.145531 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.145657 ms
+  Kernel-only avg runtime : 0.145722 ms
+### rep1 qwen_gateup_M8192 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.233417 ms
+  Kernel-only avg runtime : 0.233345 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.225412 ms
+  Kernel-only avg runtime : 0.228244 ms
+### rep1 qwen_gateup_M8192 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.234451 ms
+  Kernel-only avg runtime : 0.234876 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.224323 ms
+  Kernel-only avg runtime : 0.225503 ms
+### rep1 qwen_gateup_M8192 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.220729 ms
+  Kernel-only avg runtime : 0.221318 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.205496 ms
+  Kernel-only avg runtime : 0.206019 ms
+### rep2 qwen_gateup_M8192 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.23388 ms
+  Kernel-only avg runtime : 0.234408 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.222294 ms
+  Kernel-only avg runtime : 0.227028 ms
+### rep2 qwen_gateup_M8192 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.221255 ms
+  Kernel-only avg runtime : 0.221029 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.208356 ms
+  Kernel-only avg runtime : 0.208436 ms
+### rep2 qwen_gateup_M8192 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.234522 ms
+  Kernel-only avg runtime : 0.233585 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.225306 ms
+  Kernel-only avg runtime : 0.231489 ms
+### rep3 qwen_gateup_M8192 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.221365 ms
+  Kernel-only avg runtime : 0.221055 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.205699 ms
+  Kernel-only avg runtime : 0.20855 ms
+### rep3 qwen_gateup_M8192 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.233321 ms
+  Kernel-only avg runtime : 0.233784 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.225681 ms
+  Kernel-only avg runtime : 0.233411 ms
+### rep3 qwen_gateup_M8192 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.234095 ms
+  Kernel-only avg runtime : 0.234484 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.222353 ms
+  Kernel-only avg runtime : 0.223311 ms
+### rep4 qwen_gateup_M8192 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.233666 ms
+  Kernel-only avg runtime : 0.233961 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.226094 ms
+  Kernel-only avg runtime : 0.229784 ms
+### rep4 qwen_gateup_M8192 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.234038 ms
+  Kernel-only avg runtime : 0.234856 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.230063 ms
+  Kernel-only avg runtime : 0.231734 ms
+### rep4 qwen_gateup_M8192 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.220807 ms
+  Kernel-only avg runtime : 0.220699 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.205386 ms
+  Kernel-only avg runtime : 0.208608 ms
+### rep5 qwen_gateup_M8192 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.234555 ms
+  Kernel-only avg runtime : 0.234669 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.226367 ms
+  Kernel-only avg runtime : 0.228244 ms
+### rep5 qwen_gateup_M8192 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.22062 ms
+  Kernel-only avg runtime : 0.220216 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.207488 ms
+  Kernel-only avg runtime : 0.21214 ms
+### rep5 qwen_gateup_M8192 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.2337 ms
+  Kernel-only avg runtime : 0.233048 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.228541 ms
+  Kernel-only avg runtime : 0.234401 ms
+### rep1 ds_routed_gu_M2048 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.0990534 ms
+  Kernel-only avg runtime : 0.0984454 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.097271 ms
+  Kernel-only avg runtime : 0.0978118 ms
+### rep1 ds_routed_gu_M2048 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.0985798 ms
+  Kernel-only avg runtime : 0.0984621 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.0953728 ms
+  Kernel-only avg runtime : 0.095335 ms
+### rep1 ds_routed_gu_M2048 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.096672 ms
+  Kernel-only avg runtime : 0.0964589 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.0927648 ms
+  Kernel-only avg runtime : 0.0927386 ms
+### rep2 ds_routed_gu_M2048 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.0985126 ms
+  Kernel-only avg runtime : 0.0984922 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.0953485 ms
+  Kernel-only avg runtime : 0.0953158 ms
+### rep2 ds_routed_gu_M2048 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.0965658 ms
+  Kernel-only avg runtime : 0.0962426 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.0929939 ms
+  Kernel-only avg runtime : 0.092608 ms
+### rep2 ds_routed_gu_M2048 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.0989869 ms
+  Kernel-only avg runtime : 0.0984576 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.097376 ms
+  Kernel-only avg runtime : 0.0972563 ms
+### rep3 ds_routed_gu_M2048 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.0967034 ms
+  Kernel-only avg runtime : 0.0962854 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.0926534 ms
+  Kernel-only avg runtime : 0.0925779 ms
+### rep3 ds_routed_gu_M2048 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.0984902 ms
+  Kernel-only avg runtime : 0.0982976 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.0971962 ms
+  Kernel-only avg runtime : 0.0972704 ms
+### rep3 ds_routed_gu_M2048 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.0988262 ms
+  Kernel-only avg runtime : 0.0984038 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.0953843 ms
+  Kernel-only avg runtime : 0.0952122 ms
+### rep4 ds_routed_gu_M2048 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.0987686 ms
+  Kernel-only avg runtime : 0.0979725 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.0971258 ms
+  Kernel-only avg runtime : 0.0972966 ms
+### rep4 ds_routed_gu_M2048 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.098425 ms
+  Kernel-only avg runtime : 0.0981178 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.0952506 ms
+  Kernel-only avg runtime : 0.0953152 ms
+### rep4 ds_routed_gu_M2048 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.0966259 ms
+  Kernel-only avg runtime : 0.0963219 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.0927898 ms
+  Kernel-only avg runtime : 0.0924838 ms
+### rep5 ds_routed_gu_M2048 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.0985619 ms
+  Kernel-only avg runtime : 0.0984448 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.0954355 ms
+  Kernel-only avg runtime : 0.0952102 ms
+### rep5 ds_routed_gu_M2048 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.096521 ms
+  Kernel-only avg runtime : 0.0962778 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.0926579 ms
+  Kernel-only avg runtime : 0.0925075 ms
+### rep5 ds_routed_gu_M2048 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.0988627 ms
+  Kernel-only avg runtime : 0.0982842 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.0972128 ms
+  Kernel-only avg runtime : 0.0972282 ms
+### rep1 ds_routed_gu_M4096 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.164239 ms
+  Kernel-only avg runtime : 0.164177 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.158385 ms
+  Kernel-only avg runtime : 0.158563 ms
+### rep1 ds_routed_gu_M4096 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.164716 ms
+  Kernel-only avg runtime : 0.164725 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.157108 ms
+  Kernel-only avg runtime : 0.157373 ms
+### rep1 ds_routed_gu_M4096 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.157235 ms
+  Kernel-only avg runtime : 0.156659 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.145227 ms
+  Kernel-only avg runtime : 0.145094 ms
+### rep2 ds_routed_gu_M4096 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.165498 ms
+  Kernel-only avg runtime : 0.164851 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.157066 ms
+  Kernel-only avg runtime : 0.157697 ms
+### rep2 ds_routed_gu_M4096 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.156996 ms
+  Kernel-only avg runtime : 0.156801 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.145311 ms
+  Kernel-only avg runtime : 0.14809 ms
+### rep2 ds_routed_gu_M4096 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.165252 ms
+  Kernel-only avg runtime : 0.16473 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.159318 ms
+  Kernel-only avg runtime : 0.167096 ms
+### rep3 ds_routed_gu_M4096 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.157348 ms
+  Kernel-only avg runtime : 0.156936 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.14558 ms
+  Kernel-only avg runtime : 0.145724 ms
+### rep3 ds_routed_gu_M4096 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.164924 ms
+  Kernel-only avg runtime : 0.164653 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.159121 ms
+  Kernel-only avg runtime : 0.162772 ms
+### rep3 ds_routed_gu_M4096 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.165301 ms
+  Kernel-only avg runtime : 0.164885 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.157503 ms
+  Kernel-only avg runtime : 0.157567 ms
+### rep4 ds_routed_gu_M4096 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.164929 ms
+  Kernel-only avg runtime : 0.164527 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.159003 ms
+  Kernel-only avg runtime : 0.158978 ms
+### rep4 ds_routed_gu_M4096 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.165597 ms
+  Kernel-only avg runtime : 0.165498 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.157526 ms
+  Kernel-only avg runtime : 0.159244 ms
+### rep4 ds_routed_gu_M4096 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.157295 ms
+  Kernel-only avg runtime : 0.156492 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.145488 ms
+  Kernel-only avg runtime : 0.146192 ms
+### rep5 ds_routed_gu_M4096 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.165025 ms
+  Kernel-only avg runtime : 0.164952 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.15732 ms
+  Kernel-only avg runtime : 0.15741 ms
+### rep5 ds_routed_gu_M4096 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.15642 ms
+  Kernel-only avg runtime : 0.156502 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.145085 ms
+  Kernel-only avg runtime : 0.146972 ms
+### rep5 ds_routed_gu_M4096 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.164404 ms
+  Kernel-only avg runtime : 0.164028 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.158946 ms
+  Kernel-only avg runtime : 0.158479 ms
+### rep1 ds_routed_gu_M8192 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.300808 ms
+  Kernel-only avg runtime : 0.300524 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.292762 ms
+  Kernel-only avg runtime : 0.294575 ms
+### rep1 ds_routed_gu_M8192 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.303112 ms
+  Kernel-only avg runtime : 0.307352 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.286505 ms
+  Kernel-only avg runtime : 0.283446 ms
+### rep1 ds_routed_gu_M8192 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.284995 ms
+  Kernel-only avg runtime : 0.28534 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.256885 ms
+  Kernel-only avg runtime : 0.262309 ms
+### rep2 ds_routed_gu_M8192 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.302509 ms
+  Kernel-only avg runtime : 0.312126 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.293111 ms
+  Kernel-only avg runtime : 0.291453 ms
+### rep2 ds_routed_gu_M8192 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.284472 ms
+  Kernel-only avg runtime : 0.284959 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.249628 ms
+  Kernel-only avg runtime : 0.262967 ms
+### rep2 ds_routed_gu_M8192 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.301327 ms
+  Kernel-only avg runtime : 0.304163 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.292446 ms
+  Kernel-only avg runtime : 0.292468 ms
+### rep3 ds_routed_gu_M8192 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.285222 ms
+  Kernel-only avg runtime : 0.286774 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.261058 ms
+  Kernel-only avg runtime : 0.262366 ms
+### rep3 ds_routed_gu_M8192 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.300671 ms
+  Kernel-only avg runtime : 0.300351 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.289878 ms
+  Kernel-only avg runtime : 0.29671 ms
+### rep3 ds_routed_gu_M8192 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.302102 ms
+  Kernel-only avg runtime : 0.302595 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.283638 ms
+  Kernel-only avg runtime : 0.292657 ms
+### rep4 ds_routed_gu_M8192 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.300308 ms
+  Kernel-only avg runtime : 0.300209 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.293379 ms
+  Kernel-only avg runtime : 0.297121 ms
+### rep4 ds_routed_gu_M8192 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.301827 ms
+  Kernel-only avg runtime : 0.301731 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.282052 ms
+  Kernel-only avg runtime : 0.291183 ms
+### rep4 ds_routed_gu_M8192 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.284172 ms
+  Kernel-only avg runtime : 0.284668 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.258399 ms
+  Kernel-only avg runtime : 0.263368 ms
+### rep5 ds_routed_gu_M8192 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.302301 ms
+  Kernel-only avg runtime : 0.302493 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.287166 ms
+  Kernel-only avg runtime : 0.294524 ms
+### rep5 ds_routed_gu_M8192 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.285073 ms
+  Kernel-only avg runtime : 0.285468 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.249699 ms
+  Kernel-only avg runtime : 0.267505 ms
+### rep5 ds_routed_gu_M8192 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.301558 ms
+  Kernel-only avg runtime : 0.30098 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.288781 ms
+  Kernel-only avg runtime : 0.2888 ms
+### rep1 qwen_down_M2048 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.128518 ms
+  Kernel-only avg runtime : 0.128664 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.129424 ms
+  Kernel-only avg runtime : 0.129535 ms
+### rep1 qwen_down_M2048 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.128816 ms
+  Kernel-only avg runtime : 0.128259 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.126291 ms
+  Kernel-only avg runtime : 0.12628 ms
+### rep1 qwen_down_M2048 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.128458 ms
+  Kernel-only avg runtime : 0.128458 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.123918 ms
+  Kernel-only avg runtime : 0.123375 ms
+### rep2 qwen_down_M2048 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.129012 ms
+  Kernel-only avg runtime : 0.128536 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.126321 ms
+  Kernel-only avg runtime : 0.126355 ms
+### rep2 qwen_down_M2048 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.128765 ms
+  Kernel-only avg runtime : 0.12874 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.12405 ms
+  Kernel-only avg runtime : 0.12366 ms
+### rep2 qwen_down_M2048 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.129153 ms
+  Kernel-only avg runtime : 0.128696 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.129448 ms
+  Kernel-only avg runtime : 0.129356 ms
+### rep3 qwen_down_M2048 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.128629 ms
+  Kernel-only avg runtime : 0.128216 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.123771 ms
+  Kernel-only avg runtime : 0.123508 ms
+### rep3 qwen_down_M2048 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.129148 ms
+  Kernel-only avg runtime : 0.128666 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.129762 ms
+  Kernel-only avg runtime : 0.12946 ms
+### rep3 qwen_down_M2048 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.129489 ms
+  Kernel-only avg runtime : 0.128767 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.126266 ms
+  Kernel-only avg runtime : 0.126396 ms
+### rep4 qwen_down_M2048 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.128271 ms
+  Kernel-only avg runtime : 0.12813 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.12943 ms
+  Kernel-only avg runtime : 0.129388 ms
+### rep4 qwen_down_M2048 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.129025 ms
+  Kernel-only avg runtime : 0.128916 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.126172 ms
+  Kernel-only avg runtime : 0.126122 ms
+### rep4 qwen_down_M2048 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.12841 ms
+  Kernel-only avg runtime : 0.128211 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.123599 ms
+  Kernel-only avg runtime : 0.123567 ms
+### rep5 qwen_down_M2048 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.128736 ms
+  Kernel-only avg runtime : 0.128832 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.126066 ms
+  Kernel-only avg runtime : 0.126247 ms
+### rep5 qwen_down_M2048 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.128731 ms
+  Kernel-only avg runtime : 0.128146 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.123395 ms
+  Kernel-only avg runtime : 0.12359 ms
+### rep5 qwen_down_M2048 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.129385 ms
+  Kernel-only avg runtime : 0.128576 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.129712 ms
+  Kernel-only avg runtime : 0.129722 ms
+### rep1 qwen_down_M4096 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.194636 ms
+  Kernel-only avg runtime : 0.194353 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.187889 ms
+  Kernel-only avg runtime : 0.188063 ms
+### rep1 qwen_down_M4096 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.195005 ms
+  Kernel-only avg runtime : 0.19473 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.189777 ms
+  Kernel-only avg runtime : 0.188465 ms
+### rep1 qwen_down_M4096 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.192593 ms
+  Kernel-only avg runtime : 0.192374 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.189421 ms
+  Kernel-only avg runtime : 0.189121 ms
+### rep2 qwen_down_M4096 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.195073 ms
+  Kernel-only avg runtime : 0.194629 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.190139 ms
+  Kernel-only avg runtime : 0.190455 ms
+### rep2 qwen_down_M4096 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.192658 ms
+  Kernel-only avg runtime : 0.192609 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.188963 ms
+  Kernel-only avg runtime : 0.189001 ms
+### rep2 qwen_down_M4096 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.194733 ms
+  Kernel-only avg runtime : 0.194406 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.188073 ms
+  Kernel-only avg runtime : 0.188104 ms
+### rep3 qwen_down_M4096 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.192897 ms
+  Kernel-only avg runtime : 0.192444 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.189065 ms
+  Kernel-only avg runtime : 0.188591 ms
+### rep3 qwen_down_M4096 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.195412 ms
+  Kernel-only avg runtime : 0.19483 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.18847 ms
+  Kernel-only avg runtime : 0.188246 ms
+### rep3 qwen_down_M4096 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.194989 ms
+  Kernel-only avg runtime : 0.194778 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.190621 ms
+  Kernel-only avg runtime : 0.188395 ms
+### rep4 qwen_down_M4096 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.194946 ms
+  Kernel-only avg runtime : 0.194499 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.188656 ms
+  Kernel-only avg runtime : 0.188116 ms
+### rep4 qwen_down_M4096 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.19497 ms
+  Kernel-only avg runtime : 0.194564 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.189046 ms
+  Kernel-only avg runtime : 0.188226 ms
+### rep4 qwen_down_M4096 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.192832 ms
+  Kernel-only avg runtime : 0.192103 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.188572 ms
+  Kernel-only avg runtime : 0.188742 ms
+### rep5 qwen_down_M4096 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.19495 ms
+  Kernel-only avg runtime : 0.194819 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.188858 ms
+  Kernel-only avg runtime : 0.188443 ms
+### rep5 qwen_down_M4096 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.192708 ms
+  Kernel-only avg runtime : 0.192447 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.188602 ms
+  Kernel-only avg runtime : 0.18878 ms
+### rep5 qwen_down_M4096 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.195165 ms
+  Kernel-only avg runtime : 0.194332 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.18958 ms
+  Kernel-only avg runtime : 0.188935 ms
+### rep1 qwen_down_M8192 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.340584 ms
+  Kernel-only avg runtime : 0.340206 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.316003 ms
+  Kernel-only avg runtime : 0.319164 ms
+### rep1 qwen_down_M8192 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.341553 ms
+  Kernel-only avg runtime : 0.354342 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.316456 ms
+  Kernel-only avg runtime : 0.316813 ms
+### rep1 qwen_down_M8192 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.33847 ms
+  Kernel-only avg runtime : 0.3401 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.30819 ms
+  Kernel-only avg runtime : 0.308764 ms
+### rep2 qwen_down_M8192 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.341094 ms
+  Kernel-only avg runtime : 0.342407 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.31599 ms
+  Kernel-only avg runtime : 0.317523 ms
+### rep2 qwen_down_M8192 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.33835 ms
+  Kernel-only avg runtime : 0.341705 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.307764 ms
+  Kernel-only avg runtime : 0.307825 ms
+### rep2 qwen_down_M8192 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.340147 ms
+  Kernel-only avg runtime : 0.340376 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.316602 ms
+  Kernel-only avg runtime : 0.317683 ms
+### rep3 qwen_down_M8192 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.337882 ms
+  Kernel-only avg runtime : 0.339546 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.308257 ms
+  Kernel-only avg runtime : 0.308072 ms
+### rep3 qwen_down_M8192 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.340787 ms
+  Kernel-only avg runtime : 0.344502 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.315064 ms
+  Kernel-only avg runtime : 0.316607 ms
+### rep3 qwen_down_M8192 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.341347 ms
+  Kernel-only avg runtime : 0.352168 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.316284 ms
+  Kernel-only avg runtime : 0.316806 ms
+### rep4 qwen_down_M8192 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.340127 ms
+  Kernel-only avg runtime : 0.34051 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.316797 ms
+  Kernel-only avg runtime : 0.31765 ms
+### rep4 qwen_down_M8192 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.340456 ms
+  Kernel-only avg runtime : 0.341972 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.316721 ms
+  Kernel-only avg runtime : 0.317207 ms
+### rep4 qwen_down_M8192 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.338481 ms
+  Kernel-only avg runtime : 0.337983 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.307542 ms
+  Kernel-only avg runtime : 0.30854 ms
+### rep5 qwen_down_M8192 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.340936 ms
+  Kernel-only avg runtime : 0.3411 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.316566 ms
+  Kernel-only avg runtime : 0.317403 ms
+### rep5 qwen_down_M8192 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.338473 ms
+  Kernel-only avg runtime : 0.338419 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.307468 ms
+  Kernel-only avg runtime : 0.308375 ms
+### rep5 qwen_down_M8192 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.340629 ms
+  Kernel-only avg runtime : 0.345099 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.316659 ms
+  Kernel-only avg runtime : 0.316594 ms
+### rep1 ds_routed_down_M2048 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.100033 ms
+  Kernel-only avg runtime : 0.0997184 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.0996947 ms
+  Kernel-only avg runtime : 0.0996179 ms
+### rep1 ds_routed_down_M2048 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.100013 ms
+  Kernel-only avg runtime : 0.099769 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.097719 ms
+  Kernel-only avg runtime : 0.0976378 ms
+### rep1 ds_routed_down_M2048 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.100457 ms
+  Kernel-only avg runtime : 0.099545 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.0960378 ms
+  Kernel-only avg runtime : 0.0959661 ms
+### rep2 ds_routed_down_M2048 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.0999616 ms
+  Kernel-only avg runtime : 0.0998688 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.0979149 ms
+  Kernel-only avg runtime : 0.0976262 ms
+### rep2 ds_routed_down_M2048 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.100013 ms
+  Kernel-only avg runtime : 0.0996365 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.0959731 ms
+  Kernel-only avg runtime : 0.0961824 ms
+### rep2 ds_routed_down_M2048 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.0999168 ms
+  Kernel-only avg runtime : 0.0995014 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.0996544 ms
+  Kernel-only avg runtime : 0.0996422 ms
+### rep3 ds_routed_down_M2048 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.100302 ms
+  Kernel-only avg runtime : 0.0992333 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.0960896 ms
+  Kernel-only avg runtime : 0.0959283 ms
+### rep3 ds_routed_down_M2048 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.100114 ms
+  Kernel-only avg runtime : 0.0995693 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.0998739 ms
+  Kernel-only avg runtime : 0.100018 ms
+### rep3 ds_routed_down_M2048 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.100127 ms
+  Kernel-only avg runtime : 0.099737 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.0977434 ms
+  Kernel-only avg runtime : 0.0977075 ms
+### rep4 ds_routed_down_M2048 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.0998746 ms
+  Kernel-only avg runtime : 0.0993696 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.0996858 ms
+  Kernel-only avg runtime : 0.0994739 ms
+### rep4 ds_routed_down_M2048 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.100073 ms
+  Kernel-only avg runtime : 0.0998669 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.0977331 ms
+  Kernel-only avg runtime : 0.0978086 ms
+### rep4 ds_routed_down_M2048 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.100063 ms
+  Kernel-only avg runtime : 0.099657 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.096144 ms
+  Kernel-only avg runtime : 0.0958848 ms
+### rep5 ds_routed_down_M2048 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.10004 ms
+  Kernel-only avg runtime : 0.0998246 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.097863 ms
+  Kernel-only avg runtime : 0.0978042 ms
+### rep5 ds_routed_down_M2048 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.0999846 ms
+  Kernel-only avg runtime : 0.099849 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.0959437 ms
+  Kernel-only avg runtime : 0.0959251 ms
+### rep5 ds_routed_down_M2048 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.100137 ms
+  Kernel-only avg runtime : 0.0994598 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.0995136 ms
+  Kernel-only avg runtime : 0.0994726 ms
+### rep1 ds_routed_down_M4096 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.186735 ms
+  Kernel-only avg runtime : 0.186609 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.183427 ms
+  Kernel-only avg runtime : 0.184995 ms
+### rep1 ds_routed_down_M4096 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.187392 ms
+  Kernel-only avg runtime : 0.187262 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.172156 ms
+  Kernel-only avg runtime : 0.173547 ms
+### rep1 ds_routed_down_M4096 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.179439 ms
+  Kernel-only avg runtime : 0.179197 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.158502 ms
+  Kernel-only avg runtime : 0.158745 ms
+### rep2 ds_routed_down_M4096 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.187203 ms
+  Kernel-only avg runtime : 0.187085 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.172086 ms
+  Kernel-only avg runtime : 0.173658 ms
+### rep2 ds_routed_down_M4096 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.179527 ms
+  Kernel-only avg runtime : 0.178973 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.158367 ms
+  Kernel-only avg runtime : 0.159384 ms
+### rep2 ds_routed_down_M4096 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.186916 ms
+  Kernel-only avg runtime : 0.186642 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.181893 ms
+  Kernel-only avg runtime : 0.182878 ms
+### rep3 ds_routed_down_M4096 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.17915 ms
+  Kernel-only avg runtime : 0.178638 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.158943 ms
+  Kernel-only avg runtime : 0.159867 ms
+### rep3 ds_routed_down_M4096 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.187668 ms
+  Kernel-only avg runtime : 0.186979 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.181986 ms
+  Kernel-only avg runtime : 0.182094 ms
+### rep3 ds_routed_down_M4096 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.187596 ms
+  Kernel-only avg runtime : 0.187821 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.172716 ms
+  Kernel-only avg runtime : 0.173441 ms
+### rep4 ds_routed_down_M4096 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.186999 ms
+  Kernel-only avg runtime : 0.18703 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.181725 ms
+  Kernel-only avg runtime : 0.181881 ms
+### rep4 ds_routed_down_M4096 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.187615 ms
+  Kernel-only avg runtime : 0.187244 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.172385 ms
+  Kernel-only avg runtime : 0.172677 ms
+### rep4 ds_routed_down_M4096 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.179222 ms
+  Kernel-only avg runtime : 0.179058 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.158545 ms
+  Kernel-only avg runtime : 0.158232 ms
+### rep5 ds_routed_down_M4096 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.187309 ms
+  Kernel-only avg runtime : 0.187382 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.172042 ms
+  Kernel-only avg runtime : 0.173692 ms
+### rep5 ds_routed_down_M4096 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.179051 ms
+  Kernel-only avg runtime : 0.178838 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.159017 ms
+  Kernel-only avg runtime : 0.159432 ms
+### rep5 ds_routed_down_M4096 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.187399 ms
+  Kernel-only avg runtime : 0.186719 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.181868 ms
+  Kernel-only avg runtime : 0.183669 ms
+### rep1 ds_routed_down_M8192 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.331174 ms
+  Kernel-only avg runtime : 0.339393 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.302022 ms
+  Kernel-only avg runtime : 0.306212 ms
+### rep1 ds_routed_down_M8192 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.333106 ms
+  Kernel-only avg runtime : 0.333613 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.304499 ms
+  Kernel-only avg runtime : 0.308701 ms
+### rep1 ds_routed_down_M8192 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.321133 ms
+  Kernel-only avg runtime : 0.321396 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.27026 ms
+  Kernel-only avg runtime : 0.272686 ms
+### rep2 ds_routed_down_M8192 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.332945 ms
+  Kernel-only avg runtime : 0.339246 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.306096 ms
+  Kernel-only avg runtime : 0.308743 ms
+### rep2 ds_routed_down_M8192 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.321041 ms
+  Kernel-only avg runtime : 0.321721 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.270504 ms
+  Kernel-only avg runtime : 0.272392 ms
+### rep2 ds_routed_down_M8192 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.33092 ms
+  Kernel-only avg runtime : 0.337261 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.307512 ms
+  Kernel-only avg runtime : 0.307392 ms
+### rep3 ds_routed_down_M8192 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.321308 ms
+  Kernel-only avg runtime : 0.321467 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.271364 ms
+  Kernel-only avg runtime : 0.275286 ms
+### rep3 ds_routed_down_M8192 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.331183 ms
+  Kernel-only avg runtime : 0.331711 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.306892 ms
+  Kernel-only avg runtime : 0.310686 ms
+### rep3 ds_routed_down_M8192 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.333599 ms
+  Kernel-only avg runtime : 0.333373 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.306544 ms
+  Kernel-only avg runtime : 0.309663 ms
+### rep4 ds_routed_down_M8192 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.330658 ms
+  Kernel-only avg runtime : 0.331202 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.306477 ms
+  Kernel-only avg runtime : 0.310375 ms
+### rep4 ds_routed_down_M8192 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.332413 ms
+  Kernel-only avg runtime : 0.344083 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.305466 ms
+  Kernel-only avg runtime : 0.305325 ms
+### rep4 ds_routed_down_M8192 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.321039 ms
+  Kernel-only avg runtime : 0.324513 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.269633 ms
+  Kernel-only avg runtime : 0.273231 ms
+### rep5 ds_routed_down_M8192 grp_pp_swc3_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.333428 ms
+  Kernel-only avg runtime : 0.337559 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.29632 ms
+  Kernel-only avg runtime : 0.30094 ms
+### rep5 ds_routed_down_M8192 grp_base_p0
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.321595 ms
+  Kernel-only avg runtime : 0.324148 ms
+  Stages      : 4  (meta=0, pad=0)
+  Avg runtime : 0.268256 ms
+  Kernel-only avg runtime : 0.268494 ms
+### rep5 ds_routed_down_M8192 grp_pp_swc0_p0
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.331 ms
+  Kernel-only avg runtime : 0.331338 ms
+  Stages      : 4  (meta=1, pad=0)
+  Avg runtime : 0.306572 ms
+  Kernel-only avg runtime : 0.309684 ms
+DONE

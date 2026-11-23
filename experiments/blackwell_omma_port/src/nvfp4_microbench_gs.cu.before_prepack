@@ -1,0 +1,1125 @@
+/***************************************************************************************************
+ * NVFP4 micro-benchmark for NVIDIA Blackwell SM120 (RTX 50 / RTX PRO Blackwell)
+ *
+ *  Pipeline
+ *  --------
+ *   1. Generate BF16 A [M x K] and B [N x K]   (row-major, K contiguous)
+ *   2. HAND-WRITTEN quantization kernels : BF16 -> NVFP4  (torchao "two level" recipe)
+ *        per_tensor_scale       = amax / (448 * 6)
+ *        block_scale            = block_amax(16) / 6
+ *        stored E4M3 scale byte = quantize_e4m3( block_scale / per_tensor_scale )
+ *        packed FP4 (E2M1, 2/B) = quantize_e2m1( x / (per_tensor_scale * dequant(E4M3 byte)) )
+ *        scale bytes are written directly into CUTLASS' interleaved SF layout
+ *   3. CUTLASS NVFP4 x NVFP4 -> BF16 GEMM on the FP4 Tensor Core (example 79a config)
+ *        D = alpha * (Aq @ Bq^T),   alpha = per_tensor_scale_A * per_tensor_scale_B
+ *   4. Correctness vs a BF16 cuBLAS reference built from the full-precision inputs
+ *   5. Separate timing of the quantization phase and the GEMM kernel, plus a
+ *      cudaProfilerApi + NVTX window around ONE instance of each, for Nsight Compute.
+ *
+ *  Kernels visible to Nsight Compute:
+ *      fill_normal_bf16   amax_bf16   scale_from_amax   quantize_nvfp4   dequant_nvfp4
+ *      diff_norms         cast_bf16_f32
+ *      cutlass::device_kernel<...>   (the FP4 Tensor Core GEMM; target via NVTX range "gemm")
+ *
+ *  Build: build.sh   Run: run.sh   Profile: profile.sh
+ **************************************************************************************************/
+
+#include <cstdio>
+#include <cstdlib>
+#include <cstdint>
+#include <cmath>
+#include <string>
+#include <utility>
+
+#include <cuda_runtime.h>
+#include <cuda_profiler_api.h>
+#include <cuda_bf16.h>
+#include <cuda_fp8.h>
+#include <cuda_fp4.h>
+#include <cuda_fp6.h>
+#include <cublas_v2.h>
+#include <nvtx3/nvToolsExt.h>
+
+// Largest-error-selection metadata config -- must be defined before collective_builder.hpp
+// pulls in the patched sm120_blockscaled_mma_tma.hpp (its own #ifndef defaults are Linear
+// mode). Override via -D from build.sh:
+//   Linear (A@W^T):  NVFP4_META_GROUP_SIZE=4 NVFP4_META_ON_B=0 (default)
+//   QK^T (attention): NVFP4_META_GROUP_SIZE=8 NVFP4_META_ON_B=1
+#ifndef NVFP4_META_GROUP_SIZE
+#define NVFP4_META_GROUP_SIZE 4
+#endif
+#ifndef NVFP4_META_ON_B
+#define NVFP4_META_ON_B 0
+#endif
+// NVFP4_META_ENABLE=0 builds against an UNPATCHED CUTLASS checkout (no metaA/metaB
+// TMA loading at all) for baseline (no-metadata) A/B timing comparisons.
+#ifndef NVFP4_META_ENABLE
+#define NVFP4_META_ENABLE 1
+#endif
+// NVFP4_NIBBLE_PACK=1 (quantize-kernel-only experiment, GS must be 4): each metadata
+// value is only 4 bits (2-bit index + 2-bit E2M3 correction), so pack 2 adjacent
+// groups' values into 1 byte instead of 1 byte/group. Halves bytes written, landing
+// the per-row byte width exactly on the TMA 16-byte floor (same as group=8's natural
+// width) while keeping group=4's finer selection granularity. GEMM-side timing for
+// this is modeled by reusing the group=8 CUTLASS binary (same K/8 byte-row layout).
+#ifndef NVFP4_NIBBLE_PACK
+#define NVFP4_NIBBLE_PACK 0
+#endif
+// NVFP4_WORD_PACK8=1 (GS must be 8, NG=2): pack both groups' 5-bit values (index+correction)
+// into a single uint16_t store instead of two independent uint8_t stores. Same total bytes
+// as the naive per-group byte store (16B/row for K=128) -- this only tests whether replacing
+// 2 byte-stores with 1 halfword-store changes the quantize kernel's write cost.
+#ifndef NVFP4_WORD_PACK8
+#define NVFP4_WORD_PACK8 0
+#endif
+// NVFP4_DENSE_PACK8=1 (GS must be 8): fully dense bit-packing, no byte/word alignment --
+// 8 groups (2 per thread's 16-elem chunk x 4 consecutive threads) x 5 bits = 40 bits =
+// exactly 5 bytes, written by one "leader" thread per group-of-4 after gathering the other
+// 3 threads' values via warp shuffle. 10 bytes/row for K=128 (vs 16B naive) -- tests whether
+// the real write-side savings justify the added cross-thread-boundary complexity.
+#ifndef NVFP4_DENSE_PACK8
+#define NVFP4_DENSE_PACK8 0
+#endif
+// NVFP4_META_TRANSPOSE=1: metaA stored (M,K/GS,L) with M contiguous (stride 1) instead of
+// K/GS contiguous -- see sm120_blockscaled_mma_tma.hpp. The quantize kernel's write becomes
+// strided (consecutive threads, same row, different K-groups -> addresses NG*M apart) instead
+// of coalesced -- tests whether the GEMM-side win (wider TMA row) survives this write-side cost.
+#ifndef NVFP4_META_TRANSPOSE
+#define NVFP4_META_TRANSPOSE 0
+#endif
+// NVFP4_META_PAIR16=1 (GS=16): row-pair correction-data layout, see the CUTLASS patch.
+#ifndef NVFP4_META_PAIR16
+#define NVFP4_META_PAIR16 0
+#endif
+
+#include "cutlass/cutlass.h"
+#include "cutlass/numeric_types.h"
+#include "cutlass/float_subbyte.h"
+#include "cute/tensor.hpp"
+#include "cutlass/gemm/dispatch_policy.hpp"
+#include "cutlass/gemm/collective/collective_builder.hpp"
+#include "cutlass/epilogue/collective/collective_builder.hpp"
+#include "cutlass/detail/sm100_blockscaled_layout.hpp"
+#include "cutlass/gemm/device/gemm_universal_adapter.h"
+#include "cutlass/gemm/kernel/gemm_universal.hpp"
+#include "cutlass/util/packed_stride.hpp"
+#include "cutlass/util/device_memory.h"
+
+#include "helper.h"   // CUDA_CHECK / CUTLASS_CHECK / GpuTimer
+
+using namespace cute;
+
+#define CUBLAS_CHECK(x)                                                          \
+  do {                                                                          \
+    cublasStatus_t s_ = (x);                                                    \
+    if (s_ != CUBLAS_STATUS_SUCCESS) {                                          \
+      std::fprintf(stderr, "cuBLAS error %d at line %d\n", (int)s_, __LINE__);  \
+      std::exit(EXIT_FAILURE);                                                  \
+    }                                                                          \
+  } while (0)
+
+// ---------------------------------------------------------------------------------------------
+// CUTLASS GEMM type  (identical to CUTLASS example 79a: nvfp4 x nvfp4 -> bf16, SM120)
+// ---------------------------------------------------------------------------------------------
+using ElementA   = cutlass::nv_float4_t<cutlass::float_e2m1_t>;   // {DataType=e2m1, ScaleFactorType=ue4m3}
+using LayoutATag = cutlass::layout::RowMajor;
+constexpr int AlignmentA = 32;
+
+using ElementB   = cutlass::nv_float4_t<cutlass::float_e2m1_t>;
+using LayoutBTag = cutlass::layout::ColumnMajor;                  // operand B is (N,K); ColumnMajor => K contiguous
+constexpr int AlignmentB = 32;
+
+using ElementD   = cutlass::bfloat16_t;
+using ElementC   = cutlass::bfloat16_t;
+using LayoutCTag = cutlass::layout::RowMajor;
+using LayoutDTag = cutlass::layout::RowMajor;
+constexpr int AlignmentD = 128 / cutlass::sizeof_bits<ElementD>::value;
+constexpr int AlignmentC = 128 / cutlass::sizeof_bits<ElementC>::value;
+
+using ElementAccumulator = float;
+using ArchTag            = cutlass::arch::Sm120;
+using OperatorClass      = cutlass::arch::OpClassBlockScaledTensorOp;
+
+using ThreadBlockShape = Shape<_128,_128,_128>;
+using ClusterShape     = Shape<_1,_1,_1>;
+
+using CollectiveEpilogue = typename cutlass::epilogue::collective::CollectiveBuilder<
+    ArchTag, OperatorClass,
+    ThreadBlockShape, ClusterShape,
+    cutlass::epilogue::collective::EpilogueTileAuto,
+    ElementAccumulator, ElementAccumulator,
+    ElementC, LayoutCTag, AlignmentC,
+    ElementD, LayoutDTag, AlignmentD,
+    cutlass::epilogue::collective::EpilogueScheduleAuto
+  >::CollectiveOp;
+
+using CollectiveMainloop = typename cutlass::gemm::collective::CollectiveBuilder<
+    ArchTag, OperatorClass,
+    ElementA, LayoutATag, AlignmentA,
+    ElementB, LayoutBTag, AlignmentB,
+    ElementAccumulator,
+    ThreadBlockShape, ClusterShape,
+    // Extra NVFP4_SMEM_PAD-byte carveout -- see core.inc for the full explanation.
+    // Default 25000 (shared Stage=3 for both baseline and selection, tuned so metaA
+    // fits). Build with -DNVFP4_SMEM_PAD=0 for a "true baseline" (own natural Stage
+    // count, no artificial reduction) -- see README.md "Stage-count confound".
+#ifndef NVFP4_SMEM_PAD
+#define NVFP4_SMEM_PAD 25000
+#endif
+    cutlass::gemm::collective::StageCountAutoCarveout<
+        static_cast<int>(sizeof(typename CollectiveEpilogue::SharedStorage)) + NVFP4_SMEM_PAD>,
+    cutlass::gemm::collective::KernelScheduleAuto
+  >::CollectiveOp;
+
+using GemmKernel = cutlass::gemm::kernel::GemmUniversal<
+    Shape<int,int,int,int>, CollectiveMainloop, CollectiveEpilogue, void>;
+using Gemm = cutlass::gemm::device::GemmUniversalAdapter<GemmKernel>;
+
+using StrideA   = typename Gemm::GemmKernel::StrideA;
+using StrideB   = typename Gemm::GemmKernel::StrideB;
+using StrideC   = typename Gemm::GemmKernel::StrideC;
+using StrideD   = typename Gemm::GemmKernel::StrideD;
+using LayoutSFA = typename Gemm::GemmKernel::CollectiveMainloop::LayoutSFA;
+using LayoutSFB = typename Gemm::GemmKernel::CollectiveMainloop::LayoutSFB;
+using Sm1xxBlkScaledConfig = typename Gemm::GemmKernel::CollectiveMainloop::Sm1xxBlkScaledConfig;
+
+constexpr float F4_E2M1_MAX = 6.0f;
+constexpr float F8_E4M3_MAX = 448.0f;
+
+// nearest representable |E2M1| value, from the (already scaled) magnitude -- no dequant round-trip.
+// levels: 0 .5 1 1.5 2 3 4 6 ; round-to-nearest thresholds at the midpoints.
+__device__ __forceinline__ float e2m1_nearest_mag(float a) {
+  if (a < 0.25f) return 0.f;
+  if (a < 0.75f) return 0.5f;
+  if (a < 1.25f) return 1.f;
+  if (a < 1.75f) return 1.5f;
+  if (a < 2.5f)  return 2.f;
+  if (a < 3.5f)  return 3.f;
+  if (a < 5.0f)  return 4.f;
+  return 6.f;
+}
+
+// ---------------------------------------------------------------------------------------------
+// Hand-written kernels
+// ---------------------------------------------------------------------------------------------
+__device__ __forceinline__ float hash_unit(uint32_t x) {
+  x ^= x >> 16; x *= 0x7feb352dU; x ^= x >> 15; x *= 0x846ca68bU; x ^= x >> 16;
+  return (x >> 8) * (1.0f / 16777216.0f);
+}
+
+__global__ void fill_normal_bf16(__nv_bfloat16* p, size_t n, uint32_t seed) {
+  size_t i = (size_t)blockIdx.x * blockDim.x + threadIdx.x;
+  if (i >= n) return;
+  uint32_t s  = (uint32_t)(i * 2654435761ULL) ^ seed;
+  float u1 = fmaxf(hash_unit(s), 1e-7f);
+  float u2 = hash_unit(s * 747796405U + 2891336453U);
+  float r  = sqrtf(-2.0f * logf(u1)) * cosf(6.2831853f * u2);   // ~N(0,1)
+  p[i] = __float2bfloat16(r);
+}
+
+__global__ void cast_bf16_f32(const __nv_bfloat16* __restrict__ s, float* __restrict__ d, size_t n) {
+  for (size_t i = (size_t)blockIdx.x * blockDim.x + threadIdx.x; i < n;
+       i += (size_t)gridDim.x * blockDim.x)
+    d[i] = __bfloat162float(s[i]);
+}
+
+// per-tensor amax via atomicMax on the int bit pattern (valid for non-negative floats)
+__global__ void amax_bf16(const __nv_bfloat16* __restrict__ x, size_t n, float* __restrict__ out) {
+  float m = 0.f;
+  for (size_t i = (size_t)blockIdx.x * blockDim.x + threadIdx.x; i < n;
+       i += (size_t)gridDim.x * blockDim.x)
+    m = fmaxf(m, fabsf(__bfloat162float(x[i])));
+  __shared__ float sm[32];
+  for (int o = 16; o; o >>= 1) m = fmaxf(m, __shfl_down_sync(0xffffffffU, m, o));
+  if ((threadIdx.x & 31) == 0) sm[threadIdx.x >> 5] = m;
+  __syncthreads();
+  if (threadIdx.x < 32) {
+    int lanes = (blockDim.x + 31) >> 5;
+    m = (threadIdx.x < lanes) ? sm[threadIdx.x] : 0.f;
+    for (int o = 16; o; o >>= 1) m = fmaxf(m, __shfl_down_sync(0xffffffffU, m, o));
+    if (threadIdx.x == 0) atomicMax((int*)out, __float_as_int(m));
+  }
+}
+
+__global__ void scale_from_amax(const float* __restrict__ amax, float* __restrict__ ps) {
+  if (threadIdx.x == 0) *ps = (*amax) / (F8_E4M3_MAX * F4_E2M1_MAX);
+}
+
+// One thread per (row, 16-element K block): 8 packed FP4 bytes + 1 E4M3 scale byte.
+// DST = destination for the quantized outputs:
+//   0 = compute-only  : skip stores, fold into *sink        (fused, consumed straight from regs)
+//   1 = DRAM          : global stores                        (separate quantize kernel)
+//   2 = SMEM          : store to __shared__, fold back       (fused, staged in shared memory for the MMA)
+template <int DST, class SfLayout>
+__global__ void quantize_nvfp4(const __nv_bfloat16* __restrict__ x, int rows, int K,
+                               const float* __restrict__ ps_ptr,
+                               uint8_t* __restrict__ qdata, uint8_t* __restrict__ sf,
+                               SfLayout sfl, uint32_t* __restrict__ sink) {
+  __shared__ uint8_t s_q[128][8];
+  __shared__ uint8_t s_sf[128];
+  int kb  = blockIdx.x * blockDim.x + threadIdx.x;   // block index along K
+  int row = blockIdx.y;
+  if (row >= rows || kb >= (K >> 4)) return;
+  const int lt = threadIdx.x;
+
+  const __nv_bfloat16* xp = x + (size_t)row * K + (size_t)kb * 16;
+  float v[16], bamax = 0.f;
+#pragma unroll
+  for (int j = 0; j < 16; ++j) { v[j] = __bfloat162float(xp[j]); bamax = fmaxf(bamax, fabsf(v[j])); }
+
+  float ps     = *ps_ptr;
+  float scaled = fminf(fmaxf((bamax / F4_E2M1_MAX) / ps, 1.0e-30f), F8_E4M3_MAX);
+  __nv_fp8_storage_t sfb = __nv_cvt_float_to_fp8(scaled, __NV_SATFINITE, __NV_E4M3);
+  float total = ps * __half2float(__nv_cvt_fp8_to_halfraw(sfb, __NV_E4M3));
+  float inv   = (total > 0.f) ? (1.0f / total) : 0.f;
+
+  uint8_t* op = qdata + (size_t)row * (K / 2) + (size_t)kb * 8;
+  uint32_t acc = 0;
+#pragma unroll
+  for (int j = 0; j < 16; j += 2) {
+    float q0 = fminf(fmaxf(v[j]     * inv, -F4_E2M1_MAX), F4_E2M1_MAX);
+    float q1 = fminf(fmaxf(v[j + 1] * inv, -F4_E2M1_MAX), F4_E2M1_MAX);
+    // fp4x2: 1st component -> low nibble, 2nd -> high nibble (matches CUTLASS even-index-low)
+    __nv_fp4x2_storage_t b = __nv_cvt_float2_to_fp4x2(make_float2(q0, q1), __NV_E2M1, cudaRoundNearest);
+    if      (DST == 1) op[j >> 1]      = (uint8_t)b;
+    else if (DST == 2) s_q[lt][j >> 1] = (uint8_t)b;
+    else               acc ^= (uint32_t)(uint8_t)b << ((j & 6) << 2);
+  }
+  if (DST == 1) { sf[ sfl(row, kb * 16, 0) ] = sfb; return; }
+  if (DST == 2) {
+    s_sf[lt] = sfb;
+    __syncwarp();
+    uint32_t f = s_sf[lt];
+#pragma unroll
+    for (int k = 0; k < 8; ++k) f ^= (uint32_t)s_q[lt][k] << ((k & 3) << 3);
+    if ((kb & 1023) == 0) atomicAdd(sink, f);
+    return;
+  }
+  if ((kb & 1023) == 0) atomicAdd(sink, acc ^ sfb);
+}
+
+// Same as quantize_nvfp4, but additionally: for each group of NVFP4_META_GROUP_SIZE elements,
+// find the one with the largest E2M1 quantization error and emit {index, 2 extra mantissa bits
+// (from an E2M3 re-quantization)} into `meta` (1 byte per group). Group size/index width follow
+// the same NVFP4_META_GROUP_SIZE macro as the CUTLASS collective patch (4 for Linear, 8 for QK^T).
+// Used only to measure the added quantization cost of the largest-error selection.
+// CHEAP_ERR=false : per-element error via E2M1 dequant round-trip (__nv_cvt_fp4_to_halfraw x16)
+// CHEAP_ERR=true  : per-element error = |scaled - nearest_E2M1(scaled)| * total  (rounding residual,
+//                   no dequant) -- the cheaper way to get the selection criterion.
+template <int DST, bool CHEAP_ERR, class SfLayout>
+__global__ void quantize_nvfp4_select(const __nv_bfloat16* __restrict__ x, int rows, int K,
+                                       const float* __restrict__ ps_ptr,
+                                       uint8_t* __restrict__ qdata, uint8_t* __restrict__ sf,
+                                       uint8_t* __restrict__ meta, SfLayout sfl,
+                                       uint32_t* __restrict__ sink) {
+  __shared__ uint8_t s_q[128][8];
+  __shared__ uint8_t s_sf[128];
+  __shared__ uint8_t s_m[128][4];
+  int kb  = blockIdx.x * blockDim.x + threadIdx.x;
+  int row = blockIdx.y;
+  if (row >= rows || kb >= (K >> 4)) return;
+  const int lt = threadIdx.x;
+
+  const __nv_bfloat16* xp = x + (size_t)row * K + (size_t)kb * 16;
+  float v[16], bamax = 0.f;
+#pragma unroll
+  for (int j = 0; j < 16; ++j) { v[j] = __bfloat162float(xp[j]); bamax = fmaxf(bamax, fabsf(v[j])); }
+
+  float ps     = *ps_ptr;
+  float scaled = fminf(fmaxf((bamax / F4_E2M1_MAX) / ps, 1.0e-30f), F8_E4M3_MAX);
+  __nv_fp8_storage_t sfb = __nv_cvt_float_to_fp8(scaled, __NV_SATFINITE, __NV_E4M3);
+  float total = ps * __half2float(__nv_cvt_fp8_to_halfraw(sfb, __NV_E4M3));
+  float inv   = (total > 0.f) ? (1.0f / total) : 0.f;
+
+  uint8_t* op = qdata + (size_t)row * (K / 2) + (size_t)kb * 8;
+  uint32_t acc = 0;
+  float err[16];
+#pragma unroll
+  for (int j = 0; j < 16; j += 2) {
+    float q0 = fminf(fmaxf(v[j]     * inv, -F4_E2M1_MAX), F4_E2M1_MAX);
+    float q1 = fminf(fmaxf(v[j + 1] * inv, -F4_E2M1_MAX), F4_E2M1_MAX);
+    __nv_fp4x2_storage_t b = __nv_cvt_float2_to_fp4x2(make_float2(q0, q1), __NV_E2M1, cudaRoundNearest);
+    if      (DST == 1) op[j >> 1]      = (uint8_t)b;
+    else if (DST == 2) s_q[lt][j >> 1] = (uint8_t)b;
+    else               acc ^= (uint32_t)(uint8_t)b << ((j & 6) << 2);
+    // per-element quantization error (the selection criterion)
+    if (CHEAP_ERR) {
+      // E2M1 rounding residual in the scaled domain; the common factor `total` is the same for
+      // every element in the group, so it is omitted -- argmax is unchanged.
+      float a0 = fabsf(q0), a1 = fabsf(q1);
+      err[j]     = fabsf(a0 - e2m1_nearest_mag(a0));
+      err[j + 1] = fabsf(a1 - e2m1_nearest_mag(a1));
+    } else {
+      float d0 = total * __half2float(__nv_cvt_fp4_to_halfraw((__nv_fp4_storage_t)((uint8_t)b & 0xF), __NV_E2M1));
+      float d1 = total * __half2float(__nv_cvt_fp4_to_halfraw((__nv_fp4_storage_t)((uint8_t)b >> 4),  __NV_E2M1));
+      err[j]     = fabsf(v[j]     - d0);
+      err[j + 1] = fabsf(v[j + 1] - d1);
+    }
+  }
+
+  constexpr int GS = NVFP4_META_GROUP_SIZE;          // 4 (Linear) or 8 (QK^T)
+  constexpr int NG = 16 / GS;                         // groups per 16-elem chunk
+  constexpr int IDXBITS = (GS == 4) ? 2 : (GS == 8) ? 3 : (GS == 16) ? 4 : -1;  // log2(GS)
+  static_assert(IDXBITS > 0, "GS must be 4, 8, or 16");
+  constexpr uint8_t IDXMASK = (uint8_t)(GS - 1);
+#if NVFP4_NIBBLE_PACK
+  static_assert(GS == 4, "nibble packing assumes 4-bit values (GS=4)");
+  uint8_t* mp = meta + (size_t)row * (K / 8) + (size_t)kb * (NG / 2);   // K/8 byte-row layout (2 groups/byte)
+#elif NVFP4_META_PAIR16
+  // Row-pair layout (GS=16, see sm120_blockscaled_mma_tma.hpp NVFP4_META_PAIR16): rows r and
+  // r+8 of each 16-row block share one K/8-byte row; byte offset computed per group below.
+  static_assert(GS == 16, "PAIR16 needs GS=16");
+  uint8_t* mp = meta + (size_t)((row / 16) * 8 + row % 8) * (K / 8) + ((row / 8) & 1);
+#elif NVFP4_META_TRANSPOSE
+  // Transposed: byte for (row, group) lives at group*rows + row (M contiguous). Per-group
+  // stride below is applied via the explicit index in the write loop, not via this base ptr.
+  uint8_t* mp = meta + (size_t)row;
+  const size_t mp_group_stride = (size_t)rows;
+#else
+  uint8_t* mp = meta + (size_t)row * (K / GS) + (size_t)kb * NG;
+#endif
+  uint8_t mvals[4];
+#pragma unroll
+  for (int g = 0; g < NG; ++g) {
+    int base = g * GS;
+    float emax = -1.f; int eidx = 0;
+#pragma unroll
+    for (int t = 0; t < GS; ++t) {
+      if (err[base + t] > emax) { emax = err[base + t]; eidx = t; }
+    }
+    float qw = fminf(fmaxf(v[base + eidx] * inv, -F4_E2M1_MAX), F4_E2M1_MAX);
+    __nv_fp6_storage_t e2m3 = __nv_cvt_float_to_fp6(qw, __NV_E2M3, cudaRoundNearest);
+    uint8_t m = (uint8_t)(((uint8_t)(e2m3 & 0x3) << IDXBITS) | (eidx & IDXMASK));  // 2 extra mantissa bits + index
+    mvals[g] = m;
+#if NVFP4_META_PAIR16
+    {
+      const int gi = kb * NG + g;
+      const int pos = (gi / 4) * 8 + (gi & 1) * 4 + ((gi & 3) >> 1) * 2;
+      if      (DST == 1) mp[pos]      = m;
+      else if (DST == 2) s_m[lt][g]  = m;
+      else               acc ^= (uint32_t)m << (g << 3);
+    }
+#elif NVFP4_META_TRANSPOSE
+    if      (DST == 1) mp[(size_t)(kb * NG + g) * mp_group_stride] = m;   // strided, non-coalesced
+    else if (DST == 2) s_m[lt][g]  = m;
+    else               acc ^= (uint32_t)m << (g << 3);
+#elif !NVFP4_NIBBLE_PACK && !NVFP4_WORD_PACK8
+    if      (DST == 1) mp[g]       = m;
+    else if (DST == 2) s_m[lt][g]  = m;
+    else               acc ^= (uint32_t)m << (g << 3);
+#endif
+  }
+#if NVFP4_WORD_PACK8
+  static_assert(GS == 8 && NG == 2, "word packing assumes GS=8 (NG=2)");
+  if (DST == 1) {
+    uint16_t w = (uint16_t)((uint16_t)mvals[0] | ((uint16_t)mvals[1] << 5));  // 5+5 bits in one halfword store
+    *reinterpret_cast<uint16_t*>(mp) = w;
+  } else if (DST == 2) {
+    s_m[lt][0] = mvals[0]; s_m[lt][1] = mvals[1];
+  } else {
+    acc ^= (uint32_t)mvals[0] | ((uint32_t)mvals[1] << 8);
+  }
+#endif
+#if NVFP4_NIBBLE_PACK
+#pragma unroll
+  for (int g = 0; g < NG; g += 2) {
+    uint8_t packed = (uint8_t)(mvals[g] | (mvals[g + 1] << 4));
+    if      (DST == 1) mp[g >> 1]      = packed;
+    else if (DST == 2) s_m[lt][g >> 1] = packed;
+    else               acc ^= (uint32_t)packed << ((g >> 1) << 3);
+  }
+#endif
+#if NVFP4_DENSE_PACK8
+  static_assert(GS == 8 && NG == 2, "dense pack8 assumes GS=8 (NG=2)");
+  // This thread's 2 groups = 10 bits. Gather 4 consecutive threads' 10-bit chunks via warp
+  // shuffle (40 bits = 5 bytes, no padding), leader thread (lt%4==0) does the global write.
+  if (DST == 1) {
+    uint32_t my10 = (uint32_t)mvals[0] | ((uint32_t)mvals[1] << 5);
+    int lane4 = lt & 3, base4 = lt & ~3;
+    uint64_t acc5 = 0;
+#pragma unroll
+    for (int s = 0; s < 4; ++s) {
+      uint32_t v = __shfl_sync(0xFFFFFFFFu, my10, base4 + s);
+      acc5 |= (uint64_t)v << (10 * s);
+    }
+    if (lane4 == 0) {
+      size_t bytes_per_row = (size_t)(K / 64) * 5;          // K/64 packed-5-byte units/row
+      uint8_t* mp5 = meta + (size_t)row * bytes_per_row + (size_t)(kb / 4) * 5;
+#pragma unroll
+      for (int i = 0; i < 5; ++i) mp5[i] = (uint8_t)(acc5 >> (8 * i));
+    }
+  }
+#endif
+  if (DST == 1) { sf[ sfl(row, kb * 16, 0) ] = sfb; return; }
+  if (DST == 2) {
+    s_sf[lt] = sfb;
+    __syncwarp();
+    uint32_t f = s_sf[lt];
+#pragma unroll
+    for (int g = 0; g < NG; ++g) f ^= (uint32_t)s_m[lt][g] << ((g & 3) << 3);
+#pragma unroll
+    for (int k = 0; k < 8; ++k) f ^= (uint32_t)s_q[lt][k] << ((k & 3) << 3);
+    if ((kb & 1023) == 0) atomicAdd(sink, f);
+    return;
+  }
+  if ((kb & 1023) == 0) atomicAdd(sink, acc ^ sfb);
+}
+
+// Models the GEMM kernel's OWN TMA prologue reading the selection metadata back from
+// DRAM -- separate kernel launch from quantize_nvfp4_select, since that's how a real
+// producer-epilogue -> consumer-GEMM handoff works (SMEM does not persist across
+// kernel launches, so "SMEM store" above only models a fully fused single kernel; this
+// instead measures the extra load the stock CUTLASS GEMM used here doesn't do, since
+// it has no metadata operand at all). Plain bandwidth-bound grid-stride read, same
+// shape as what nvfp4_mma_atom.cu's TMA load of metaA/metaB actually issues.
+__global__ void reload_meta(const uint8_t* __restrict__ meta, size_t n, uint32_t* __restrict__ sink) {
+  size_t i = (size_t)blockIdx.x * blockDim.x + threadIdx.x;
+  size_t stride = (size_t)gridDim.x * blockDim.x;
+  uint32_t acc = 0;
+  for (; i < n; i += stride) acc ^= meta[i];
+  if (acc == 0x12345678u) atomicAdd(sink, acc);   // never true; keeps the load live
+}
+
+// ---- real fusion experiment: is quantization actually fused into a producer kernel's
+// epilogue, with NO BF16 ever touching DRAM, vs. that producer just writing BF16 out
+// normally? No subtraction/approximation -- both kernels below compute the SAME 16
+// synthetic "activation" values entirely in registers (standing in for whatever a real
+// epilogue -- RMSNorm, SwiGLU combine, an activation function -- would have just
+// finished computing) and only differ in what they do with them once ready to write.
+
+// Cheap, deterministic, DRAM-read-free per-element value -- a stand-in for "whatever
+// the producing kernel just computed in its own registers." Real epilogues (RMSNorm,
+// SwiGLU, GELU) are a few FLOPs per output element and are themselves not the subject
+// of this measurement; only the marginal cost of what happens to the result matters.
+__device__ __forceinline__ float synth_val(size_t idx) {
+  uint32_t h = (uint32_t)idx * 2654435761u;
+  float u = __uint_as_float(0x3f800000u | (h & 0x007fffffu)) - 1.0f;   // in [0,1)
+  return (u - 0.5f) * 4.0f;                                            // in [-2,2)
+}
+
+// Quantize+store one 16-element group, no selection (mirrors quantize_nvfp4's DST==1 body).
+__device__ __forceinline__
+void quantize_group16(const float v[16], float ps, uint8_t* op, uint8_t* sfp) {
+  float bamax = 0.f;
+#pragma unroll
+  for (int j = 0; j < 16; ++j) bamax = fmaxf(bamax, fabsf(v[j]));
+  float scaled = fminf(fmaxf((bamax / F4_E2M1_MAX) / ps, 1.0e-30f), F8_E4M3_MAX);
+  __nv_fp8_storage_t sfb = __nv_cvt_float_to_fp8(scaled, __NV_SATFINITE, __NV_E4M3);
+  float total = ps * __half2float(__nv_cvt_fp8_to_halfraw(sfb, __NV_E4M3));
+  float inv   = (total > 0.f) ? (1.0f / total) : 0.f;
+#pragma unroll
+  for (int j = 0; j < 16; j += 2) {
+    float q0 = fminf(fmaxf(v[j]     * inv, -F4_E2M1_MAX), F4_E2M1_MAX);
+    float q1 = fminf(fmaxf(v[j + 1] * inv, -F4_E2M1_MAX), F4_E2M1_MAX);
+    __nv_fp4x2_storage_t b = __nv_cvt_float2_to_fp4x2(make_float2(q0, q1), __NV_E2M1, cudaRoundNearest);
+    op[j >> 1] = (uint8_t)b;
+  }
+  *sfp = sfb;
+}
+
+// Quantize+select+store one 16-element group, no DST branching -- always a real DRAM
+// store (mirrors quantize_nvfp4_select's DST==1 body).
+template <bool CHEAP_ERR>
+__device__ __forceinline__
+void quantize_select_group16(const float v[16], float ps, uint8_t* op, uint8_t* sfp, uint8_t* mp) {
+  float bamax = 0.f;
+#pragma unroll
+  for (int j = 0; j < 16; ++j) bamax = fmaxf(bamax, fabsf(v[j]));
+  float scaled = fminf(fmaxf((bamax / F4_E2M1_MAX) / ps, 1.0e-30f), F8_E4M3_MAX);
+  __nv_fp8_storage_t sfb = __nv_cvt_float_to_fp8(scaled, __NV_SATFINITE, __NV_E4M3);
+  float total = ps * __half2float(__nv_cvt_fp8_to_halfraw(sfb, __NV_E4M3));
+  float inv   = (total > 0.f) ? (1.0f / total) : 0.f;
+  float err[16];
+#pragma unroll
+  for (int j = 0; j < 16; j += 2) {
+    float q0 = fminf(fmaxf(v[j]     * inv, -F4_E2M1_MAX), F4_E2M1_MAX);
+    float q1 = fminf(fmaxf(v[j + 1] * inv, -F4_E2M1_MAX), F4_E2M1_MAX);
+    __nv_fp4x2_storage_t b = __nv_cvt_float2_to_fp4x2(make_float2(q0, q1), __NV_E2M1, cudaRoundNearest);
+    op[j >> 1] = (uint8_t)b;
+    if (CHEAP_ERR) {
+      float a0 = fabsf(q0), a1 = fabsf(q1);
+      err[j]     = fabsf(a0 - e2m1_nearest_mag(a0));
+      err[j + 1] = fabsf(a1 - e2m1_nearest_mag(a1));
+    } else {
+      float d0 = total * __half2float(__nv_cvt_fp4_to_halfraw((__nv_fp4_storage_t)((uint8_t)b & 0xF), __NV_E2M1));
+      float d1 = total * __half2float(__nv_cvt_fp4_to_halfraw((__nv_fp4_storage_t)((uint8_t)b >> 4),  __NV_E2M1));
+      err[j]     = fabsf(v[j]     - d0);
+      err[j + 1] = fabsf(v[j + 1] - d1);
+    }
+  }
+  *sfp = sfb;
+#pragma unroll
+  for (int g = 0; g < 4; ++g) {
+    int base = g * 4;
+    float emax = -1.f; int eidx = 0;
+#pragma unroll
+    for (int t = 0; t < 4; ++t) if (err[base + t] > emax) { emax = err[base + t]; eidx = t; }
+    float qw = fminf(fmaxf(v[base + eidx] * inv, -F4_E2M1_MAX), F4_E2M1_MAX);
+    __nv_fp6_storage_t e2m3 = __nv_cvt_float_to_fp6(qw, __NV_E2M3, cudaRoundNearest);
+    mp[g] = (uint8_t)(((uint8_t)(e2m3 & 0x3) << 2) | (eidx & 0x3));
+  }
+}
+
+// Baseline producer: computes 16 synthetic values, writes them out as BF16 -- an
+// ordinary epilogue's normal (unquantized) output write. No selection, no quantization.
+__global__ void producer_bf16(int rows, int K, __nv_bfloat16* __restrict__ out) {
+  int kb  = blockIdx.x * blockDim.x + threadIdx.x;
+  int row = blockIdx.y;
+  if (row >= rows || kb >= (K >> 4)) return;
+  size_t base = (size_t)row * K + (size_t)kb * 16;
+  // vectorized 16-byte stores (2x uint4, 8 bf16 each) -- 16 scalar 2-byte stores here
+  // would badly under-report real bandwidth and unfairly inflate the apparent fusion
+  // win, since a real epilogue's BF16 write is vectorized too.
+  uint32_t w[8];
+#pragma unroll
+  for (int j = 0; j < 16; j += 2) {
+    uint16_t lo = __bfloat16_as_ushort(__float2bfloat16(synth_val(base + j)));
+    uint16_t hi = __bfloat16_as_ushort(__float2bfloat16(synth_val(base + j + 1)));
+    w[j >> 1] = (uint32_t)lo | ((uint32_t)hi << 16);
+  }
+  uint4* o4 = reinterpret_cast<uint4*>(out + base);
+  o4[0] = make_uint4(w[0], w[1], w[2], w[3]);
+  o4[1] = make_uint4(w[4], w[5], w[6], w[7]);
+}
+
+// Fused producer, quantize only (no selection): SAME synthetic values as producer_bf16,
+// but quantized straight out of registers -- the BF16 value never touches DRAM.
+template <class SfLayout>
+__global__ void producer_fused_quant(int rows, int K, float ps,
+                                     uint8_t* __restrict__ qdata, uint8_t* __restrict__ sf,
+                                     SfLayout sfl) {
+  int kb  = blockIdx.x * blockDim.x + threadIdx.x;
+  int row = blockIdx.y;
+  if (row >= rows || kb >= (K >> 4)) return;
+  size_t base = (size_t)row * K + (size_t)kb * 16;
+  float v[16];
+#pragma unroll
+  for (int j = 0; j < 16; ++j) v[j] = synth_val(base + j);
+  uint8_t* op  = qdata + (size_t)row * (K / 2) + (size_t)kb * 8;
+  uint8_t* sfp = sf + sfl(row, kb * 16, 0);
+  quantize_group16(v, ps, op, sfp);
+}
+
+// Fused producer, quantize + selection: SAME synthetic values, fused quantize+select
+// straight out of registers, BF16 never touches DRAM.
+template <bool CHEAP_ERR, class SfLayout>
+__global__ void producer_fused_select(int rows, int K, float ps,
+                                      uint8_t* __restrict__ qdata, uint8_t* __restrict__ sf,
+                                      uint8_t* __restrict__ meta, SfLayout sfl) {
+  int kb  = blockIdx.x * blockDim.x + threadIdx.x;
+  int row = blockIdx.y;
+  if (row >= rows || kb >= (K >> 4)) return;
+  size_t base = (size_t)row * K + (size_t)kb * 16;
+  float v[16];
+#pragma unroll
+  for (int j = 0; j < 16; ++j) v[j] = synth_val(base + j);
+  uint8_t* op  = qdata + (size_t)row * (K / 2) + (size_t)kb * 8;
+  uint8_t* sfp = sf + sfl(row, kb * 16, 0);
+  uint8_t* mp  = meta + (size_t)row * (K / 4) + (size_t)kb * 4;
+  quantize_select_group16<CHEAP_ERR>(v, ps, op, sfp, mp);
+}
+
+template <class SfLayout>
+__global__ void dequant_nvfp4(const uint8_t* __restrict__ qdata, const uint8_t* __restrict__ sf,
+                              SfLayout sfl, const float* __restrict__ ps_ptr,
+                              int rows, int K, __nv_bfloat16* __restrict__ out) {
+  int kb  = blockIdx.x * blockDim.x + threadIdx.x;
+  int row = blockIdx.y;
+  if (row >= rows || kb >= (K >> 4)) return;
+
+  float total = (*ps_ptr) *
+      __half2float(__nv_cvt_fp8_to_halfraw((__nv_fp8_storage_t)sf[sfl(row, kb * 16, 0)], __NV_E4M3));
+  const uint8_t* op = qdata + (size_t)row * (K / 2) + (size_t)kb * 8;
+  __nv_bfloat16* o  = out + (size_t)row * K + (size_t)kb * 16;
+#pragma unroll
+  for (int j = 0; j < 16; j += 2) {
+    uint8_t b = op[j >> 1];
+    float d0 = __half2float(__nv_cvt_fp4_to_halfraw((__nv_fp4_storage_t)(b & 0xF), __NV_E2M1));
+    float d1 = __half2float(__nv_cvt_fp4_to_halfraw((__nv_fp4_storage_t)(b >> 4),  __NV_E2M1));
+    o[j]     = __float2bfloat16(total * d0);
+    o[j + 1] = __float2bfloat16(total * d1);
+  }
+}
+
+// acc[0] += sum((bf16 d - f32 ref)^2)   acc[1] += sum(ref^2)
+__global__ void diff_norms(const __nv_bfloat16* __restrict__ d, const float* __restrict__ ref,
+                           size_t n, double* __restrict__ acc) {
+  double e = 0.0, r = 0.0;
+  for (size_t i = (size_t)blockIdx.x * blockDim.x + threadIdx.x; i < n;
+       i += (size_t)gridDim.x * blockDim.x) {
+    double dv = (double)__bfloat162float(d[i]);
+    double rv = (double)ref[i];
+    e += (dv - rv) * (dv - rv);
+    r += rv * rv;
+  }
+  __shared__ double se[256], sr[256];
+  se[threadIdx.x] = e; sr[threadIdx.x] = r;
+  __syncthreads();
+  for (int s = blockDim.x >> 1; s > 0; s >>= 1) {
+    if (threadIdx.x < s) { se[threadIdx.x] += se[threadIdx.x + s]; sr[threadIdx.x] += sr[threadIdx.x + s]; }
+    __syncthreads();
+  }
+  if (threadIdx.x == 0) { atomicAdd(&acc[0], se[0]); atomicAdd(&acc[1], sr[0]); }
+}
+
+static double rel_frob(const __nv_bfloat16* d, const float* ref, size_t n) {
+  double* dacc = nullptr;
+  CUDA_CHECK(cudaMalloc(&dacc, 2 * sizeof(double)));
+  CUDA_CHECK(cudaMemset(dacc, 0, 2 * sizeof(double)));
+  diff_norms<<<1024, 256>>>(d, ref, n, dacc);
+  double acc[2];
+  CUDA_CHECK(cudaMemcpy(acc, dacc, 2 * sizeof(double), cudaMemcpyDeviceToHost));
+  CUDA_CHECK(cudaFree(dacc));
+  return std::sqrt(acc[0]) / std::sqrt(acc[1]);
+}
+
+// ---------------------------------------------------------------------------------------------
+struct Options {
+  int m = 4096, n = 4096, k = 4096;
+  int iters = 50, warmup = 5;
+  bool check = true;
+  void parse(int argc, char** argv) {
+    for (int i = 1; i < argc; ++i) {
+      std::string a = argv[i];
+      auto val = [&](const char* key) -> const char* {
+        size_t l = std::string(key).size();
+        return (a.rfind(key, 0) == 0 && a.size() > l) ? a.c_str() + l : nullptr;
+      };
+      if (auto v = val("--m="))           m = atoi(v);
+      else if (auto v = val("--n="))      n = atoi(v);
+      else if (auto v = val("--k="))      k = atoi(v);
+      else if (auto v = val("--iters="))  iters = atoi(v);
+      else if (auto v = val("--warmup=")) warmup = atoi(v);
+      else if (a == "--no-check") check = false;
+      else if (a == "--help" || a == "-h") {
+        std::printf("usage: nvfp4_microbench [--m= --n= --k=] [--iters=N] [--warmup=N] [--no-check]\n"
+                    "  M,N multiples of 128 ; K a multiple of 64\n");
+        std::exit(0);
+      }
+    }
+  }
+};
+
+int main(int argc, char** argv) {
+  Options opt; opt.parse(argc, argv);
+
+  cudaDeviceProp props{};
+  CUDA_CHECK(cudaGetDeviceProperties(&props, 0));
+  if (!(props.major == 12 && (props.minor == 0 || props.minor == 1))) {
+    std::fprintf(stderr, "requires an SM120/SM121 (Blackwell) GPU; found sm_%d%d\n", props.major, props.minor);
+    return 1;
+  }
+  if (opt.m % 128 || opt.n % 128 || opt.k % 64) {
+    std::fprintf(stderr, "require M%%128==0, N%%128==0, K%%64==0\n");
+    return 1;
+  }
+  const int M = opt.m, N = opt.n, K = opt.k;
+  std::printf("NVFP4 micro-benchmark  |  %s  (sm_%d%d)\n", props.name, props.major, props.minor);
+  std::printf("  M=%d  N=%d  K=%d   iters=%d  warmup=%d\n", M, N, K, opt.iters, opt.warmup);
+
+  auto stride_A = cutlass::make_cute_packed_stride(StrideA{}, {M, K, 1});
+  auto stride_B = cutlass::make_cute_packed_stride(StrideB{}, {N, K, 1});
+  // metaA: Linear mode (A only) or QK^T mode (both A and B) -- see NVFP4_META_ON_B.
+#if NVFP4_META_PAIR16
+  // (M/2, K/8, L) row-pair layout -- see sm120_blockscaled_mma_tma.hpp.
+  auto stride_MetaA = cutlass::make_cute_packed_stride(StrideA{}, {M / 2, K / 8, 1});
+#if NVFP4_META_ON_B
+  auto stride_MetaB = cutlass::make_cute_packed_stride(StrideB{}, {N / 2, K / 8, 1});
+#endif
+#elif NVFP4_META_TRANSPOSE
+  // (M, K/GS, L) with M contiguous (stride 1) -- see sm120_blockscaled_mma_tma.hpp.
+  auto stride_MetaA = cute::make_stride(cute::Int<1>{}, (int64_t)M, (int64_t)M * (K / NVFP4_META_GROUP_SIZE));
+#if NVFP4_META_ON_B
+  auto stride_MetaB = cute::make_stride(cute::Int<1>{}, (int64_t)N, (int64_t)N * (K / NVFP4_META_GROUP_SIZE));
+#endif
+#else
+  auto stride_MetaA = cutlass::make_cute_packed_stride(StrideA{}, {M, K / NVFP4_META_GROUP_SIZE, 1});
+#if NVFP4_META_ON_B
+  auto stride_MetaB = cutlass::make_cute_packed_stride(StrideB{}, {N, K / NVFP4_META_GROUP_SIZE, 1});
+#endif
+#endif
+  auto stride_C = cutlass::make_cute_packed_stride(StrideC{}, {M, N, 1});
+  auto stride_D = cutlass::make_cute_packed_stride(StrideD{}, {M, N, 1});
+  auto layout_A = make_layout(make_shape(M, K, 1), stride_A);
+  auto layout_B = make_layout(make_shape(N, K, 1), stride_B);
+  auto layout_D = make_layout(make_shape(M, N, 1), stride_D);
+  LayoutSFA layout_SFA = Sm1xxBlkScaledConfig::tile_atom_to_shape_SFA(make_shape(M, N, K, 1));
+  LayoutSFB layout_SFB = Sm1xxBlkScaledConfig::tile_atom_to_shape_SFB(make_shape(M, N, K, 1));
+
+  const size_t elemsA = (size_t)size(layout_A);
+  const size_t elemsB = (size_t)size(layout_B);
+  const size_t elemsD = (size_t)size(layout_D);
+  const size_t bytesSFA = (size_t)size(filter_zeros(layout_SFA));
+  const size_t bytesSFB = (size_t)size(filter_zeros(layout_SFB));
+
+  __nv_bfloat16 *dA_hp, *dB_hp, *dA_deq;
+  uint8_t *dAq, *dBq, *dSFA, *dSFB, *dMetaA;
+#if NVFP4_META_ON_B
+  uint8_t *dMetaB;
+#endif
+  float *dAmax, *dBmax, *dPsA, *dPsB, *dDref, *dA_hp_f;
+  ElementD* dD;
+  CUDA_CHECK(cudaMalloc(&dA_hp,   elemsA * sizeof(__nv_bfloat16)));
+  CUDA_CHECK(cudaMalloc(&dB_hp,   elemsB * sizeof(__nv_bfloat16)));
+  CUDA_CHECK(cudaMalloc(&dA_deq,  elemsA * sizeof(__nv_bfloat16)));
+  CUDA_CHECK(cudaMalloc(&dA_hp_f, elemsA * sizeof(float)));
+  CUDA_CHECK(cudaMalloc(&dAq,  elemsA / 2));
+  CUDA_CHECK(cudaMalloc(&dBq,  elemsB / 2));
+  CUDA_CHECK(cudaMalloc(&dSFA, bytesSFA));
+  CUDA_CHECK(cudaMalloc(&dSFB, bytesSFB));
+  CUDA_CHECK(cudaMalloc(&dAmax, 4)); CUDA_CHECK(cudaMalloc(&dBmax, 4));
+  CUDA_CHECK(cudaMalloc(&dPsA, 4));  CUDA_CHECK(cudaMalloc(&dPsB, 4));
+  CUDA_CHECK(cudaMalloc(&dD,    elemsD * sizeof(ElementD)));
+  CUDA_CHECK(cudaMalloc(&dDref, elemsD * sizeof(float)));
+  // Always allocated at the group=4 (largest) rate regardless of NVFP4_META_GROUP_SIZE --
+  // quantize_nvfp4_select/producer_fused_select hardcode group=4 addressing for their own
+  // (separate) measurements, so this is a safe upper bound; the GEMM Arguments below only
+  // read M*(K/NVFP4_META_GROUP_SIZE) bytes of it, never more than what's allocated.
+  CUDA_CHECK(cudaMalloc(&dMetaA, elemsA / 4));
+#if NVFP4_META_ON_B
+  CUDA_CHECK(cudaMalloc(&dMetaB, elemsB / 4));   // QK^T mode: K is also an activation, gets selection too
+#endif
+  uint32_t* dSink = nullptr; CUDA_CHECK(cudaMalloc(&dSink, 4));
+  CUDA_CHECK(cudaMemset(dSFA, 0, bytesSFA));
+  CUDA_CHECK(cudaMemset(dSFB, 0, bytesSFB));
+
+  {
+    int t = 256;
+    fill_normal_bf16<<<(unsigned)((elemsA + t - 1) / t), t>>>(dA_hp, elemsA, 0x1234u);
+    fill_normal_bf16<<<(unsigned)((elemsB + t - 1) / t), t>>>(dB_hp, elemsB, 0x9abcu);
+    CUDA_CHECK(cudaGetLastError());
+  }
+
+  auto quant_grid = [&](int rows) {
+    dim3 blk(128);
+    dim3 grd((unsigned)(((K / 16) + blk.x - 1) / blk.x), (unsigned)rows);
+    return std::make_pair(grd, blk);
+  };
+  auto run_amax = [&]() {
+    CUDA_CHECK(cudaMemsetAsync(dAmax, 0, 4));
+    CUDA_CHECK(cudaMemsetAsync(dBmax, 0, 4));
+    amax_bf16<<<1024, 256>>>(dA_hp, elemsA, dAmax);
+    amax_bf16<<<1024, 256>>>(dB_hp, elemsB, dBmax);
+    scale_from_amax<<<1, 1>>>(dAmax, dPsA);
+    scale_from_amax<<<1, 1>>>(dBmax, dPsB);
+  };
+  auto run_quant_phase = [&]() {
+    run_amax();
+    { auto gb = quant_grid(M); quantize_nvfp4<1><<<gb.first, gb.second>>>(dA_hp, M, K, dPsA, dAq, dSFA, layout_SFA, dSink); }
+    { auto gb = quant_grid(N); quantize_nvfp4<1><<<gb.first, gb.second>>>(dB_hp, N, K, dPsB, dBq, dSFB, layout_SFB, dSink); }
+  };
+  // quantize-only kernels for the search-cost study (no amax).
+  // Real inference: only the ACTIVATION (A) is quantized per forward AND only A gets the search;
+  // the WEIGHT (B) is quantized offline -> here B always uses plain NVFP4 (no search).
+  // mode: 0 = baseline (A,B plain)   1 = A + search (dequant err)   2 = A + search (cheap err)
+  auto run_quant_kernels = [&](int mode, bool write) {
+    auto ga = quant_grid(M), gb = quant_grid(N);
+    auto qB = [&](bool w) {
+      if (w) quantize_nvfp4<1><<<gb.first, gb.second>>>(dB_hp, N, K, dPsB, dBq, dSFB, layout_SFB, dSink);
+      else   quantize_nvfp4<0><<<gb.first, gb.second>>>(dB_hp, N, K, dPsB, dBq, dSFB, layout_SFB, dSink);
+    };
+    if (mode == 0) {
+      if (write) quantize_nvfp4<1><<<ga.first, ga.second>>>(dA_hp, M, K, dPsA, dAq, dSFA, layout_SFA, dSink);
+      else       quantize_nvfp4<0><<<ga.first, ga.second>>>(dA_hp, M, K, dPsA, dAq, dSFA, layout_SFA, dSink);
+    } else if (mode == 1) {
+      if (write) quantize_nvfp4_select<1, false><<<ga.first, ga.second>>>(dA_hp, M, K, dPsA, dAq, dSFA, dMetaA, layout_SFA, dSink);
+      else       quantize_nvfp4_select<0, false><<<ga.first, ga.second>>>(dA_hp, M, K, dPsA, dAq, dSFA, dMetaA, layout_SFA, dSink);
+    } else {
+      if (write) quantize_nvfp4_select<1, true><<<ga.first, ga.second>>>(dA_hp, M, K, dPsA, dAq, dSFA, dMetaA, layout_SFA, dSink);
+      else       quantize_nvfp4_select<0, true><<<ga.first, ga.second>>>(dA_hp, M, K, dPsA, dAq, dSFA, dMetaA, layout_SFA, dSink);
+    }
+    qB(write);
+  };
+
+  run_quant_phase();
+  CUDA_CHECK(cudaDeviceSynchronize());
+  CUDA_CHECK(cudaGetLastError());
+
+  float psA = 0.f, psB = 0.f;
+  CUDA_CHECK(cudaMemcpy(&psA, dPsA, 4, cudaMemcpyDeviceToHost));
+  CUDA_CHECK(cudaMemcpy(&psB, dPsB, 4, cudaMemcpyDeviceToHost));
+  const float alpha = psA * psB, beta = 0.f;
+  std::printf("  per_tensor_scale A=%.6g  B=%.6g  ->  alpha=%.6g\n", psA, psB, alpha);
+
+  typename Gemm::Arguments args{
+    cutlass::gemm::GemmUniversalMode::kGemm,
+    {M, N, K, 1},
+    { reinterpret_cast<ElementA::DataType const*>(dAq), stride_A,
+      reinterpret_cast<ElementB::DataType const*>(dBq), stride_B,
+      reinterpret_cast<ElementA::ScaleFactorType const*>(dSFA), layout_SFA,
+      reinterpret_cast<ElementB::ScaleFactorType const*>(dSFB), layout_SFB
+#if NVFP4_META_ENABLE
+      , dMetaA, stride_MetaA
+#if NVFP4_META_ON_B
+      , dMetaB, stride_MetaB
+#endif
+#endif
+      },
+    { {alpha, beta},
+      reinterpret_cast<ElementC const*>(dD), stride_C,   // C unused (beta = 0)
+      dD, stride_D }
+  };
+
+  Gemm gemm;
+  cutlass::device_memory::allocation<uint8_t> workspace(Gemm::get_workspace_size(args));
+  CUTLASS_CHECK(gemm.can_implement(args));
+  CUTLASS_CHECK(gemm.initialize(args, workspace.get()));
+  CUTLASS_CHECK(gemm.run());
+  CUDA_CHECK(cudaDeviceSynchronize());
+
+  // Plain BF16 GEMM baseline (cuBLAS, BF16 in / FP32 accumulate) -- same math as the NVFP4 path,
+  // no quantization. Also serves as the correctness reference.
+  cublasHandle_t cub; CUBLAS_CHECK(cublasCreate(&cub));
+  auto run_bf16_gemm = [&]() {
+    const float one = 1.f, zero = 0.f;
+    // col-major Dref^T (N x M) = B(N,K) * A(M,K)^T   with lda = ldb = K, ldc = N
+    CUBLAS_CHECK(cublasGemmEx(cub, CUBLAS_OP_T, CUBLAS_OP_N, N, M, K,
+                              &one,
+                              dB_hp, CUDA_R_16BF, K,
+                              dA_hp, CUDA_R_16BF, K,
+                              &zero,
+                              dDref, CUDA_R_32F, N,
+                              CUBLAS_COMPUTE_32F, CUBLAS_GEMM_DEFAULT));
+  };
+
+  if (opt.check) {
+    run_bf16_gemm();
+    double rel = rel_frob(reinterpret_cast<const __nv_bfloat16*>(dD), dDref, elemsD);
+
+    { auto gb = quant_grid(M); dequant_nvfp4<<<gb.first, gb.second>>>(dAq, dSFA, layout_SFA, dPsA, M, K, dA_deq); }
+    cast_bf16_f32<<<1024, 256>>>(dA_hp, dA_hp_f, elemsA);
+    double relA = rel_frob(dA_deq, dA_hp_f, elemsA);
+
+    bool pass = std::isfinite(rel) && rel < 0.15;
+    std::printf("  quant reconstruction error on A (Frobenius) = %.3f%%\n", relA * 100.0);
+    std::printf("  GEMM vs BF16 reference (Frobenius)          = %.3f%%   [%s]\n",
+                rel * 100.0, pass ? "PASS" : "FAIL");
+    if (!pass) { std::fprintf(stderr, "correctness check FAILED\n"); return 2; }
+  }
+
+  for (int i = 0; i < opt.warmup; ++i) { run_quant_phase(); CUTLASS_CHECK(gemm.run()); run_bf16_gemm(); }
+  CUDA_CHECK(cudaDeviceSynchronize());
+
+  GpuTimer tq; tq.start();
+  for (int i = 0; i < opt.iters; ++i) run_quant_phase();
+  tq.stop();
+  float q_ms = tq.elapsed_millis() / opt.iters;
+
+  GpuTimer tg; tg.start();
+  for (int i = 0; i < opt.iters; ++i) CUTLASS_CHECK(gemm.run());
+  tg.stop();
+  float g_ms = tg.elapsed_millis() / opt.iters;
+
+  GpuTimer tb; tb.start();
+  for (int i = 0; i < opt.iters; ++i) run_bf16_gemm();
+  tb.stop();
+  float b_ms = tb.elapsed_millis() / opt.iters;
+
+  // ---- max-error-search cost study.  Real inference: only the ACTIVATION (A) is quantized per
+  // forward and only A gets the search.  We time the A quantize kernel alone.
+  // mode: 0 baseline / 1 +select(dequant-err) / 2 +select(cheap-err)
+  // dst : 0 compute-only (sink) / 1 DRAM store / 2 SMEM store
+  auto run_A = [&](int mode, int dst) {
+    auto ga = quant_grid(M);
+    #define QN(D)  quantize_nvfp4<D><<<ga.first, ga.second>>>(dA_hp, M, K, dPsA, dAq, dSFA, layout_SFA, dSink)
+    #define QS(D,C) quantize_nvfp4_select<D,C><<<ga.first, ga.second>>>(dA_hp, M, K, dPsA, dAq, dSFA, dMetaA, layout_SFA, dSink)
+    if (mode == 0) { if (dst==0) QN(0); else if (dst==1) QN(1); else QN(2); }
+    else if (mode == 1) { if (dst==0) QS(0,false); else if (dst==1) QS(1,false); else QS(2,false); }
+    else { if (dst==0) QS(0,true); else if (dst==1) QS(1,true); else QS(2,true); }
+    #undef QN
+    #undef QS
+  };
+  auto time_A = [&](int mode, int dst) {
+    for (int i = 0; i < opt.warmup; ++i) run_A(mode, dst);
+    CUDA_CHECK(cudaDeviceSynchronize());
+    GpuTimer t; t.start();
+    for (int i = 0; i < opt.iters; ++i) run_A(mode, dst);
+    t.stop();
+    return t.elapsed_millis() / opt.iters;
+  };
+  // GEMM-side metadata reload: a separate kernel launch reading metaA back from DRAM
+  // (see reload_meta above) -- this is the extra cost the CONSUMER kernel pays in the
+  // unfused, two-kernel producer/consumer architecture (quantize epilogue -> DRAM ->
+  // GEMM prologue), as opposed to the SMEM-store number above which models a single
+  // fused kernel doing both.
+  auto time_meta_reload = [&]() {
+    const size_t n = elemsA / 4;
+    int threads = 256, blocks = 1024;
+    for (int i = 0; i < opt.warmup; ++i) reload_meta<<<blocks, threads>>>(dMetaA, n, dSink);
+    CUDA_CHECK(cudaDeviceSynchronize());
+    GpuTimer t; t.start();
+    for (int i = 0; i < opt.iters; ++i) reload_meta<<<blocks, threads>>>(dMetaA, n, dSink);
+    t.stop();
+    return t.elapsed_millis() / opt.iters;
+  };
+  // ---- real fusion: producer computes synthetic values in registers, then either
+  // writes BF16 (baseline, no fusion) or quantizes/selects straight out of registers
+  // (fused, no DRAM round trip for BF16 at all). No subtraction, no approximation.
+  const float ps_synth = 1.0f;   // timing-only kernel: arithmetic is data-independent, value doesn't matter
+  auto time_producer_bf16 = [&]() {
+    auto ga = quant_grid(M);
+    for (int i = 0; i < opt.warmup; ++i) producer_bf16<<<ga.first, ga.second>>>(M, K, dA_deq);
+    CUDA_CHECK(cudaDeviceSynchronize());
+    GpuTimer t; t.start();
+    for (int i = 0; i < opt.iters; ++i) producer_bf16<<<ga.first, ga.second>>>(M, K, dA_deq);
+    t.stop();
+    return t.elapsed_millis() / opt.iters;
+  };
+  auto time_producer_fused_quant = [&]() {
+    auto ga = quant_grid(M);
+    for (int i = 0; i < opt.warmup; ++i) producer_fused_quant<<<ga.first, ga.second>>>(M, K, ps_synth, dAq, dSFA, layout_SFA);
+    CUDA_CHECK(cudaDeviceSynchronize());
+    GpuTimer t; t.start();
+    for (int i = 0; i < opt.iters; ++i) producer_fused_quant<<<ga.first, ga.second>>>(M, K, ps_synth, dAq, dSFA, layout_SFA);
+    t.stop();
+    return t.elapsed_millis() / opt.iters;
+  };
+  auto time_producer_fused_select = [&]() {
+    auto ga = quant_grid(M);
+    for (int i = 0; i < opt.warmup; ++i)
+      producer_fused_select<false><<<ga.first, ga.second>>>(M, K, ps_synth, dAq, dSFA, dMetaA, layout_SFA);
+    CUDA_CHECK(cudaDeviceSynchronize());
+    GpuTimer t; t.start();
+    for (int i = 0; i < opt.iters; ++i)
+      producer_fused_select<false><<<ga.first, ga.second>>>(M, K, ps_synth, dAq, dSFA, dMetaA, layout_SFA);
+    t.stop();
+    return t.elapsed_millis() / opt.iters;
+  };
+  // activation-only amax time (one full read of A)
+  auto time_amaxA = [&]() {
+    for (int i = 0; i < opt.warmup; ++i) { CUDA_CHECK(cudaMemsetAsync(dAmax,0,4)); amax_bf16<<<1024,256>>>(dA_hp, elemsA, dAmax); }
+    CUDA_CHECK(cudaDeviceSynchronize());
+    GpuTimer t; t.start();
+    for (int i = 0; i < opt.iters; ++i) { CUDA_CHECK(cudaMemsetAsync(dAmax,0,4)); amax_bf16<<<1024,256>>>(dA_hp, elemsA, dAmax); }
+    t.stop();
+    return t.elapsed_millis() / opt.iters;
+  };
+  run_amax(); CUDA_CHECK(cudaDeviceSynchronize());   // fix scales for the study
+  float qk_base_st = time_A(0, 1), qk_d_st = time_A(1, 1), qk_c_st = time_A(2, 1);   // DRAM store
+  float qk_base_co = time_A(0, 0), qk_d_co = time_A(1, 0), qk_c_co = time_A(2, 0);   // compute-only
+  float qk_base_sm = time_A(0, 2), qk_d_sm = time_A(1, 2), qk_c_sm = time_A(2, 2);   // SMEM store
+  float meta_reload_ms = time_meta_reload();                                         // GEMM-side DRAM reload
+  float amaxA_ms   = time_amaxA();
+  float prod_bf16_ms   = time_producer_bf16();
+  float prod_quant_ms  = time_producer_fused_quant();
+  float prod_select_ms = time_producer_fused_select();
+
+  const double flop = 2.0 * M * N * K;
+  double tflops_fp4  = flop / (g_ms * 1e-3) / 1e12;
+  double tflops_bf16 = flop / (b_ms * 1e-3) / 1e12;
+  double qgbps = (double)(elemsA + elemsB) * sizeof(__nv_bfloat16) / (q_ms * 1e-3) / 1e9;
+  std::printf("\n  quantize phase   : %8.4f ms/iter   (%.0f GB/s BF16 read)\n", q_ms, qgbps);
+  std::printf("  bf16 GEMM (cuBLAS): %8.4f ms/iter   (%.1f TFLOP/s)\n", b_ms, tflops_bf16);
+  std::printf("  nvfp4 GEMM       : %8.4f ms/iter   (%.1f TFLOP/s)\n", g_ms, tflops_fp4);
+  std::printf("  nvfp4 GEMM speedup vs bf16          : %.2fx\n", b_ms / g_ms);
+  std::printf("  nvfp4 GEMM + quant vs bf16          : %.2fx\n", b_ms / (g_ms + q_ms));
+
+  std::printf("\n  --- max-error-search cost : ACTIVATION (A) quantize kernel only ---\n");
+  std::printf("                     baseline    +search(dequant-err)      +search(cheap-err)\n");
+  std::printf("  with store (DRAM): %8.4f  %8.4f (%+5.1f%%)      %8.4f (%+5.1f%%)\n",
+              qk_base_st, qk_d_st, 100.0*(qk_d_st-qk_base_st)/qk_base_st,
+              qk_c_st, 100.0*(qk_c_st-qk_base_st)/qk_base_st);
+  std::printf("  compute-only     : %8.4f  %8.4f (%+5.1f%%)      %8.4f (%+5.1f%%)\n",
+              qk_base_co, qk_d_co, 100.0*(qk_d_co-qk_base_co)/qk_base_co,
+              qk_c_co, 100.0*(qk_c_co-qk_base_co)/qk_base_co);
+  std::printf("  SMEM store       : %8.4f  %8.4f (%+5.1f%%)      %8.4f (%+5.1f%%)\n",
+              qk_base_sm, qk_d_sm, 100.0*(qk_d_sm-qk_base_sm)/qk_base_sm,
+              qk_c_sm, 100.0*(qk_c_sm-qk_base_sm)/qk_base_sm);
+  {
+    double dq_co = qk_d_co - qk_base_co;                       // selection cost, compute-only
+    double dq_sm = qk_d_sm - qk_base_sm;                       // selection cost, SMEM store (fused single kernel:
+                                                                //   the consumer's SMEM read is inherent to using
+                                                                //   the data at all, not a separate extra cost)
+    double dq_st = qk_d_st - qk_base_st;                       // selection cost, DRAM store (producer epilogue:
+                                                                //   search compute + metaA/sf/qdata write to DRAM)
+    double aqg_co = (double)qk_base_co + g_ms;
+    double aqg_sm = (double)qk_base_sm + g_ms;
+    // unfused, two-kernel model: producer epilogue writes to DRAM (dq_st, already
+    // includes the metadata store), consumer GEMM kernel's OWN prologue pays an extra
+    // DRAM read to bring metaA back in (meta_reload_ms) -- the stock CUTLASS GEMM timed
+    // in g_ms has no metadata operand, so this cost is otherwise entirely unmeasured.
+    double dq_st_total = dq_st + meta_reload_ms;
+    double aqg_st_total = (double)qk_base_st + g_ms + meta_reload_ms;
+    std::printf("\n  selection on A adds (compute-only) %.4f ms  -> %+.2f%% of (A-quant + nvfp4 GEMM = %.4f ms)\n",
+                dq_co, 100.0*dq_co/aqg_co, aqg_co);
+    std::printf("  selection on A adds (SMEM store, fused kernel)   %.4f ms  -> %+.2f%% of (A-quant + nvfp4 GEMM = %.4f ms)\n",
+                dq_sm, 100.0*dq_sm/aqg_sm, aqg_sm);
+    std::printf("  selection on A adds (DRAM store+reload, separate kernels) %.4f ms  -> %+.2f%% of "
+                "(A-quant + nvfp4 GEMM + meta-reload = %.4f ms)   [meta reload alone: %.4f ms]\n",
+                dq_st_total, 100.0*dq_st_total/aqg_st_total, aqg_st_total, meta_reload_ms);
+
+    // ---- fused-epilogue reading: exclude the BF16-activation read from "aquant".
+    // A genuinely fused epilogue never reads x from DRAM at all -- it consumes the
+    // producing kernel's own register-resident output. quantize_nvfp4_select above
+    // DOES read x (see xp/v[j]) because it's an isolated kernel, so qk_base_* over-
+    // counts a load that a real fused epilogue wouldn't pay. amaxA_ms (a standalone
+    // full BF16 read of A) is used as a read-cost proxy to subtract it back out.
+    // This is an approximation: on real hardware, a combined read+write kernel's read
+    // and write traffic can overlap/pipeline, so a flat subtraction is not exact --
+    // treat this as a lower bound on the fused "aquant", not a precise isolation.
+    double aquant_pure_st = (double)qk_base_st - amaxA_ms;
+    double aquant_pure_sm = (double)qk_base_sm - amaxA_ms;
+    if (aquant_pure_st < 0 || aquant_pure_sm < 0) {
+      std::printf("\n  [note: quantize kernel is read-bandwidth-bound -- amaxA_ms (%.4f ms) alone exceeds "
+                  "qk_base_st/sm; 'pure' aquant below floored at 0, meaning the read cost cannot be cleanly "
+                  "subtracted this way and the true fused cost is likely dominated by OUTPUT bytes instead]\n",
+                  amaxA_ms);
+      aquant_pure_st = std::max(aquant_pure_st, 0.0);
+      aquant_pure_sm = std::max(aquant_pure_sm, 0.0);
+    }
+    double aqg_st_fused = aquant_pure_st + g_ms + meta_reload_ms;
+    double aqg_sm_fused = aquant_pure_sm + g_ms;
+    std::printf("  [x-read excluded from aquant, x-read proxy = amaxA_ms = %.4f ms]\n", amaxA_ms);
+    std::printf("  selection on A adds (SMEM,  x-read excluded) %.4f ms  -> %+.2f%% of (%.4f ms)\n",
+                dq_sm, 100.0*dq_sm/aqg_sm_fused, aqg_sm_fused);
+    std::printf("  selection on A adds (DRAM+reload, x-read excluded) %.4f ms  -> %+.2f%% of (%.4f ms)\n",
+                dq_st_total, 100.0*dq_st_total/aqg_st_fused, aqg_st_fused);
+    // machine-readable lines for sweep scripts:
+    std::printf("  SWEEP base_smem=%.6f sel_smem=%.6f gemm=%.6f aquant_smem=%.6f search_smem=%.6f "
+                "aquant_smem_pure=%.6f\n",
+                qk_base_sm, qk_d_sm, g_ms, qk_base_sm, dq_sm, aquant_pure_sm);
+    std::printf("  SWEEP_DRAM base_st=%.6f sel_st=%.6f gemm=%.6f meta_reload=%.6f aquant_st=%.6f search_st=%.6f "
+                "aquant_st_pure=%.6f\n",
+                qk_base_st, qk_d_st, g_ms, meta_reload_ms, qk_base_st, dq_st_total, aquant_pure_st);
+
+    // ---- real fusion (no subtraction): producer writing BF16 vs. producer fused with
+    // quantize(+select), same synthetic per-element compute, BF16 never touches DRAM
+    // in the fused variants.
+    double fuse_quant_cost  = prod_quant_ms  - prod_bf16_ms;    // marginal cost of fusing quantize alone
+    double fuse_select_cost = prod_select_ms - prod_quant_ms;   // marginal cost of also fusing selection
+    double fuse_total_cost  = prod_select_ms - prod_bf16_ms;    // fusing quantize+select together
+    std::printf("\n  --- real fusion: producer epilogue writes BF16 (%.4f ms) vs. fused quantize/select "
+                "(no DRAM round trip for BF16) ---\n", prod_bf16_ms);
+    std::printf("  + fused quantize (no select) : %.4f ms  (%+.4f ms vs BF16-write, %+.2f%%)\n",
+                prod_quant_ms, fuse_quant_cost, 100.0*fuse_quant_cost/prod_bf16_ms);
+    std::printf("  + fused quantize + selection : %.4f ms  (%+.4f ms vs BF16-write, %+.2f%%)"
+                "   [selection alone: %+.4f ms]\n",
+                prod_select_ms, fuse_total_cost, 100.0*fuse_total_cost/prod_bf16_ms, fuse_select_cost);
+    std::printf("  selection-fusion adds %.4f ms -> %+.2f%% of (fused-quant-write + nvfp4 GEMM = %.4f ms)\n",
+                fuse_select_cost, 100.0*fuse_select_cost/(prod_quant_ms + g_ms), prod_quant_ms + g_ms);
+    std::printf("  SWEEP_FUSED prod_bf16=%.6f prod_quant=%.6f prod_select=%.6f gemm=%.6f "
+                "fuse_select_cost=%.6f\n",
+                prod_bf16_ms, prod_quant_ms, prod_select_ms, g_ms, fuse_select_cost);
+  }
+
+  // one clean instance of each kernel for Nsight Compute
+  CUDA_CHECK(cudaProfilerStart());
+  nvtxRangePushA("quantize");
+  run_quant_phase();
+  nvtxRangePop();
+  nvtxRangePushA("quantize_select");
+  run_quant_kernels(2, true);
+  nvtxRangePop();
+  nvtxRangePushA("gemm");
+  CUTLASS_CHECK(gemm.run());
+  nvtxRangePop();
+  nvtxRangePushA("bf16_gemm");
+  run_bf16_gemm();
+  nvtxRangePop();
+  CUDA_CHECK(cudaDeviceSynchronize());
+  CUDA_CHECK(cudaProfilerStop());
+
+  CUBLAS_CHECK(cublasDestroy(cub));
+  std::printf("\n  done.\n");
+  return 0;
+}

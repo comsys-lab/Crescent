@@ -1,0 +1,35 @@
+From b5560929131cbcbb2189c52178a5c3c200dcbc69 Mon Sep 17 00:00:00 2001
+From: minseong <minseong7859@gmail.com>
+Date: Wed, 21 Oct 2026 19:32:11 +0900
+Subject: [PATCH 6/7] simulator: sm_120 opcodes used by CUTLASS block-scaled
+ GEMMs
+
+UFSETP -> OP_UISETP, UVIMNMX -> OP_IMNMX (uniform unit), UGETNEXTWORKID
+-> OP_SYNCS (mbarrier path, see next commit).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ gpu-simulator/ISA_Def/blackwell_opcode.h | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/gpu-simulator/ISA_Def/blackwell_opcode.h b/gpu-simulator/ISA_Def/blackwell_opcode.h
+index eff5a3b..f7074e3 100644
+--- a/gpu-simulator/ISA_Def/blackwell_opcode.h
++++ b/gpu-simulator/ISA_Def/blackwell_opcode.h
+@@ -27,6 +27,13 @@ static const std::unordered_map<std::string, OpcodeChar> Blackwell_OpcodeMap =
+       // Read a special register (e.g. SR_CLOCKLO for clock64) into a uniform
+       // register (sm_120); same class as S2UR.
+       m.insert({"CS2UR", OpcodeChar(OP_S2UR, SPECIALIZED_UNIT_4_OP)});
++      // Uniform-datapath float compare / integer min-max (CUTLASS sm_120 GEMM).
++      m.insert({"UFSETP", OpcodeChar(OP_UISETP, SPECIALIZED_UNIT_4_OP)});
++      m.insert({"UVIMNMX", OpcodeChar(OP_IMNMX, SPECIALIZED_UNIT_4_OP)});
++      // Cluster Launch Control query (clusterlaunchcontrol.try_cancel): the
++      // 16-byte response completes a transaction on an mbarrier, so it goes
++      // through the SYNCS (mbarrier) path; see trace_driven.cc.
++      m.insert({"UGETNEXTWORKID", OpcodeChar(OP_SYNCS, SYNCS_OP)});
+       return m;
+     }();
+ 
+-- 
+2.43.0
+

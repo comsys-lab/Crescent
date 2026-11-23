@@ -1,0 +1,5 @@
+format,model,setting,ppl,increase,elapsed_sec
+mxfp4,llama_base,BF16,5.696896965321543,0.0,27.1
+mxfp4,llama_base,W4A4_baseline,10.586947127944573,4.890050162623029,417.9
+mxfp4,llama_base,W4A4_Ours,7.045373080583232,1.3484761152616889,850.4
+mxfp4,llama_base,W4A4_Magnitude,7.253323185111743,1.5564262197901995,846.1

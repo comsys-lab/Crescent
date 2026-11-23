@@ -1,0 +1,2 @@
+format,model,setting,ppl,increase,elapsed_sec
+nvfp4,llama_base,BF16,5.696896965321543,0.0,26.6
