@@ -1,11 +1,11 @@
 """Shared GEMM-output Relative MSE machinery for the Czardas GEMM Output Error experiment.
 
-Reuses 2_hypothesis/common/formats.py's quantization primitives directly (no reimplementation):
+Reuses common/formats.py's quantization primitives directly (no reimplementation):
   quantize_tensor_config                   -> plain single-precision block quantization (Native FP4 / Full Boost)
   quantize_tensor_grouped_boost            -> Czardas: group-local boost selected by squared quantization error
   quantize_tensor_grouped_boost_by_magnitude -> Magnitude: group-local boost selected by raw |activation|
 
-Mirrors 2_hypothesis/evaluation/ppl_w4a4.py's FORMAT_CONFIG / LINEAR_DIV / QK_DIV exactly, so
+Mirrors common/ppl_w4a4.py's FORMAT_CONFIG / LINEAR_DIV / QK_DIV exactly, so
 "same quantization/scaling settings as the existing PPL/zero-shot experiments" holds by construction.
 
 GEMM output definitions (Y = GEMM output, FP32 accumulation throughout):
@@ -24,7 +24,7 @@ import sys
 
 import torch
 
-HYP_COMMON = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "2_hypothesis", "common")
+HYP_COMMON = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "common")
 sys.path.insert(0, HYP_COMMON)
 from formats import quantize_tensor_config, quantize_tensor_group_topk_boost  # noqa: E402
 

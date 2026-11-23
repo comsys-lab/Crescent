@@ -1,4 +1,0 @@
-model,arm,k,ppl,elapsed_sec
-deepseek_moe_16b,BF16,,10.084284268067622,32.801
-deepseek_moe_16b,MXFP4_ALL,,12.317533758207578,215.938
-deepseek_moe_16b,E2M7_AT_TOP4_ALL,4,10.644061668343895,471.28
