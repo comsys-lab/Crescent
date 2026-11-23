@@ -1,28 +1,0 @@
-ERROR: pip's dependency resolver does not currently take into account all the packages that are installed. This behaviour is the source of the following dependency conflicts.
-datasets 4.4.1 requires huggingface-hub<2.0,>=0.25.0, but you have huggingface-hub 2.3.0 which is incompatible.
-WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
-Loading weights:   0%|          | 0/291 [00:00<?, ?it/s]Loading weights:   0%|          | 1/291 [00:00<00:49,  5.89it/s]Loading weights:   1%|          | 2/291 [00:00<00:50,  5.70it/s]Loading weights:   4%|▍         | 13/291 [00:00<00:07, 39.25it/s]Loading weights:   8%|▊         | 22/291 [00:00<00:05, 53.37it/s]Loading weights:  10%|▉         | 29/291 [00:00<00:04, 58.36it/s]Loading weights:  12%|█▏        | 36/291 [00:00<00:04, 58.37it/s]Loading weights:  15%|█▍        | 43/291 [00:00<00:04, 57.95it/s]Loading weights:  18%|█▊        | 51/291 [00:01<00:04, 58.75it/s]Loading weights:  21%|██        | 60/291 [00:01<00:03, 61.85it/s]Loading weights:  24%|██▎       | 69/291 [00:01<00:03, 63.84it/s]Loading weights:  27%|██▋       | 78/291 [00:01<00:03, 65.23it/s]Loading weights:  30%|██▉       | 87/291 [00:01<00:03, 66.15it/s]Loading weights:  33%|███▎      | 96/291 [00:01<00:02, 66.60it/s]Loading weights:  36%|███▌      | 105/291 [00:01<00:02, 66.92it/s]Loading weights:  39%|███▉      | 114/291 [00:01<00:02, 67.22it/s]Loading weights:  42%|████▏     | 123/291 [00:02<00:02, 67.44it/s]Loading weights:  45%|████▌     | 132/291 [00:02<00:02, 67.74it/s]Loading weights:  48%|████▊     | 141/291 [00:02<00:02, 68.12it/s]Loading weights:  52%|█████▏    | 150/291 [00:02<00:02, 68.25it/s]Loading weights:  55%|█████▍    | 159/291 [00:02<00:01, 68.29it/s]Loading weights:  58%|█████▊    | 168/291 [00:02<00:01, 68.53it/s]Loading weights:  61%|██████    | 177/291 [00:02<00:01, 68.45it/s]Loading weights:  64%|██████▍   | 186/291 [00:03<00:01, 68.47it/s]Loading weights:  67%|██████▋   | 195/291 [00:03<00:01, 68.45it/s]Loading weights:  70%|███████   | 204/291 [00:03<00:01, 68.80it/s]Loading weights:  73%|███████▎  | 213/291 [00:03<00:01, 68.16it/s]Loading weights:  76%|███████▋  | 222/291 [00:03<00:01, 68.34it/s]Loading weights:  79%|███████▉  | 230/291 [00:03<00:00, 71.13it/s]Loading weights:  82%|████████▏ | 238/291 [00:03<00:00, 73.27it/s]Loading weights:  85%|████████▍ | 246/291 [00:03<00:00, 74.50it/s]Loading weights:  87%|████████▋ | 254/291 [00:03<00:00, 69.40it/s]Loading weights:  90%|█████████ | 262/291 [00:04<00:00, 66.43it/s]Loading weights:  92%|█████████▏| 269/291 [00:04<00:00, 65.35it/s]Loading weights:  95%|█████████▍| 276/291 [00:04<00:00, 61.60it/s]Loading weights:  98%|█████████▊| 285/291 [00:04<00:00, 62.75it/s]Loading weights: 100%|██████████| 291/291 [00:04<00:00, 64.39it/s]
-built 224 layers for each variant
-rep0 M=  2048  fwd: true=  153.11 computeonly=  154.75
-rep0 M=  4096  fwd: true=  360.47 computeonly=  361.64
-rep0 M=  8192  fwd: true=  808.58 computeonly=  813.43
-rep1 M=  2048  fwd: true=  154.14 computeonly=  154.45
-rep1 M=  4096  fwd: true=  358.47 computeonly=  359.11
-rep1 M=  8192  fwd: true=  820.19 computeonly=  823.29
-rep2 M=  2048  fwd: true=  156.54 computeonly=  156.71
-rep2 M=  4096  fwd: true=  362.59 computeonly=  362.47
-rep2 M=  8192  fwd: true=  825.45 computeonly=  826.86
-rep3 M=  2048  fwd: true=  157.32 computeonly=  157.41
-rep3 M=  4096  fwd: true=  363.83 computeonly=  363.82
-rep3 M=  8192  fwd: true=  828.42 computeonly=  829.90
-rep4 M=  2048  fwd: true=  158.00 computeonly=  158.01
-rep4 M=  4096  fwd: true=  364.58 computeonly=  364.31
-rep4 M=  8192  fwd: true=  829.13 computeonly=  829.09
-
-SUMMARY (avg of 5 runs, +/- is min..max range)
-M=  2048
-  FULL FWD : true_avg=  155.82 computeonly_avg=  156.26 delta_avg=   0.44 (range 0.01..1.64)  pct=0.28%
-M=  4096
-  FULL FWD : true_avg=  361.99 computeonly_avg=  362.27 delta_avg=   0.28 (range -0.27..1.17)  pct=0.08%
-M=  8192
-  FULL FWD : true_avg=  822.35 computeonly_avg=  824.51 delta_avg=   2.16 (range -0.03..4.84)  pct=0.26%

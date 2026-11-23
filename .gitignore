@@ -4,3 +4,7 @@ __pycache__/
 *.log
 *.pt
 *.safetensors
+4_evaluation/fig12_speedup/blackwell_omma_port/cutlass_clean/
+4_evaluation/fig12_speedup/blackwell_omma_port/cutlass_mode3/
+!4_evaluation/fig12_speedup/log/*.log
+!4_evaluation/fig12_speedup/runpod_5090_results/log/*_5rep.log

@@ -1,2 +1,0 @@
-[check 4term-sum-equals-Qboost@Kboost] layer=0 max_abs_diff=0.000000e+00 PASS
-ALL_PASSED=True

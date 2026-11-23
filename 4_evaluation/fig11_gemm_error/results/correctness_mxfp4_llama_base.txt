@@ -1,0 +1,6 @@
+[check1 Native-FP4-matches-module] layer=0 max_abs_diff=0.000000e+00 PASS
+[check2 Crescent-boost-fraction-and-error-drop] expected_frac=0.0625 actual_frac=0.0619 improved_at_changed=True PASS
+[check3 AllE2M3-affects-most-elements] full_changed_frac=0.5340 (vs Crescent 0.0619) PASS
+[check4 same-operand-across-methods] same source tensor reused for all 5 settings: PASS
+[check5 attn-decomposition-cross-term-dropped] harness_vs_manual=0.000000e+00 decomp_vs_naive_double_boost=2.651649e-01 PASS
+ALL_PASSED=True

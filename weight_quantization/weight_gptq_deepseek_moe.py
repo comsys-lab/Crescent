@@ -18,8 +18,7 @@ worker processes per GPU, because one matrix is latency-bound (~3-5 s NVFP4 / ~0
 
 Cache: {module name: dequantized bf16 weight}, keyed by nn.Linear name, at
 ptq_cache/{fmt}/deepseek_moe_16b/ptq_cache_NVFP4.pt (the filename says NVFP4 for both formats, as for the
-other models). Because every quantized tensor is a plain nn.Linear weight, common/quant_targets.
-load_weights_from_cache loads it unchanged.
+other models; loaded by common/ppl_w4a4.load_cache_into).
 
 Usage: CUDA_VISIBLE_DEVICES=<free GPUs> python3 weight_gptq_deepseek_moe.py <nvfp4|mxfp4>
 Env: GPTQ_PROCS_PER_DEVICE (default 6), GPTQ_CALIB_* (see weight_gptq.py)
@@ -44,8 +43,6 @@ import deepseek_moe_model as dsm  # noqa: E402
 torch.manual_seed(1111)
 
 PTQ_CACHE_ROOT = os.environ.get("PTQ_CACHE_ROOT", os.path.expanduser("~/ptq_cache"))
-RESULTS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "results")
-os.makedirs(RESULTS_DIR, exist_ok=True)
 SHARED_INPUT_LEADER = {"k_proj": "q_proj", "v_proj": "q_proj", "up_proj": "gate_proj"}  # same input as the leader
 
 
@@ -93,15 +90,8 @@ def collect_hessians(model, calib_ids, target_names):
     return h_cpu, count
 
 
-def build_cache(fmt: str, calib_ids: torch.Tensor, model=None, n_devices=None, procs_per_device=None,
-                rotate_group: int = 0, loader=None, prepare_model=None) -> dict:
-    """rotate_group > 0: micro-rotated GPTQ (see common/micro_rotation.py) -- the returned cache holds the
-    quantized ROTATED weights. loader: () -> model, for other models whose Linears are plain nn.Linear
-    (e.g. Llama); the model is dropped before the workers start. rotate_group == -1: full rotation.
-    prepare_model(model): applied right after loading (norm folding), so Hessians and weights come from it."""
-    model = model if model is not None else (loader() if loader is not None else dsm.load_model())
-    if prepare_model is not None:  # e.g. RMSNorm folding for the full (QuaRot-style) rotation; before Hessians/weights
-        prepare_model(model)
+def build_cache(fmt: str, calib_ids: torch.Tensor, model=None, n_devices=None, procs_per_device=None) -> dict:
+    model = model if model is not None else dsm.load_model()
     n_devices = n_devices or torch.cuda.device_count()
     procs_per_device = procs_per_device or int(os.environ.get("GPTQ_PROCS_PER_DEVICE", "6"))
     target_names = [n for n, m in model.named_modules() if isinstance(m, nn.Linear) and n != "lm_head"]
@@ -134,7 +124,7 @@ def build_cache(fmt: str, calib_ids: torch.Tensor, model=None, n_devices=None, p
                 h_cpu.pop(lead, None)
 
     t0 = time.time()
-    cache, rels = run_jobs(jobs(), fmt, n_devices, procs_per_device, rotate_group=rotate_group)
+    cache, rels = run_jobs(jobs(), fmt, n_devices, procs_per_device)
     r = torch.tensor(list(rels.values()))
     print(f"[{fmt}] quantized {len(cache)} matrices in {time.time() - t0:.0f}s "
           f"({n_fallback['n']} used the identity-Hessian fallback); relative weight MSE: "
@@ -143,67 +133,20 @@ def build_cache(fmt: str, calib_ids: torch.Tensor, model=None, n_devices=None, p
 
 
 
-@torch.no_grad()
-def measure_weight_only(fmt: str, cache: dict, encodings) -> dict:
-    """BF16 vs the GPTQ weight cache loaded onto an otherwise-untouched (activations stay BF16)
-    model -- mirrors weight_gptq.measure_weight_only / weight_gptq_qwen3_moe.measure_weight_only
-    for this model's own loader (dsm.load_model, accelerate device_map="auto")."""
-    same_seeds()
-    model = dsm.load_model()
-    bf16_ppl = measure_ppl(model, encodings, "deepseek_moe_16b__BF16", model.device)
-    del model
-    cleanup_cuda()
-
-    same_seeds()
-    model = dsm.load_model()
-    modules = dict(model.named_modules())
-    n = 0
-    for name, w in cache.items():
-        modules[name].weight.data.copy_(w.to(modules[name].weight.device, modules[name].weight.dtype))
-        n += 1
-    weight_ppl = measure_ppl(model, encodings, "deepseek_moe_16b__Weight_ONLY", model.device)
-    del model
-    cleanup_cuda()
-
-    print(f"[{fmt}][deepseek_moe_16b] BF16={bf16_ppl:.6f}  Weight_ONLY={weight_ppl:.6f} "
-          f"(+{weight_ppl - bf16_ppl:.4f})  n_layers={n}", flush=True)
-    return {"format": fmt, "model": "deepseek_moe_16b", "bf16_ppl": bf16_ppl, "weight_only_ppl": weight_ppl,
-            "increase": weight_ppl - bf16_ppl, "n_layers": n}
-
-
 def main():
     fmt = sys.argv[1]
     path = cache_path_for(fmt)
-    same_seeds()
     if os.path.exists(path):
-        print(f"[{fmt}] cache already exists -> {path} (loading, not rebuilding)", flush=True)
-        cache = torch.load(path, map_location="cpu")
-    else:
-        _, calib_encodings = load_tokenizer_and_encodings(dsm.MODEL_NAME, load_wikitext2_calib_text())
-        t0 = time.time()
-        cache = build_cache(fmt, calib_encodings.input_ids)
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        tmp = path + ".tmp"
-        torch.save(cache, tmp)
-        os.replace(tmp, path)
-        print(f"[{fmt}] cache saved -> {path} ({time.time() - t0:.1f}s)", flush=True)
-
-    if os.environ.get("GPTQ_SKIP_PPL", "0") == "1":
-        del cache
-        cleanup_cuda()
+        print(f"[{fmt}] cache already exists -> {path}", flush=True)
         return
-
-    _, encodings = load_tokenizer_and_encodings(dsm.MODEL_NAME, load_wikitext2_text())
-    row = measure_weight_only(fmt, cache, encodings)
-    del cache
-    cleanup_cuda()
-
-    csv_path = os.path.join(RESULTS_DIR, f"weight_gptq_ppl_{fmt}_deepseek_moe_16b.csv")
-    with open(csv_path, "w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=["format", "model", "bf16_ppl", "weight_only_ppl", "increase", "n_layers"])
-        w.writeheader()
-        w.writerow(row)
-    print(f"Saved -> {csv_path}", flush=True)
+    same_seeds()
+    _, calib_encodings = load_tokenizer_and_encodings(dsm.MODEL_NAME, load_wikitext2_calib_text())
+    t0 = time.time()
+    cache = build_cache(fmt, calib_encodings.input_ids)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    torch.save(cache, path + ".tmp")
+    os.replace(path + ".tmp", path)
+    print(f"[{fmt}] cache saved -> {path} ({time.time() - t0:.1f}s)", flush=True)
 
 
 if __name__ == "__main__":

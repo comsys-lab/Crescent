@@ -1,2 +1,0 @@
-model,format,k_per_block,aggregate_relative_mse_local_czardas,aggregate_relative_mse_global_topk,pct_of_local_gap_closed_by_global,n_elements_total
-llama_base,nvfp4,2,0.002033973228687557,0.0019792985794192582,2.6880712340337944,264241152.0

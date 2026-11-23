@@ -1,2 +1,0 @@
-model,format,aggregate_relative_mse_czardas_3term,aggregate_relative_mse_czardas_4term_exact,aggregate_crossterm_relative_mse_delta,pct_of_czardas_gap_closed_by_crossterm,n_elements_total
-llama_base,mxfp4,0.006253062453160094,0.006208551998908875,4.451045425121845e-05,0.711818482297811,402653184.0

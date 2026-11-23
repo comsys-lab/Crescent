@@ -1,3 +1,0 @@
-format,model,setting,ppl,increase,elapsed_sec
-mxfp4,deepseek_moe_16b,BF16,10.084284268067622,0.0,38.6
-mxfp4,deepseek_moe_16b,W4A4_Magnitude_top2,12.029444880402163,1.9451606123345417,666.3

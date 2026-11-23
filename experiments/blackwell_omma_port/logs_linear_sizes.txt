@@ -1,2 +1,0 @@
-2026-10-23 05:18:10 == llama_kvproj_M4096 (linear M=4096 N=1024 K=4096)
-  zero=UR36 static tie PCs=64 {'ties_dropped': 2097152, 'omma': 2097152, 'omma_with_1_tied': 2097152, 'omma_with_aliased_packed': 1474560, 'ties_unconsumed': 0}

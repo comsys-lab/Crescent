@@ -1,4 +1,0 @@
-model,format,layer,relative_mse_czardas_3term,relative_mse_czardas_4term_exact,crossterm_relative_mse_delta,pct_of_czardas_gap_closed_by_crossterm,n_elements
-qwen3_moe,mxfp4,model.layers.0.self_attn.qk,0.04035253315260093,0.0403024785971426,5.005455545832593e-05,0.1240431555288857,134217728
-qwen3_moe,mxfp4,model.layers.24.self_attn.qk,0.03557457260114108,0.035527453135025006,4.711946611607454e-05,0.1324526555648996,134217728
-qwen3_moe,mxfp4,model.layers.47.self_attn.qk,0.04977832852386801,0.04973201560143925,4.631292242875812e-05,0.09303832370858278,134217728

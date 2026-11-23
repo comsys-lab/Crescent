@@ -1,2 +1,0 @@
-model,format,k_per_block,aggregate_relative_mse_local_czardas,aggregate_relative_mse_global_topk,pct_of_local_gap_closed_by_global,n_elements_total
-deepseek_moe_16b,mxfp4,4,0.0032077393413913096,0.0030991819227166525,3.3842344131232256,132069632.0

@@ -1,3 +1,0 @@
-format,model,setting,ppl,increase,elapsed_sec
-nvfp4,deepseek_moe_16b,BF16,10.084284268067622,0.0,54.7
-nvfp4,deepseek_moe_16b,Motiv_Top12.5_E2M3_ActOnly,10.413124399661822,0.3288401315942,846.8

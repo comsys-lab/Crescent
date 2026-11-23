@@ -1,3 +1,0 @@
-format,model,setting,ppl,increase,elapsed_sec
-nvfp4,llama_base,BF16,5.696896965321543,0.0,27.2
-nvfp4,llama_base,W4A4_baseline_ActOnly,6.356839723200991,0.6599427578794481,421.1

@@ -1,5 +1,0 @@
-format,model,setting,ppl,increase,elapsed_sec
-nvfp4,llama_base,BF16,9.00005801054989,0.0,111.4
-nvfp4,llama_base,Native_FP4,10.57923527401314,1.579177263463249,1767.6
-nvfp4,llama_base,Ours,9.898927723486345,0.8988697129364542,3602.6
-nvfp4,llama_base,Magnitude,10.157896750133313,1.157838739583422,3585.4
