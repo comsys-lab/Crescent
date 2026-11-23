@@ -1,0 +1,2 @@
+format,model,k,boost_mant_bits,ppl,elapsed_sec
+nvfp4,deepseek_moe_16b,2,3,10.386328178284192,544.715

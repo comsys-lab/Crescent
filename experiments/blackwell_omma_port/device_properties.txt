@@ -1,0 +1,25 @@
+name=NVIDIA RTX PRO 4000 Blackwell
+cc=12.0
+SMs=70
+max_sm_clock_khz=2055000
+mem_clock_khz=14001000
+mem_bus_width_bits=192
+l2_bytes=50331648
+regs_per_sm=65536
+regs_per_block=65536
+smem_per_sm=102400
+smem_per_block_optin=101376
+max_threads_per_sm=1536
+max_blocks_per_sm=24
+warp=32
+global_mem=25153634304
+    Default Applications Clocks
+        Graphics                                       : Requested functionality has been deprecated
+        Memory                                         : Requested functionality has been deprecated
+    Deferred Clocks
+        Memory                                         : N/A
+    Max Clocks
+        Graphics                                       : 3090 MHz
+        SM                                             : 3090 MHz
+        Memory                                         : 14001 MHz
+        Video                                          : 3090 MHz

@@ -1,0 +1,19 @@
+rep1 qwen M=2048 layer_nonmoe=0.3110 layer_moe=0.4343 attn_sdpa=0.2391 fwd_once=0.3912 dense0_act=0.0000
+rep1 qwen M=4096 layer_nonmoe=0.7253 layer_moe=0.8538 attn_sdpa=0.7823 fwd_once=0.3921 dense0_act=0.0000
+rep1 qwen M=8192 layer_nonmoe=1.9138 layer_moe=1.7454 attn_sdpa=2.7714 fwd_once=0.3923 dense0_act=0.0000
+rep1 ds M=2048 layer_nonmoe=0.1815 layer_moe=0.3916 attn_sdpa=0.1532 fwd_once=0.2684 dense0_act=0.1091
+rep1 ds M=4096 layer_nonmoe=0.3604 layer_moe=0.8179 attn_sdpa=0.4561 fwd_once=0.2683 dense0_act=0.2866
+rep1 ds M=8192 layer_nonmoe=0.9606 layer_moe=1.6954 attn_sdpa=1.5217 fwd_once=0.2678 dense0_act=0.5756
+rep2 qwen M=2048 layer_nonmoe=0.3111 layer_moe=0.4357 attn_sdpa=0.2400 fwd_once=0.3918 dense0_act=0.0000
+rep2 qwen M=4096 layer_nonmoe=0.7234 layer_moe=0.8540 attn_sdpa=0.7813 fwd_once=0.3925 dense0_act=0.0000
+rep2 qwen M=8192 layer_nonmoe=1.9120 layer_moe=1.7448 attn_sdpa=2.7731 fwd_once=0.3915 dense0_act=0.0000
+rep2 ds M=2048 layer_nonmoe=0.1825 layer_moe=0.3938 attn_sdpa=0.1539 fwd_once=0.2684 dense0_act=0.1083
+rep2 ds M=4096 layer_nonmoe=0.3674 layer_moe=0.8175 attn_sdpa=0.4572 fwd_once=0.2679 dense0_act=0.2864
+rep2 ds M=8192 layer_nonmoe=0.9642 layer_moe=1.6950 attn_sdpa=1.5246 fwd_once=0.2678 dense0_act=0.5751
+rep3 qwen M=2048 layer_nonmoe=0.3128 layer_moe=0.4456 attn_sdpa=0.2395 fwd_once=0.3917 dense0_act=0.0000
+rep3 qwen M=4096 layer_nonmoe=0.7286 layer_moe=0.8542 attn_sdpa=0.7830 fwd_once=0.3922 dense0_act=0.0000
+rep3 qwen M=8192 layer_nonmoe=1.9119 layer_moe=1.7448 attn_sdpa=2.7860 fwd_once=0.3921 dense0_act=0.0000
+rep3 ds M=2048 layer_nonmoe=0.1823 layer_moe=0.4106 attn_sdpa=0.1612 fwd_once=0.2680 dense0_act=0.1088
+rep3 ds M=4096 layer_nonmoe=0.3693 layer_moe=0.8178 attn_sdpa=0.4580 fwd_once=0.2682 dense0_act=0.2860
+rep3 ds M=8192 layer_nonmoe=0.9624 layer_moe=1.6951 attn_sdpa=1.5305 fwd_once=0.2682 dense0_act=0.5753
+DONE

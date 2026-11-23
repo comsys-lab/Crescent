@@ -1,0 +1,226 @@
+### rep1 qwen_gateup_q_M2048 sel n=768 k=2048 m=2048
+  nvfp4 GEMM       :   0.0245 ms/iter   (263.4 TFLOP/s)
+  with store (DRAM):   0.0124    0.0145 (+16.9%)        0.0289 (+133.2%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0060 ms  -> +14.82% of (A-quant + nvfp4 GEMM + meta-reload = 0.0408 ms)   [meta reload alone: 0.0040 ms]
+### rep2 qwen_gateup_q_M2048 sel n=768 k=2048 m=2048
+  nvfp4 GEMM       :   0.0246 ms/iter   (261.7 TFLOP/s)
+  with store (DRAM):   0.0124    0.0145 (+16.6%)        0.0289 (+132.8%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0067 ms  -> +16.01% of (A-quant + nvfp4 GEMM + meta-reload = 0.0416 ms)   [meta reload alone: 0.0046 ms]
+### rep3 qwen_gateup_q_M2048 sel n=768 k=2048 m=2048
+  nvfp4 GEMM       :   0.0247 ms/iter   (261.2 TFLOP/s)
+  with store (DRAM):   0.0124    0.0145 (+16.3%)        0.0288 (+131.5%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0080 ms  -> +18.51% of (A-quant + nvfp4 GEMM + meta-reload = 0.0430 ms)   [meta reload alone: 0.0059 ms]
+### rep4 qwen_gateup_q_M2048 sel n=768 k=2048 m=2048
+  nvfp4 GEMM       :   0.0245 ms/iter   (262.8 TFLOP/s)
+  with store (DRAM):   0.0124    0.0145 (+16.6%)        0.0288 (+132.2%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0070 ms  -> +16.70% of (A-quant + nvfp4 GEMM + meta-reload = 0.0419 ms)   [meta reload alone: 0.0049 ms]
+### rep5 qwen_gateup_q_M2048 sel n=768 k=2048 m=2048
+  nvfp4 GEMM       :   0.0245 ms/iter   (262.8 TFLOP/s)
+  with store (DRAM):   0.0125    0.0145 (+16.0%)        0.0288 (+131.2%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0072 ms  -> +17.15% of (A-quant + nvfp4 GEMM + meta-reload = 0.0422 ms)   [meta reload alone: 0.0052 ms]
+### rep1 qwen_down_q_M4096 sel n=2048 k=768 m=32768
+  nvfp4 GEMM       :   0.3903 ms/iter   (264.1 TFLOP/s)
+  with store (DRAM):   0.0919    0.1002 ( +9.1%)        0.1990 (+116.5%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0129 ms  -> +2.65% of (A-quant + nvfp4 GEMM + meta-reload = 0.4867 ms)   [meta reload alone: 0.0045 ms]
+### rep2 qwen_down_q_M4096 sel n=2048 k=768 m=32768
+  nvfp4 GEMM       :   0.3904 ms/iter   (264.0 TFLOP/s)
+  with store (DRAM):   0.0916    0.0977 ( +6.7%)        0.2106 (+129.9%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0107 ms  -> +2.20% of (A-quant + nvfp4 GEMM + meta-reload = 0.4866 ms)   [meta reload alone: 0.0046 ms]
+### rep3 qwen_down_q_M4096 sel n=2048 k=768 m=32768
+  nvfp4 GEMM       :   0.3908 ms/iter   (263.8 TFLOP/s)
+  with store (DRAM):   0.0917    0.0994 ( +8.5%)        0.2091 (+128.1%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0122 ms  -> +2.52% of (A-quant + nvfp4 GEMM + meta-reload = 0.4869 ms)   [meta reload alone: 0.0045 ms]
+### rep4 qwen_down_q_M4096 sel n=2048 k=768 m=32768
+  nvfp4 GEMM       :   0.3915 ms/iter   (263.3 TFLOP/s)
+  with store (DRAM):   0.0918    0.0982 ( +6.9%)        0.2117 (+130.6%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0117 ms  -> +2.39% of (A-quant + nvfp4 GEMM + meta-reload = 0.4887 ms)   [meta reload alone: 0.0054 ms]
+### rep5 qwen_down_q_M4096 sel n=2048 k=768 m=32768
+  nvfp4 GEMM       :   0.3912 ms/iter   (263.5 TFLOP/s)
+  with store (DRAM):   0.0916    0.1008 (+10.1%)        0.2012 (+119.6%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0130 ms  -> +2.67% of (A-quant + nvfp4 GEMM + meta-reload = 0.4866 ms)   [meta reload alone: 0.0038 ms]
+### rep1 ds_routed_gu_q_M8192 sel n=1408 k=2048 m=8192
+  nvfp4 GEMM       :   0.1404 ms/iter   (336.5 TFLOP/s)
+  with store (DRAM):   0.0383    0.0492 (+28.4%)        0.1109 (+189.3%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0153 ms  -> +8.33% of (A-quant + nvfp4 GEMM + meta-reload = 0.1831 ms)   [meta reload alone: 0.0044 ms]
+### rep2 ds_routed_gu_q_M8192 sel n=1408 k=2048 m=8192
+  nvfp4 GEMM       :   0.1407 ms/iter   (335.8 TFLOP/s)
+  with store (DRAM):   0.0380    0.0493 (+29.8%)        0.1115 (+193.8%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0156 ms  -> +8.53% of (A-quant + nvfp4 GEMM + meta-reload = 0.1830 ms)   [meta reload alone: 0.0043 ms]
+### rep3 ds_routed_gu_q_M8192 sel n=1408 k=2048 m=8192
+  nvfp4 GEMM       :   0.1406 ms/iter   (336.0 TFLOP/s)
+  with store (DRAM):   0.0411    0.0513 (+24.9%)        0.1154 (+180.9%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0147 ms  -> +7.91% of (A-quant + nvfp4 GEMM + meta-reload = 0.1861 ms)   [meta reload alone: 0.0045 ms]
+### rep4 ds_routed_gu_q_M8192 sel n=1408 k=2048 m=8192
+  nvfp4 GEMM       :   0.1405 ms/iter   (336.4 TFLOP/s)
+  with store (DRAM):   0.0396    0.0514 (+29.6%)        0.1169 (+194.9%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0163 ms  -> +8.85% of (A-quant + nvfp4 GEMM + meta-reload = 0.1847 ms)   [meta reload alone: 0.0046 ms]
+### rep5 ds_routed_gu_q_M8192 sel n=1408 k=2048 m=8192
+  nvfp4 GEMM       :   0.1405 ms/iter   (336.2 TFLOP/s)
+  with store (DRAM):   0.0411    0.0513 (+24.9%)        0.1158 (+181.7%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0146 ms  -> +7.85% of (A-quant + nvfp4 GEMM + meta-reload = 0.1860 ms)   [meta reload alone: 0.0044 ms]
+### rep1 qwen_gateup_q_M4096 sel n=768 k=2048 m=4096
+  nvfp4 GEMM       :   0.0374 ms/iter   (344.4 TFLOP/s)
+  with store (DRAM):   0.0206    0.0258 (+24.9%)        0.0542 (+162.8%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0089 ms  -> +14.45% of (A-quant + nvfp4 GEMM + meta-reload = 0.0618 ms)   [meta reload alone: 0.0038 ms]
+### rep2 qwen_gateup_q_M4096 sel n=768 k=2048 m=4096
+  nvfp4 GEMM       :   0.0375 ms/iter   (344.0 TFLOP/s)
+  with store (DRAM):   0.0206    0.0257 (+24.8%)        0.0541 (+162.3%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0097 ms  -> +15.43% of (A-quant + nvfp4 GEMM + meta-reload = 0.0626 ms)   [meta reload alone: 0.0045 ms]
+### rep3 qwen_gateup_q_M4096 sel n=768 k=2048 m=4096
+  nvfp4 GEMM       :   0.0375 ms/iter   (343.9 TFLOP/s)
+  with store (DRAM):   0.0206    0.0257 (+24.6%)        0.0547 (+165.2%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0089 ms  -> +14.35% of (A-quant + nvfp4 GEMM + meta-reload = 0.0619 ms)   [meta reload alone: 0.0038 ms]
+### rep4 qwen_gateup_q_M4096 sel n=768 k=2048 m=4096
+  nvfp4 GEMM       :   0.0375 ms/iter   (343.6 TFLOP/s)
+  with store (DRAM):   0.0206    0.0258 (+25.2%)        0.0545 (+164.0%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0088 ms  -> +14.22% of (A-quant + nvfp4 GEMM + meta-reload = 0.0617 ms)   [meta reload alone: 0.0036 ms]
+### rep5 qwen_gateup_q_M4096 sel n=768 k=2048 m=4096
+  nvfp4 GEMM       :   0.0376 ms/iter   (343.1 TFLOP/s)
+  with store (DRAM):   0.0206    0.0259 (+25.8%)        0.0543 (+163.6%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0093 ms  -> +14.97% of (A-quant + nvfp4 GEMM + meta-reload = 0.0621 ms)   [meta reload alone: 0.0040 ms]
+### rep1 qwen_down_q_M8192 sel n=2048 k=768 m=65536
+### rep2 qwen_down_q_M8192 sel n=2048 k=768 m=65536
+### rep3 qwen_down_q_M8192 sel n=2048 k=768 m=65536
+### rep4 qwen_down_q_M8192 sel n=2048 k=768 m=65536
+### rep5 qwen_down_q_M8192 sel n=2048 k=768 m=65536
+### rep1 ds_routed_down_q_M2048 sel n=2048 k=1408 m=8192
+  nvfp4 GEMM       :   0.1469 ms/iter   (321.7 TFLOP/s)
+  with store (DRAM):   0.0309    0.0390 (+26.4%)        0.0800 (+159.0%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0121 ms  -> +6.65% of (A-quant + nvfp4 GEMM + meta-reload = 0.1817 ms)   [meta reload alone: 0.0039 ms]
+### rep2 ds_routed_down_q_M2048 sel n=2048 k=1408 m=8192
+  nvfp4 GEMM       :   0.1467 ms/iter   (322.0 TFLOP/s)
+  with store (DRAM):   0.0304    0.0387 (+27.2%)        0.0777 (+155.5%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0121 ms  -> +6.68% of (A-quant + nvfp4 GEMM + meta-reload = 0.1810 ms)   [meta reload alone: 0.0038 ms]
+### rep3 ds_routed_down_q_M2048 sel n=2048 k=1408 m=8192
+  nvfp4 GEMM       :   0.1468 ms/iter   (321.9 TFLOP/s)
+  with store (DRAM):   0.0296    0.0371 (+25.2%)        0.0770 (+159.9%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0114 ms  -> +6.30% of (A-quant + nvfp4 GEMM + meta-reload = 0.1803 ms)   [meta reload alone: 0.0039 ms]
+### rep4 ds_routed_down_q_M2048 sel n=2048 k=1408 m=8192
+  nvfp4 GEMM       :   0.1468 ms/iter   (321.9 TFLOP/s)
+  with store (DRAM):   0.0295    0.0374 (+26.6%)        0.0798 (+170.1%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0117 ms  -> +6.48% of (A-quant + nvfp4 GEMM + meta-reload = 0.1801 ms)   [meta reload alone: 0.0038 ms]
+### rep5 ds_routed_down_q_M2048 sel n=2048 k=1408 m=8192
+  nvfp4 GEMM       :   0.1468 ms/iter   (321.7 TFLOP/s)
+  with store (DRAM):   0.0293    0.0372 (+26.8%)        0.0765 (+160.9%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0118 ms  -> +6.53% of (A-quant + nvfp4 GEMM + meta-reload = 0.1801 ms)   [meta reload alone: 0.0039 ms]
+### rep1 qwen_gateup_q_M8192 sel n=768 k=2048 m=8192
+  nvfp4 GEMM       :   0.0733 ms/iter   (351.8 TFLOP/s)
+  with store (DRAM):   0.0379    0.0501 (+32.1%)        0.1110 (+192.9%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0172 ms  -> +14.82% of (A-quant + nvfp4 GEMM + meta-reload = 0.1162 ms)   [meta reload alone: 0.0051 ms]
+### rep2 qwen_gateup_q_M8192 sel n=768 k=2048 m=8192
+  nvfp4 GEMM       :   0.0732 ms/iter   (352.2 TFLOP/s)
+  with store (DRAM):   0.0382    0.0503 (+31.8%)        0.1114 (+192.0%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0172 ms  -> +14.80% of (A-quant + nvfp4 GEMM + meta-reload = 0.1164 ms)   [meta reload alone: 0.0051 ms]
+### rep3 qwen_gateup_q_M8192 sel n=768 k=2048 m=8192
+  nvfp4 GEMM       :   0.0734 ms/iter   (351.2 TFLOP/s)
+  with store (DRAM):   0.0382    0.0503 (+31.8%)        0.1112 (+191.4%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0160 ms  -> +13.88% of (A-quant + nvfp4 GEMM + meta-reload = 0.1154 ms)   [meta reload alone: 0.0039 ms]
+### rep4 qwen_gateup_q_M8192 sel n=768 k=2048 m=8192
+  nvfp4 GEMM       :   0.0734 ms/iter   (351.2 TFLOP/s)
+  with store (DRAM):   0.0383    0.0504 (+31.6%)        0.1111 (+190.4%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0162 ms  -> +14.00% of (A-quant + nvfp4 GEMM + meta-reload = 0.1157 ms)   [meta reload alone: 0.0041 ms]
+### rep5 qwen_gateup_q_M8192 sel n=768 k=2048 m=8192
+  nvfp4 GEMM       :   0.0735 ms/iter   (350.7 TFLOP/s)
+  with store (DRAM):   0.0382    0.0502 (+31.5%)        0.1112 (+191.4%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0164 ms  -> +14.16% of (A-quant + nvfp4 GEMM + meta-reload = 0.1161 ms)   [meta reload alone: 0.0044 ms]
+### rep1 ds_routed_gu_q_M2048 sel n=1408 k=2048 m=2048
+  nvfp4 GEMM       :   0.0369 ms/iter   (320.4 TFLOP/s)
+  with store (DRAM):   0.0124    0.0145 (+16.8%)        0.0288 (+132.6%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0058 ms  -> +10.99% of (A-quant + nvfp4 GEMM + meta-reload = 0.0530 ms)   [meta reload alone: 0.0037 ms]
+### rep2 ds_routed_gu_q_M2048 sel n=1408 k=2048 m=2048
+  nvfp4 GEMM       :   0.0368 ms/iter   (320.8 TFLOP/s)
+  with store (DRAM):   0.0124    0.0144 (+16.6%)        0.0288 (+132.5%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0064 ms  -> +11.98% of (A-quant + nvfp4 GEMM + meta-reload = 0.0536 ms)   [meta reload alone: 0.0044 ms]
+### rep3 ds_routed_gu_q_M2048 sel n=1408 k=2048 m=2048
+  nvfp4 GEMM       :   0.0369 ms/iter   (320.1 TFLOP/s)
+  with store (DRAM):   0.0124    0.0145 (+16.7%)        0.0288 (+132.1%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0065 ms  -> +12.16% of (A-quant + nvfp4 GEMM + meta-reload = 0.0538 ms)   [meta reload alone: 0.0045 ms]
+### rep4 ds_routed_gu_q_M2048 sel n=1408 k=2048 m=2048
+  nvfp4 GEMM       :   0.0369 ms/iter   (320.4 TFLOP/s)
+  with store (DRAM):   0.0124    0.0145 (+17.0%)        0.0288 (+132.8%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0067 ms  -> +12.38% of (A-quant + nvfp4 GEMM + meta-reload = 0.0538 ms)   [meta reload alone: 0.0046 ms]
+### rep5 ds_routed_gu_q_M2048 sel n=1408 k=2048 m=2048
+  nvfp4 GEMM       :   0.0368 ms/iter   (320.6 TFLOP/s)
+  with store (DRAM):   0.0124    0.0145 (+16.3%)        0.0288 (+131.6%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0058 ms  -> +10.94% of (A-quant + nvfp4 GEMM + meta-reload = 0.0530 ms)   [meta reload alone: 0.0038 ms]
+### rep1 ds_routed_down_q_M4096 sel n=2048 k=1408 m=24576
+  nvfp4 GEMM       :   0.4514 ms/iter   (314.0 TFLOP/s)
+  with store (DRAM):   0.1344    0.1570 (+16.8%)        0.2968 (+120.8%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0267 ms  -> +4.52% of (A-quant + nvfp4 GEMM + meta-reload = 0.5899 ms)   [meta reload alone: 0.0041 ms]
+### rep2 ds_routed_down_q_M4096 sel n=2048 k=1408 m=24576
+  nvfp4 GEMM       :   0.4521 ms/iter   (313.5 TFLOP/s)
+  with store (DRAM):   0.1341    0.1590 (+18.6%)        0.2977 (+121.9%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0288 ms  -> +4.87% of (A-quant + nvfp4 GEMM + meta-reload = 0.5902 ms)   [meta reload alone: 0.0039 ms]
+### rep3 ds_routed_down_q_M4096 sel n=2048 k=1408 m=24576
+  nvfp4 GEMM       :   0.4515 ms/iter   (313.9 TFLOP/s)
+  with store (DRAM):   0.1360    0.1571 (+15.5%)        0.2967 (+118.2%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0249 ms  -> +4.22% of (A-quant + nvfp4 GEMM + meta-reload = 0.5913 ms)   [meta reload alone: 0.0038 ms]
+### rep4 ds_routed_down_q_M4096 sel n=2048 k=1408 m=24576
+  nvfp4 GEMM       :   0.4520 ms/iter   (313.6 TFLOP/s)
+  with store (DRAM):   0.1365    0.1580 (+15.8%)        0.2997 (+119.5%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0254 ms  -> +4.29% of (A-quant + nvfp4 GEMM + meta-reload = 0.5924 ms)   [meta reload alone: 0.0039 ms]
+### rep5 ds_routed_down_q_M4096 sel n=2048 k=1408 m=24576
+  nvfp4 GEMM       :   0.4521 ms/iter   (313.5 TFLOP/s)
+  with store (DRAM):   0.1344    0.1589 (+18.3%)        0.2974 (+121.3%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0285 ms  -> +4.82% of (A-quant + nvfp4 GEMM + meta-reload = 0.5903 ms)   [meta reload alone: 0.0039 ms]
+### rep1 qwen_down_q_M2048 sel n=2048 k=768 m=16384
+  nvfp4 GEMM       :   0.1972 ms/iter   (261.3 TFLOP/s)
+  with store (DRAM):   0.0329    0.0347 ( +5.3%)        0.0964 (+193.0%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0056 ms  -> +2.39% of (A-quant + nvfp4 GEMM + meta-reload = 0.2340 ms)   [meta reload alone: 0.0038 ms]
+### rep2 qwen_down_q_M2048 sel n=2048 k=768 m=16384
+  nvfp4 GEMM       :   0.1973 ms/iter   (261.2 TFLOP/s)
+  with store (DRAM):   0.0309    0.0337 ( +9.2%)        0.0919 (+197.2%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0086 ms  -> +3.69% of (A-quant + nvfp4 GEMM + meta-reload = 0.2340 ms)   [meta reload alone: 0.0058 ms]
+### rep3 qwen_down_q_M2048 sel n=2048 k=768 m=16384
+  nvfp4 GEMM       :   0.1976 ms/iter   (260.8 TFLOP/s)
+  with store (DRAM):   0.0329    0.0342 ( +3.8%)        0.0957 (+190.4%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0056 ms  -> +2.40% of (A-quant + nvfp4 GEMM + meta-reload = 0.2349 ms)   [meta reload alone: 0.0044 ms]
+### rep4 qwen_down_q_M2048 sel n=2048 k=768 m=16384
+  nvfp4 GEMM       :   0.1975 ms/iter   (260.9 TFLOP/s)
+  with store (DRAM):   0.0329    0.0337 ( +2.4%)        0.0944 (+187.0%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0054 ms  -> +2.28% of (A-quant + nvfp4 GEMM + meta-reload = 0.2350 ms)   [meta reload alone: 0.0046 ms]
+### rep5 qwen_down_q_M2048 sel n=2048 k=768 m=16384
+  nvfp4 GEMM       :   0.1974 ms/iter   (261.1 TFLOP/s)
+  with store (DRAM):   0.0299    0.0347 (+16.3%)        0.0964 (+222.8%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0093 ms  -> +4.00% of (A-quant + nvfp4 GEMM + meta-reload = 0.2316 ms)   [meta reload alone: 0.0044 ms]
+### rep1 ds_routed_gu_q_M4096 sel n=1408 k=2048 m=4096
+  nvfp4 GEMM       :   0.0699 ms/iter   (338.0 TFLOP/s)
+  with store (DRAM):   0.0206    0.0264 (+28.2%)        0.0553 (+168.3%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0110 ms  -> +11.51% of (A-quant + nvfp4 GEMM + meta-reload = 0.0957 ms)   [meta reload alone: 0.0052 ms]
+### rep2 ds_routed_gu_q_M4096 sel n=1408 k=2048 m=4096
+  nvfp4 GEMM       :   0.0699 ms/iter   (338.1 TFLOP/s)
+  with store (DRAM):   0.0206    0.0264 (+28.4%)        0.0553 (+168.4%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0097 ms  -> +10.29% of (A-quant + nvfp4 GEMM + meta-reload = 0.0943 ms)   [meta reload alone: 0.0039 ms]
+### rep3 ds_routed_gu_q_M4096 sel n=1408 k=2048 m=4096
+  nvfp4 GEMM       :   0.0699 ms/iter   (337.8 TFLOP/s)
+  with store (DRAM):   0.0206    0.0264 (+28.2%)        0.0552 (+167.7%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0103 ms  -> +10.79% of (A-quant + nvfp4 GEMM + meta-reload = 0.0950 ms)   [meta reload alone: 0.0044 ms]
+### rep4 ds_routed_gu_q_M4096 sel n=1408 k=2048 m=4096
+  nvfp4 GEMM       :   0.0698 ms/iter   (338.2 TFLOP/s)
+  with store (DRAM):   0.0206    0.0266 (+28.9%)        0.0554 (+168.6%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0106 ms  -> +11.16% of (A-quant + nvfp4 GEMM + meta-reload = 0.0951 ms)   [meta reload alone: 0.0046 ms]
+### rep5 ds_routed_gu_q_M4096 sel n=1408 k=2048 m=4096
+  nvfp4 GEMM       :   0.0699 ms/iter   (337.9 TFLOP/s)
+  with store (DRAM):   0.0206    0.0263 (+28.0%)        0.0552 (+168.2%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0096 ms  -> +10.20% of (A-quant + nvfp4 GEMM + meta-reload = 0.0944 ms)   [meta reload alone: 0.0039 ms]
+### rep1 ds_routed_down_q_M8192 sel n=2048 k=1408 m=49152
+  nvfp4 GEMM       :   0.8852 ms/iter   (320.2 TFLOP/s)
+  with store (DRAM):   0.3018    0.3252 ( +7.8%)        0.5754 (+90.7%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0274 ms  -> +2.30% of (A-quant + nvfp4 GEMM + meta-reload = 1.1910 ms)   [meta reload alone: 0.0040 ms]
+### rep2 ds_routed_down_q_M8192 sel n=2048 k=1408 m=49152
+  nvfp4 GEMM       :   0.8892 ms/iter   (318.8 TFLOP/s)
+  with store (DRAM):   0.3021    0.3251 ( +7.6%)        0.5791 (+91.7%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0267 ms  -> +2.23% of (A-quant + nvfp4 GEMM + meta-reload = 1.1951 ms)   [meta reload alone: 0.0038 ms]
+### rep3 ds_routed_down_q_M8192 sel n=2048 k=1408 m=49152
+  nvfp4 GEMM       :   0.8881 ms/iter   (319.2 TFLOP/s)
+  with store (DRAM):   0.3024    0.3247 ( +7.4%)        0.5803 (+91.9%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0268 ms  -> +2.25% of (A-quant + nvfp4 GEMM + meta-reload = 1.1950 ms)   [meta reload alone: 0.0045 ms]
+### rep4 ds_routed_down_q_M8192 sel n=2048 k=1408 m=49152
+  nvfp4 GEMM       :   0.8891 ms/iter   (318.8 TFLOP/s)
+  with store (DRAM):   0.3024    0.3242 ( +7.2%)        0.5788 (+91.4%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0264 ms  -> +2.21% of (A-quant + nvfp4 GEMM + meta-reload = 1.1961 ms)   [meta reload alone: 0.0046 ms]
+### rep5 ds_routed_down_q_M8192 sel n=2048 k=1408 m=49152
+  nvfp4 GEMM       :   0.8886 ms/iter   (319.0 TFLOP/s)
+  with store (DRAM):   0.3015    0.3249 ( +7.7%)        0.5779 (+91.7%)
+  selection on A adds (DRAM store+reload, separate kernels) 0.0273 ms  -> +2.28% of (A-quant + nvfp4 GEMM + meta-reload = 1.1941 ms)   [meta reload alone: 0.0039 ms]
+DONE

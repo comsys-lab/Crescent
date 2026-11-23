@@ -1,0 +1,133 @@
+From a0f65fe883a59467d8c1e7fbeb13ef8c03867350 Mon Sep 17 00:00:00 2001
+From: minseong <minseong7859@gmail.com>
+Date: Wed, 21 Oct 2026 01:12:44 +0900
+Subject: [PATCH 2/7] simulator: parse sm_120 traces and the OMMA opcode
+
+Before: traces with "-binary version = 120" stop with
+"unsupported binary version: 120" (and exit code 0).
+
+- ISA_Def/blackwell_opcode.h: Blackwell_OpcodeMap = Hopper map + opcodes
+  observed in sm_120 traces: OMMA -> tensor unit (SPECIALIZED_UNIT_3,
+  same as HMMA/IMMA), LDCU -> OP_ULDC and CS2UR -> OP_S2UR on the
+  uniform unit.
+- OP_OMMA enum + AccelWattch TENSOR mapping.
+- binary version 120 selects Blackwell_OpcodeMap.
+- trace parser MAX_SRC 4 -> 8 (OMMA.SF has 6 sources).
+
+No OMMA-specific operand/timing handling yet (next commit).
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ .../ISA_Def/accelwattch_component_mapping.h   |  1 +
+ gpu-simulator/ISA_Def/blackwell_opcode.h      | 33 +++++++++++++++++++
+ gpu-simulator/ISA_Def/trace_opcode.h          |  2 ++
+ gpu-simulator/trace-driven/trace_driven.cc    |  5 ++-
+ gpu-simulator/trace-parser/trace_parser.h     |  4 ++-
+ 5 files changed, 43 insertions(+), 2 deletions(-)
+ create mode 100644 gpu-simulator/ISA_Def/blackwell_opcode.h
+
+diff --git a/gpu-simulator/ISA_Def/accelwattch_component_mapping.h b/gpu-simulator/ISA_Def/accelwattch_component_mapping.h
+index 272e3c1..d82063d 100644
+--- a/gpu-simulator/ISA_Def/accelwattch_component_mapping.h
++++ b/gpu-simulator/ISA_Def/accelwattch_component_mapping.h
+@@ -76,6 +76,7 @@ static const std::unordered_map<unsigned, unsigned> OpcodePowerMap = {
+     {OP_IDP4A, INT_MUL_OP},
+     {OP_IMAD, INT_MUL_OP},
+     {OP_IMMA, TENSOR__OP},
++    {OP_OMMA, TENSOR__OP},
+     {OP_IMNMX, INT__OP},
+     {OP_IMUL, INT_MUL_OP},
+     {OP_IMUL32I, INT_MUL_OP},
+diff --git a/gpu-simulator/ISA_Def/blackwell_opcode.h b/gpu-simulator/ISA_Def/blackwell_opcode.h
+new file mode 100644
+index 0000000..eff5a3b
+--- /dev/null
++++ b/gpu-simulator/ISA_Def/blackwell_opcode.h
+@@ -0,0 +1,33 @@
++// Blackwell (sm_120, e.g. RTX PRO 4000 Blackwell / RTX 50xx) opcode map.
++//
++// ASSUMPTION: sm_120 SASS is the Hopper (sm_90) SASS opcode set plus the
++// additions listed below. Only opcodes actually observed in sm_120 traces
++// are added; everything else falls through to the Hopper classification.
++
++#ifndef BLACKWELL_OPCODE_H
++#define BLACKWELL_OPCODE_H
++
++#include <string>
++#include <unordered_map>
++#include "abstract_hardware_model.h"
++#include "hopper_opcode.h"
++#include "trace_opcode.h"
++
++#define BLACKWELL_RTX_BINART_VERSION 120
++
++static const std::unordered_map<std::string, OpcodeChar> Blackwell_OpcodeMap =
++    [] {
++      std::unordered_map<std::string, OpcodeChar> m = Hopper_OpcodeMap;
++      // Warp-level block-scaled MMA (e.g. OMMA.SF.16864.F32.E2M1.E2M1.UE4M3.4X
++      // from mma.sync...kind::mxf4nvf4.block_scale). Runs on the per-sub-core
++      // tensor core, like HMMA/IMMA.
++      m.insert({"OMMA", OpcodeChar(OP_OMMA, SPECIALIZED_UNIT_3_OP)});
++      // Load constant into a uniform register (sm_120 replacement of ULDC).
++      m.insert({"LDCU", OpcodeChar(OP_ULDC, SPECIALIZED_UNIT_4_OP)});
++      // Read a special register (e.g. SR_CLOCKLO for clock64) into a uniform
++      // register (sm_120); same class as S2UR.
++      m.insert({"CS2UR", OpcodeChar(OP_S2UR, SPECIALIZED_UNIT_4_OP)});
++      return m;
++    }();
++
++#endif
+diff --git a/gpu-simulator/ISA_Def/trace_opcode.h b/gpu-simulator/ISA_Def/trace_opcode.h
+index 637a686..ab4cdb6 100644
+--- a/gpu-simulator/ISA_Def/trace_opcode.h
++++ b/gpu-simulator/ISA_Def/trace_opcode.h
+@@ -243,6 +243,8 @@ enum TraceInstrOpcode {
+   OP_QGMMA,
+   OP_HGMMA,
+   OP_IGMMA,
++  // For Blackwell (sm_120) block-scaled warp MMA
++  OP_OMMA,
+   // Synchronization-related Instructions
+   OP_FENCE,
+   OP_SYNCS,
+diff --git a/gpu-simulator/trace-driven/trace_driven.cc b/gpu-simulator/trace-driven/trace_driven.cc
+index 8a467ab..f01000c 100644
+--- a/gpu-simulator/trace-driven/trace_driven.cc
++++ b/gpu-simulator/trace-driven/trace_driven.cc
+@@ -42,6 +42,7 @@
+ 
+ #include "../ISA_Def/accelwattch_component_mapping.h"
+ #include "../ISA_Def/ampere_opcode.h"
++#include "../ISA_Def/blackwell_opcode.h"
+ #include "../ISA_Def/hopper_opcode.h"
+ #include "../ISA_Def/kepler_opcode.h"
+ #include "../ISA_Def/pascal_opcode.h"
+@@ -196,7 +197,9 @@ trace_kernel_info_t::trace_kernel_info_t(dim3 gridDim, dim3 blockDim,
+   m_was_launched = false;
+ 
+   // resolve the binary version
+-  if (kernel_trace_info->binary_verion == HOPPER_H100_BINART_VERSION)
++  if (kernel_trace_info->binary_verion == BLACKWELL_RTX_BINART_VERSION)
++    OpcodeMap = &Blackwell_OpcodeMap;
++  else if (kernel_trace_info->binary_verion == HOPPER_H100_BINART_VERSION)
+     OpcodeMap = &Hopper_OpcodeMap;
+   else if (kernel_trace_info->binary_verion == AMPERE_RTX_BINART_VERSION ||
+            kernel_trace_info->binary_verion == AMPERE_A100_BINART_VERSION)
+diff --git a/gpu-simulator/trace-parser/trace_parser.h b/gpu-simulator/trace-parser/trace_parser.h
+index 7e76064..df8155a 100644
+--- a/gpu-simulator/trace-parser/trace_parser.h
++++ b/gpu-simulator/trace-parser/trace_parser.h
+@@ -15,7 +15,9 @@
+ 
+ #define WARP_SIZE 32
+ #define MAX_DST 1
+-#define MAX_SRC 4
++// Blackwell OMMA.SF has 6 sources (A, B, C, SFA, SFB, UR selector); keep in
++// sync with the tracer's MAX_SRC (util/tracer_nvbit/tracer_tool/common.h).
++#define MAX_SRC 8
+ 
+ enum command_type {
+   kernel_launch = 1,
+-- 
+2.43.0
+

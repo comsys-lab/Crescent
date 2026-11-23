@@ -1,0 +1,6 @@
+name, driver_version, power.limit [W], clocks.max.sm [MHz], clocks.max.memory [MHz]
+NVIDIA GeForce RTX 5090, 595.91.07, 575.00 W, 3090 MHz, 14001 MHz
+NVIDIA GeForce RTX 5090, 595.91.07, 575.00 W, 3090 MHz, 14001 MHz
+index, temperature.gpu, clocks.current.sm [MHz], power.draw [W]
+0, 54, 2895 MHz, 102.02 W
+1, 28, 180 MHz, 23.10 W

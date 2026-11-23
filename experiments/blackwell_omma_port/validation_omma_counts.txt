@@ -1,0 +1,10 @@
+mod_tracer_c1  kernel 1: warp-insts=69 OMMA=1
+lat_c1         kernel 1: warp-insts=876 OMMA=256
+lat_c1         kernel 2: warp-insts=876 OMMA=256
+tput_w1c4      kernel 1: warp-insts=1172 OMMA=1024
+tput_w1c4      kernel 2: warp-insts=1172 OMMA=1024
+tput_w4c4      kernel 1: warp-insts=4676 OMMA=4096
+tput_w4c4      kernel 2: warp-insts=4676 OMMA=4096
+tput_w8c4      kernel 1: warp-insts=9348 OMMA=8192
+tput_w8c4      kernel 2: warp-insts=9348 OMMA=8192
+bench_c4       kernel 1: warp-insts=206080 OMMA=143360

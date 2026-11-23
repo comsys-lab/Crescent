@@ -1,0 +1,15 @@
+name=NVIDIA GeForce RTX 5090
+cc=12.0
+SMs=170
+max_sm_clock_khz=2407000
+mem_clock_khz=14001000
+mem_bus_width_bits=512
+l2_bytes=100663296
+regs_per_sm=65536
+regs_per_block=65536
+smem_per_sm=102400
+smem_per_block_optin=101376
+max_threads_per_sm=1536
+max_blocks_per_sm=24
+warp=32
+global_mem=33670758400

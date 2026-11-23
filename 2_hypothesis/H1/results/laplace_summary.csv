@@ -1,0 +1,3 @@
+model,target,format,match_rate,blockmax_error_contribution,largest_error_contribution,n_blocks
+laplace(var=1),iid,nvfp4,1.586747169494629,3.532507922500372,35.58713719248772,4194304
+laplace(var=1),iid,mxfp4,43.35770606994629,16.081680916249752,23.48940372467041,2097152

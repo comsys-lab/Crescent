@@ -1,0 +1,244 @@
+From 851d085c859b795ecf596aa894fb0ccdd17f7ec8 Mon Sep 17 00:00:00 2001
+From: minseong <minseong7859@gmail.com>
+Date: Wed, 21 Oct 2026 19:32:11 +0900
+Subject: [PATCH 5/7] tracer: trace unmodified CUTLASS sm_120 block-scaled
+ GEMMs
+
+1. Return-PC save regions. sm_120 code parks a GPR in Rpc around short
+   sequences ("RPCMOV.32 Rpc.LO, R3 ... RPCMOV.32 R3, Rpc.LO"). The CALL
+   NVBit inserts for instrumentation overwrites Rpc, so instrumenting any
+   instruction inside the region corrupts R3 (cudaErrorIllegalAddress in
+   CUTLASS 79a; NVBit's own instr_count fails the same way; bisected to
+   one instruction inside the region). The region's instructions are now
+   instrumented with calls inserted before the first instruction after
+   it, in program order, from their static operands: same dynamic
+   instruction stream and masks, register values not traced. Asserts the
+   region is straight-line, unpredicated, non-memory code.
+2. RPCMOV: NVBit decodes Rpc as GPR R0; drop it (false R0 dependences).
+3. UGETNEXTWORKID.BROADCAST [URa], [URb] (Cluster Launch Control query):
+   one record with the mbarrier address [URb] instead of two
+   LDGSTS-style records; its uniform MREF bases are not GPR sources.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ util/tracer_nvbit/tracer_tool/tracer_tool.cu | 137 ++++++++++++++-----
+ 1 file changed, 103 insertions(+), 34 deletions(-)
+
+diff --git a/util/tracer_nvbit/tracer_tool/tracer_tool.cu b/util/tracer_nvbit/tracer_tool/tracer_tool.cu
+index 3ac19b2..a552978 100644
+--- a/util/tracer_nvbit/tracer_tool/tracer_tool.cu
++++ b/util/tracer_nvbit/tracer_tool/tracer_tool.cu
+@@ -401,9 +401,50 @@ void instrument_function_if_needed(CUcontext ctx, CUfunction func) {
+     // reset the watchdog
+     warpsync_collective_watchdog->reset();
+ 
++    // sm_120 code may park a GPR in the return-PC register around a short
++    // sequence ("RPCMOV.32 Rpc.LO, R3 ... RPCMOV.32 R3, Rpc.LO"). The CALL
++    // that NVBit inserts for instrumentation overwrites Rpc, corrupting the
++    // parked value (cudaErrorIllegalAddress; also with NVBit's instr_count).
++    // Instructions after the save up to and including the restore are
++    // therefore instrumented with calls inserted before the first
++    // instruction after the region, in program order, using their static
++    // operands. Only valid for straight-line, unpredicated, non-memory code;
++    // their register values are not traced.
++    std::vector<std::pair<Instr *, Instr *>> schedule; // (instr, insert at)
++    {
++      std::vector<Instr *> deferred;
++      bool in_rpc_region = false;
++      for (auto instr : instrs) {
++        if (in_rpc_region) {
++          assert(!instr->hasPred() && instr->getMemorySpace() ==
++                                          InstrType::MemorySpace::NONE &&
++                 strncmp(instr->getOpcode(), "BRA", 3) != 0 &&
++                 "unsupported instruction inside an Rpc save/restore region");
++          deferred.push_back(instr);
++          if (strstr(instr->getSass(), ", Rpc")) // restore: RPCMOV Rx, Rpc
++            in_rpc_region = false;
++          continue;
++        }
++        for (auto d : deferred)
++          schedule.push_back({d, instr});
++        if (verbose && !deferred.empty())
++          printf("Rpc region: %zu instrs before 0x%x instrumented at 0x%x\n",
++                 deferred.size(), deferred.front()->getOffset(),
++                 instr->getOffset());
++        deferred.clear();
++        schedule.push_back({instr, instr});
++        if (strncmp(instr->getSass(), "RPCMOV", 6) == 0 &&
++            strstr(instr->getSass(), " Rpc"))  // save: RPCMOV Rpc.LO, Rx
++          in_rpc_region = !strstr(instr->getSass(), ", Rpc");
++      }
++      assert(deferred.empty() && "Rpc region not closed in function");
++    }
++
+     uint32_t cnt = 0;
+     /* iterate on all the static instructions in the function */
+-    for (auto instr : instrs) {
++    for (auto &entry : schedule) {
++      Instr *instr = entry.first, *at = entry.second;
++      const bool replayed = instr != at;
+ 
+       uint32_t line_num = 0;
+ 
+@@ -513,6 +554,29 @@ void instrument_function_if_needed(CUcontext ctx, CUfunction func) {
+         // Skip here
+       }
+ 
++      // NVBit decodes the return-PC register of "RPCMOV.32 Rpc.LO, Rx" /
++      // "RPCMOV.32 Rx, Rpc.LO" as GPR R0; it is not a GPR, so drop it to avoid
++      // false R0 dependencies.
++      if (strncmp(instr->getOpcode(), "RPCMOV", 6) == 0) {
++        const char *sass = instr->getSass();
++        if (strstr(sass, ", Rpc")) { // restore: Rpc is the only source
++          srcNum = 0;
++        } else if (strstr(sass, " Rpc")) { // save: Rpc is the destination
++          dst_oprd = -1;
++        }
++      }
++
++      // "UGETNEXTWORKID.BROADCAST [URa], [URb]" (sm_120 Cluster Launch Control
++      // query): one trace record carrying the mbarrier address [URb] that the
++      // 16-byte response completes, instead of two LDGSTS-style records. Its
++      // MREF bases are uniform registers that NVBit reports as ra_num 0, so
++      // they are not GPR sources.
++      if (strncmp(instr->getOpcode(), "UGETNEXTWORKID", 14) == 0) {
++        assert(num_mref == 2);
++        mem_oper_idx = 0; // with num_mref == 2 this records operand 1 - 0 = 1
++        srcNum = 0;
++      }
++
+       // TEMPORARY debug (Blackwell OMMA port): for opcodes starting with
+       // $TRACE_DEBUG_OPCODE, dump NVBit's decoded operands and the register
+       // IDs that will be written to the trace (UREGs are +UREG_OFFSET).
+@@ -532,82 +596,87 @@ void instrument_function_if_needed(CUcontext ctx, CUfunction func) {
+       do {
+         /* insert call to the instrumentation function with its
+          * arguments */
+-        nvbit_insert_call(instr, "instrument_inst", IPOINT_BEFORE);
++        nvbit_insert_call(at, "instrument_inst", IPOINT_BEFORE);
+ 
+         /* pass predicate value */
+-        nvbit_add_call_arg_guard_pred_val(instr);
++        if (replayed)  // unpredicated: executed by all active lanes
++          nvbit_add_call_arg_const_val32(at, 1);
++        else
++          nvbit_add_call_arg_guard_pred_val(at);
+ 
+         /* send opcode and pc */
+-        nvbit_add_call_arg_const_val32(instr, opcode_id);
+-        nvbit_add_call_arg_const_val32(instr, (int)instr->getOffset());
++        nvbit_add_call_arg_const_val32(at, opcode_id);
++        nvbit_add_call_arg_const_val32(at, (int)instr->getOffset());
+ 
+         /* tma setup */
+         if (instr->isTMAMem()) {
+           // Set is_mem to true and add tma param handle
+-          nvbit_add_call_arg_const_val32(instr, 1);
+-          nvbit_add_call_arg_tma_param_handle_and_size(instr, ctx);
++          nvbit_add_call_arg_const_val32(at, 1);
++          nvbit_add_call_arg_tma_param_handle_and_size(at, ctx);
+         } else {
+           // Dummy values for regular instructions
+-          nvbit_add_call_arg_const_val32(instr, 0);
+-          nvbit_add_call_arg_const_val64(instr, 0);
+-          nvbit_add_call_arg_const_val32(instr, 0);
++          nvbit_add_call_arg_const_val32(at, 0);
++          nvbit_add_call_arg_const_val64(at, 0);
++          nvbit_add_call_arg_const_val32(at, 0);
+         }
+ 
+         /* mem addresses info */
+         if (mem_oper_idx >= 0) {
+           // Set is_mem to true
+-          nvbit_add_call_arg_const_val32(instr, 1);
++          nvbit_add_call_arg_const_val32(at, 1);
+           assert(num_mref <= 2);
+           if (num_mref == 2) { // LDGSTS
+-            nvbit_add_call_arg_mref_addr64(instr, 1 - mem_oper_idx);
++            nvbit_add_call_arg_mref_addr64(at, 1 - mem_oper_idx);
+           } else {
+-            nvbit_add_call_arg_mref_addr64(instr, mem_oper_idx);
++            nvbit_add_call_arg_mref_addr64(at, mem_oper_idx);
+           }
+-          nvbit_add_call_arg_const_val32(instr, (int)instr->getSize());
++          nvbit_add_call_arg_const_val32(at, (int)instr->getSize());
+         } else {
+-          nvbit_add_call_arg_const_val32(instr, 0);
+-          nvbit_add_call_arg_const_val64(instr, static_cast<uint64_t>(-1));
+-          nvbit_add_call_arg_const_val32(instr, static_cast<uint32_t>(-1));
++          nvbit_add_call_arg_const_val32(at, 0);
++          nvbit_add_call_arg_const_val64(at, static_cast<uint64_t>(-1));
++          nvbit_add_call_arg_const_val32(at, static_cast<uint32_t>(-1));
+         }
+ 
+         /* reg info */
+-        nvbit_add_call_arg_const_val32(instr, dst_oprd);
++        nvbit_add_call_arg_const_val32(at, dst_oprd);
+         for (int i = 0; i < srcNum; i++) {
+-          nvbit_add_call_arg_const_val32(instr, src_oprd[i]);
++          nvbit_add_call_arg_const_val32(at, src_oprd[i]);
+         }
+         for (int i = srcNum; i < MAX_SRC; i++) {
+-          nvbit_add_call_arg_const_val32(instr, static_cast<uint32_t>(-1));
++          nvbit_add_call_arg_const_val32(at, static_cast<uint32_t>(-1));
+         }
+-        nvbit_add_call_arg_const_val32(instr, srcNum);
++        nvbit_add_call_arg_const_val32(at, srcNum);
+         // Keep the following 64-bit args 8-byte aligned: NVBit packs call
+         // args back to back, so the number of 32-bit args before `immediate`
+         // must stay even (MAX_SRC=8 makes it odd). Observed on sm_120 / NVBit
+         // 1.8: an odd count gives cudaErrorIllegalAddress in every kernel.
+-        nvbit_add_call_arg_const_val32(instr, 0);
++        nvbit_add_call_arg_const_val32(at, 0);
+ 
+         /* immediate info (up to two immediates) */
+-        nvbit_add_call_arg_const_val64(instr, imm_value);
+-        nvbit_add_call_arg_const_val64(instr, imm_value2);
++        nvbit_add_call_arg_const_val64(at, imm_value);
++        nvbit_add_call_arg_const_val64(at, imm_value2);
+ 
+         /* add pointer to channel_dev and other counters*/
+-        nvbit_add_call_arg_const_val64(instr, (uint64_t)&channel_dev);
+-        nvbit_add_call_arg_const_val64(instr,
++        nvbit_add_call_arg_const_val64(at, (uint64_t)&channel_dev);
++        nvbit_add_call_arg_const_val64(at,
+                                        (uint64_t)&total_dynamic_instr_counter);
+         nvbit_add_call_arg_const_val64(
+-            instr, (uint64_t)&reported_dynamic_instr_counter);
+-        nvbit_add_call_arg_const_val64(instr, (uint64_t)&stop_report);
++            at, (uint64_t)&reported_dynamic_instr_counter);
++        nvbit_add_call_arg_const_val64(at, (uint64_t)&stop_report);
+         /* Add Source code line number for current instr */
+-        nvbit_add_call_arg_const_val32(instr, (int)line_num);
++        nvbit_add_call_arg_const_val32(at, (int)line_num);
+         /* Add instruction index for current instr (spinlock detection) */
+-        nvbit_add_call_arg_const_val32(instr, (uint32_t)instr->getIdx());
++        nvbit_add_call_arg_const_val32(at, (uint32_t)instr->getIdx());
+ 
+         /* add register values */
+         // If >= 256, it is a uniform register
+         auto add_reg_val = [&](int reg_num) {
+-          if (reg_num >= 256) {
+-            nvbit_add_call_arg_ureg_val(instr, reg_num - UREG_OFFSET);
++          if (replayed) {  // values at `at` are not this instr's values
++            nvbit_add_call_arg_const_val32(at, 0);
++          } else if (reg_num >= 256) {
++            nvbit_add_call_arg_ureg_val(at, reg_num - UREG_OFFSET);
+           } else {
+-            nvbit_add_call_arg_reg_val(instr, reg_num);
++            nvbit_add_call_arg_reg_val(at, reg_num);
+           }
+         };
+         if (dst_oprd >= 0) {
+@@ -639,7 +708,7 @@ void instrument_function_if_needed(CUcontext ctx, CUfunction func) {
+         add_reg_val(aux_reg);
+ 
+         // Add is_gmma_commit_group flag
+-        nvbit_add_call_arg_const_val32(instr, is_gmma_commit_group);
++        nvbit_add_call_arg_const_val32(at, is_gmma_commit_group);
+         mem_oper_idx--;
+       } while (mem_oper_idx >= 0);
+ 
+-- 
+2.43.0
+

@@ -1,0 +1,2 @@
+format,model,bf16_ppl,weight_only_ppl,increase,n_tensors
+mxfp4,qwen3_moe,7.68219930892583,8.133810348943168,0.45161104001733854,288

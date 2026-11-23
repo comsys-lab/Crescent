@@ -1,0 +1,97 @@
+model,format,gemm_type,layer,setting,relative_mse,reduction_rate_pct,n_elements
+llama_base,mxfp4,linear,model.layers.0.self_attn.q_proj,Native FP4,0.002584907510224053,0.0,8388608
+llama_base,mxfp4,linear,model.layers.0.self_attn.q_proj,Magnitude,0.001201788958574112,53.50746772096522,8388608
+llama_base,mxfp4,linear,model.layers.0.self_attn.q_proj,Czardas,0.0011451904055896653,55.6970452110914,8388608
+llama_base,mxfp4,linear,model.layers.0.self_attn.q_proj,Full Boost,0.0009732475573952489,62.348844067117504,8388608
+llama_base,mxfp4,linear,model.layers.0.self_attn.k_proj,Native FP4,0.0036712839564763296,0.0,2097152
+llama_base,mxfp4,linear,model.layers.0.self_attn.k_proj,Magnitude,0.0018387535441912824,49.91524583796825,2097152
+llama_base,mxfp4,linear,model.layers.0.self_attn.k_proj,Czardas,0.0017651028828060392,51.92137400071414,2097152
+llama_base,mxfp4,linear,model.layers.0.self_attn.k_proj,Full Boost,0.0014871759555707955,59.4916663161578,2097152
+llama_base,mxfp4,linear,model.layers.0.self_attn.v_proj,Native FP4,0.05387539269720422,0.0,2097152
+llama_base,mxfp4,linear,model.layers.0.self_attn.v_proj,Magnitude,0.04519155248439966,16.118379427153933,2097152
+llama_base,mxfp4,linear,model.layers.0.self_attn.v_proj,Czardas,0.03828980449370999,28.928955174563427,2097152
+llama_base,mxfp4,linear,model.layers.0.self_attn.v_proj,Full Boost,0.01875197188514467,65.19380936945305,2097152
+llama_base,mxfp4,linear,model.layers.0.self_attn.o_proj,Native FP4,0.009862949118827236,0.0,8388608
+llama_base,mxfp4,linear,model.layers.0.self_attn.o_proj,Magnitude,0.007220787766336343,26.788755783473633,8388608
+llama_base,mxfp4,linear,model.layers.0.self_attn.o_proj,Czardas,0.006666921112903699,32.40438501120001,8388608
+llama_base,mxfp4,linear,model.layers.0.self_attn.o_proj,Full Boost,0.0040626904414322535,58.808563316249455,8388608
+llama_base,mxfp4,linear,model.layers.0.mlp.gate_proj,Native FP4,0.01364897881370155,0.0,29360128
+llama_base,mxfp4,linear,model.layers.0.mlp.gate_proj,Magnitude,0.01112100506620325,18.52133981599114,29360128
+llama_base,mxfp4,linear,model.layers.0.mlp.gate_proj,Czardas,0.010176243052583587,25.44319108790653,29360128
+llama_base,mxfp4,linear,model.layers.0.mlp.gate_proj,Full Boost,0.006411356242893496,53.026843030502434,29360128
+llama_base,mxfp4,linear,model.layers.0.mlp.up_proj,Native FP4,0.018806605333009537,0.0,29360128
+llama_base,mxfp4,linear,model.layers.0.mlp.up_proj,Magnitude,0.015544778450328587,17.344049204647046,29360128
+llama_base,mxfp4,linear,model.layers.0.mlp.up_proj,Czardas,0.014202085473403547,24.483524687595228,29360128
+llama_base,mxfp4,linear,model.layers.0.mlp.up_proj,Full Boost,0.008898854255342507,52.6822938123599,29360128
+llama_base,mxfp4,linear,model.layers.0.mlp.down_proj,Native FP4,0.020043361116316098,0.0,8388608
+llama_base,mxfp4,linear,model.layers.0.mlp.down_proj,Magnitude,0.011428840684960154,42.97942037447691,8388608
+llama_base,mxfp4,linear,model.layers.0.mlp.down_proj,Czardas,0.010562920773573759,47.29965342501803,8388608
+llama_base,mxfp4,linear,model.layers.0.mlp.down_proj,Full Boost,0.007122071806731998,64.46667918917878,8388608
+llama_base,mxfp4,attention,model.layers.0.self_attn.qk,Native FP4,0.011494185779365318,0.0,134217728
+llama_base,mxfp4,attention,model.layers.0.self_attn.qk,Magnitude,0.009931028408130845,13.59954851295945,134217728
+llama_base,mxfp4,attention,model.layers.0.self_attn.qk,Czardas,0.008801328442875447,23.427995581245632,134217728
+llama_base,mxfp4,attention,model.layers.0.self_attn.qk,Full Boost,0.0007193307842188471,93.74178564687713,134217728
+llama_base,mxfp4,linear,model.layers.16.self_attn.q_proj,Native FP4,0.008705616866777713,0.0,8388608
+llama_base,mxfp4,linear,model.layers.16.self_attn.q_proj,Magnitude,0.006811302351712149,21.75968164065005,8388608
+llama_base,mxfp4,linear,model.layers.16.self_attn.q_proj,Czardas,0.0061514527184144,29.339266676328112,8388608
+llama_base,mxfp4,linear,model.layers.16.self_attn.q_proj,Full Boost,0.0032522433073024653,62.64201196685277,8388608
+llama_base,mxfp4,linear,model.layers.16.self_attn.k_proj,Native FP4,0.007961496091021777,0.0,2097152
+llama_base,mxfp4,linear,model.layers.16.self_attn.k_proj,Magnitude,0.0056898997455497565,28.53227985671829,2097152
+llama_base,mxfp4,linear,model.layers.16.self_attn.k_proj,Czardas,0.005245942183125805,34.10858809512344,2097152
+llama_base,mxfp4,linear,model.layers.16.self_attn.k_proj,Full Boost,0.003147534405082026,60.46554103528962,2097152
+llama_base,mxfp4,linear,model.layers.16.self_attn.v_proj,Native FP4,0.043057657020751525,0.0,2097152
+llama_base,mxfp4,linear,model.layers.16.self_attn.v_proj,Magnitude,0.03645191559629613,15.34161838223518,2097152
+llama_base,mxfp4,linear,model.layers.16.self_attn.v_proj,Czardas,0.03271170117658631,24.028144028317673,2097152
+llama_base,mxfp4,linear,model.layers.16.self_attn.v_proj,Full Boost,0.016146124401296046,62.501154223244285,2097152
+llama_base,mxfp4,linear,model.layers.16.self_attn.o_proj,Native FP4,0.041245999650716236,0.0,8388608
+llama_base,mxfp4,linear,model.layers.16.self_attn.o_proj,Magnitude,0.033917069209867035,17.768827287283205,8388608
+llama_base,mxfp4,linear,model.layers.16.self_attn.o_proj,Czardas,0.030793792527096988,25.34114147343195,8388608
+llama_base,mxfp4,linear,model.layers.16.self_attn.o_proj,Full Boost,0.01812624159463585,56.05333426723945,8388608
+llama_base,mxfp4,linear,model.layers.16.mlp.gate_proj,Native FP4,0.010522121857726791,0.0,29360128
+llama_base,mxfp4,linear,model.layers.16.mlp.gate_proj,Magnitude,0.008768901400244923,16.66223297152192,29360128
+llama_base,mxfp4,linear,model.layers.16.mlp.gate_proj,Czardas,0.008171354987037655,22.34118652563294,29360128
+llama_base,mxfp4,linear,model.layers.16.mlp.gate_proj,Full Boost,0.005669036149964677,46.12269058828957,29360128
+llama_base,mxfp4,linear,model.layers.16.mlp.up_proj,Native FP4,0.027002044027854295,0.0,29360128
+llama_base,mxfp4,linear,model.layers.16.mlp.up_proj,Magnitude,0.02329866022110832,13.715198015845399,29360128
+llama_base,mxfp4,linear,model.layers.16.mlp.up_proj,Czardas,0.021661807538364924,19.777156440381265,29360128
+llama_base,mxfp4,linear,model.layers.16.mlp.up_proj,Full Boost,0.014916867526477907,44.756524687204326,29360128
+llama_base,mxfp4,linear,model.layers.16.mlp.down_proj,Native FP4,0.035095534477484196,0.0,8388608
+llama_base,mxfp4,linear,model.layers.16.mlp.down_proj,Magnitude,0.027170538172543817,22.581209897301093,8388608
+llama_base,mxfp4,linear,model.layers.16.mlp.down_proj,Czardas,0.024729547415348763,29.536484388878048,8388608
+llama_base,mxfp4,linear,model.layers.16.mlp.down_proj,Full Boost,0.014719671724028887,58.05827737579433,8388608
+llama_base,mxfp4,attention,model.layers.16.self_attn.qk,Native FP4,0.013185587923644479,0.0,134217728
+llama_base,mxfp4,attention,model.layers.16.self_attn.qk,Magnitude,0.006636158420855874,49.67112229439635,134217728
+llama_base,mxfp4,attention,model.layers.16.self_attn.qk,Czardas,0.006033270976193168,54.24344359060191,134217728
+llama_base,mxfp4,attention,model.layers.16.self_attn.qk,Full Boost,0.000876788138792212,93.35040542849097,134217728
+llama_base,mxfp4,linear,model.layers.31.self_attn.q_proj,Native FP4,0.004122397002241347,0.0,8388608
+llama_base,mxfp4,linear,model.layers.31.self_attn.q_proj,Magnitude,0.0031508985620445186,23.566348405275487,8388608
+llama_base,mxfp4,linear,model.layers.31.self_attn.q_proj,Czardas,0.0028998101919211977,29.6571826938412,8388608
+llama_base,mxfp4,linear,model.layers.31.self_attn.q_proj,Full Boost,0.0018754853213689708,54.50498046769222,8388608
+llama_base,mxfp4,linear,model.layers.31.self_attn.k_proj,Native FP4,0.004761041378945914,0.0,2097152
+llama_base,mxfp4,linear,model.layers.31.self_attn.k_proj,Magnitude,0.00346636200418342,27.193197280069302,2097152
+llama_base,mxfp4,linear,model.layers.31.self_attn.k_proj,Czardas,0.0032393717134883144,31.96085781120631,2097152
+llama_base,mxfp4,linear,model.layers.31.self_attn.k_proj,Full Boost,0.002238028990895129,52.99286830834845,2097152
+llama_base,mxfp4,linear,model.layers.31.self_attn.v_proj,Native FP4,0.018851597270766574,0.0,2097152
+llama_base,mxfp4,linear,model.layers.31.self_attn.v_proj,Magnitude,0.01564803298549729,16.99359602932476,2097152
+llama_base,mxfp4,linear,model.layers.31.self_attn.v_proj,Czardas,0.014355414105474081,23.85040960038322,2097152
+llama_base,mxfp4,linear,model.layers.31.self_attn.v_proj,Full Boost,0.008984811234172654,52.33925749036915,2097152
+llama_base,mxfp4,linear,model.layers.31.self_attn.o_proj,Native FP4,0.016028473705484672,0.0,8388608
+llama_base,mxfp4,linear,model.layers.31.self_attn.o_proj,Magnitude,0.013150219998196416,17.957129045314943,8388608
+llama_base,mxfp4,linear,model.layers.31.self_attn.o_proj,Czardas,0.01170285380779901,26.9870979431155,8388608
+llama_base,mxfp4,linear,model.layers.31.self_attn.o_proj,Full Boost,0.005558482493296916,65.32119903971332,8388608
+llama_base,mxfp4,linear,model.layers.31.mlp.gate_proj,Native FP4,0.0042739938033642365,0.0,29360128
+llama_base,mxfp4,linear,model.layers.31.mlp.gate_proj,Magnitude,0.0035768273114085225,16.311827392144217,29360128
+llama_base,mxfp4,linear,model.layers.31.mlp.gate_proj,Czardas,0.0032874374221226084,23.08277518945088,29360128
+llama_base,mxfp4,linear,model.layers.31.mlp.gate_proj,Full Boost,0.0022885585486544765,46.45386367071806,29360128
+llama_base,mxfp4,linear,model.layers.31.mlp.up_proj,Native FP4,0.005216264428004696,0.0,29360128
+llama_base,mxfp4,linear,model.layers.31.mlp.up_proj,Magnitude,0.004352964938986103,16.550148117180832,29360128
+llama_base,mxfp4,linear,model.layers.31.mlp.up_proj,Czardas,0.004020723219960349,22.919490078490146,29360128
+llama_base,mxfp4,linear,model.layers.31.mlp.up_proj,Full Boost,0.0028196315537953867,45.94538691985098,29360128
+llama_base,mxfp4,linear,model.layers.31.mlp.down_proj,Native FP4,0.014280377346656967,0.0,8388608
+llama_base,mxfp4,linear,model.layers.31.mlp.down_proj,Magnitude,0.010059398523019262,29.557894173054432,8388608
+llama_base,mxfp4,linear,model.layers.31.mlp.down_proj,Czardas,0.008843672570944917,38.0711562708445,8388608
+llama_base,mxfp4,linear,model.layers.31.mlp.down_proj,Full Boost,0.004892376689480616,65.74056433721677,8388608
+llama_base,mxfp4,attention,model.layers.31.self_attn.qk,Native FP4,0.016415185846153778,0.0,134217728
+llama_base,mxfp4,attention,model.layers.31.self_attn.qk,Magnitude,0.006472329350656209,60.57108697205075,134217728
+llama_base,mxfp4,attention,model.layers.31.self_attn.qk,Czardas,0.006081699129620066,62.95077505293636,134217728
+llama_base,mxfp4,attention,model.layers.31.self_attn.qk,Full Boost,0.0010399899580131463,93.66446430908472,134217728

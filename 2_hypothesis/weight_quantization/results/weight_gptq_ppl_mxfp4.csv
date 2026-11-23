@@ -1,0 +1,2 @@
+format,model,bf16_ppl,weight_only_ppl,increase,n_layers
+mxfp4,llama_base,5.696896965321543,6.231746025188584,0.5348490598670406,224

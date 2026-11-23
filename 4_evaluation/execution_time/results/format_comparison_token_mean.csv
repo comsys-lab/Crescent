@@ -1,0 +1,13 @@
+model,metric,mean_pct,min_pct,max_pct
+Llama,czardas_nv,2.94,2.22,3.43
+Llama,nvfp6,28.23,22.00,34.76
+Llama,czardas_mx,2.89,1.92,3.39
+Llama,mxfp6,26.25,20.31,32.07
+Qwen,czardas_nv,2.40,1.90,2.72
+Qwen,nvfp6,8.35,6.44,10.51
+Qwen,czardas_mx,2.16,1.22,2.93
+Qwen,mxfp6,7.52,5.52,10.03
+DeepSeek,czardas_nv,3.12,2.83,3.67
+DeepSeek,nvfp6,17.84,14.30,23.07
+DeepSeek,czardas_mx,3.71,3.10,4.64
+DeepSeek,mxfp6,16.94,14.46,21.66

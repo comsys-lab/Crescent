@@ -1,0 +1,4 @@
+model,arm,k,ppl,elapsed_sec
+llama_base,BF16,,5.696896965321543,27.004
+llama_base,MXFP4_ALL,,9.102160553809664,201.275
+llama_base,E2M7_AT_TOP4_ALL,4,6.251835842219656,441.822

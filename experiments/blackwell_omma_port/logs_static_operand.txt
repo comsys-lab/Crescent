@@ -1,0 +1,10 @@
+2026-11-12 18:18:50 trace st_qproj
+2026-11-12 18:24:29 trace st_kv4096
+2026-11-12 18:27:23 trace st_dsrgu768
+2026-11-12 18:27:57 trace st_qkt2048
+2026-11-12 18:28:39 trace st_qkt4096
+2026-11-12 18:30:47 trace st_qkt8192
+2026-11-12 18:38:43 simulate
+2026-11-12 18:40:46 done
+2026-11-12 22:11:40 rerun simulate after adding UFMUL/UF2I/UI2FP opcodes (CUDA 13.2 rebuild)
+2026-11-12 22:11:40 simulate

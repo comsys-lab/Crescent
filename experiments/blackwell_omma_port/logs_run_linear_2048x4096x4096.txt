@@ -1,0 +1,10 @@
+== reuse existing trace traces/m3tie_linear_2048x4096x4096
+Thu Oct 22 09:52:25 PM KST 2026
+== build 12op / widened traces
+zero=UR36 static tie PCs=64 {'ties_dropped': 4194304, 'omma': 4194304, 'omma_with_1_tied': 4194304, 'omma_with_aliased_packed': 2949120, 'ties_unconsumed': 0}
+61M	traces/m3tie_linear_2048x4096x4096_12op/traces/kernel-9.tracez
+Thu Oct 22 09:55:01 PM KST 2026
+== simulate
+gpgpu_simulation_time = 0 days, 0 hrs, 22 min, 43 sec (1363 sec)
+RESULT m3tie_linear_2048x4096x4096 12op=825893 widened=822530 pct=-0.407%
+Thu Oct 22 10:17:45 PM KST 2026

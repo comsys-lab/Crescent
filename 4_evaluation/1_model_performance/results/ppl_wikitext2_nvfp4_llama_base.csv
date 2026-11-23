@@ -1,0 +1,4 @@
+format,model,setting,ppl,increase,elapsed_sec
+nvfp4,llama_base,BF16,5.696896965321543,0.0,27.2
+nvfp4,llama_base,Native_FP4,6.662865820381125,0.9659688550595815,210.6
+nvfp4,llama_base,Ours,6.176789503271353,0.47989253794980957,439.3

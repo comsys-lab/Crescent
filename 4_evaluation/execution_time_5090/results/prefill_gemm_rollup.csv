@@ -1,0 +1,4 @@
+model,M,bs,sl,fwd_ms,gpu_busy_ms,distinct_kernels,total_launches_per_fwd,linear_ms,nongemm_ms,added_scaled_ms,added_direct_ms,pct_of_forward_scaled,pct_of_forward_direct,pct_of_linear_scaled
+meta-llama/Llama-3.1-8B-Instruct,2048,1,2048,421.822,411.191,42,1416.0,294.683,127.139,2.7379,0.9024,0.6491,0.2139,0.9291
+meta-llama/Llama-3.1-8B-Instruct,4096,1,4096,1001.667,982.527,41,1416.0,593.751,407.916,5.5827,1.792,0.5573,0.1789,0.9402
+meta-llama/Llama-3.1-8B-Instruct,8192,1,8192,2469.731,2475.877,41,1416.0,1127.307,1342.423,7.5202,2.6464,0.3045,0.1072,0.6671

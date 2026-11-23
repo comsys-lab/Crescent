@@ -1,0 +1,669 @@
+diff --git a/include/cutlass/gemm/collective/sm120_blockscaled_mma_tma.hpp b/include/cutlass/gemm/collective/sm120_blockscaled_mma_tma.hpp
+index 6a8f9ec8..6308d2f9 100755
+--- a/include/cutlass/gemm/collective/sm120_blockscaled_mma_tma.hpp
++++ b/include/cutlass/gemm/collective/sm120_blockscaled_mma_tma.hpp
+@@ -44,9 +44,41 @@
+ #include "cute/arch/copy_sm90.hpp"
+ #include "cute/atom/mma_atom.hpp"
+ #include "cute/algorithm/functional.hpp"
++#include <cuda_fp4.h>
++#include <cuda_fp16.h>
+ #include "cute/algorithm/gemm.hpp"
+ #include "cute/numeric/arithmetic_tuple.hpp"
+ 
++// Largest-error-selection metadata config for this collective -- toggled via -D at
++// build time (see nvfp4_microbench/code/build.sh), two named scenarios:
++//   Linear (A@W^T): NVFP4_META_GROUP_SIZE=4, NVFP4_META_ON_B=0 -- only the activation
++//     (A) is quantized per-forward and gets selection; the weight (B) is quantized
++//     offline, no metadata for it.
++//   QK^T (attention scores): NVFP4_META_GROUP_SIZE=8, NVFP4_META_ON_B=1 -- both Q (A)
++//     and K (B) are activations computed per-forward, so both get selection metadata;
++//     within each 16-element (head_dim chunk) dot product, 2 elements are picked from
++//     Q's 16 and 2 from K's 16 (1 per 8-group, matching group size 8 independently on
++//     each operand).
++#ifndef NVFP4_META_GROUP_SIZE
++#define NVFP4_META_GROUP_SIZE 4
++#endif
++#ifndef NVFP4_META_ON_B
++#define NVFP4_META_ON_B 0
++#endif
++// NVFP4_META_SW_CORRECT: how the 2 extra mantissa bits are applied (see mma() below).
++//   0 = not applied: metadata is only TMA-loaded (the cost a hardware implementation would
++//       pay), the MMA result is plain NVFP4.
++//   1 = software, CUDA cores: FMAs into the MMA accumulator.
++//   2 = software, tensor cores: the residual R (exactly E2M1 x sfa/4) is built in registers
++//       from the metadata and fed to extra FP4 MMAs (Linear: A4*B + R_A*B; QK^T: 4 MMAs).
++#ifndef NVFP4_META_SW_CORRECT
++#define NVFP4_META_SW_CORRECT 0
++#endif
++// NVFP4_META_DCODE=1 (tensor-core mode only): meta byte carries the residual's E2M1 code directly.
++#ifndef NVFP4_META_DCODE
++#define NVFP4_META_DCODE 0
++#endif
++
+ /////////////////////////////////////////////////////////////////////////////////////////////////
+ 
+ namespace cutlass::gemm::collective {
+@@ -117,6 +149,32 @@ struct CollectiveMma<
+   using LayoutSFA = remove_cvref_t<decltype(get<1>(StridePairA{}))>;
+   using LayoutSFB = remove_cvref_t<decltype(get<1>(StridePairB{}))>;
+ 
++  // metaA (and metaB when NVFP4_META_ON_B): largest-error-selection metadata, 1 byte
++  // per NVFP4_META_GROUP_SIZE-element K-group. Added directly to this specialization
++  // (not threaded through the CollectiveBuilder's ElementPair/StridePair machinery
++  // like SFA/SFB) -- plain row-major (M or N, K/GROUP_SIZE, L) uint8 array(s), same
++  // stride *type* as A/B since it's the same row-major shape family.
++  using ElementMeta = uint8_t;
++#ifndef NVFP4_META_TRANSPOSE
++#define NVFP4_META_TRANSPOSE 0
++#endif
++#if NVFP4_META_TRANSPOSE
++  // Experiment: store metaA/metaB TRANSPOSED -- (M, K/GS, L) with M contiguous (stride 1)
++  // instead of row-major K/GS-contiguous. Makes each TMA "row" M bytes wide (well past the
++  // 16B floor) instead of K/GS bytes wide, at the cost of a strided (non-coalesced) write
++  // in the quantize kernel. Tests whether a wider-but-fewer-rows TMA box shape changes the
++  // GEMM-side load cost for this already-tiny tensor.
++  using LayoutMetaA = cute::Stride<cute::Int<1>, int64_t, int64_t>;
++#if NVFP4_META_ON_B
++  using LayoutMetaB = cute::Stride<cute::Int<1>, int64_t, int64_t>;
++#endif
++#else
++  using LayoutMetaA = StrideA;
++#if NVFP4_META_ON_B
++  using LayoutMetaB = StrideB;
++#endif
++#endif
++
+   using ArrayElementA = ElementA;
+   using ArrayElementB = ElementB;
+ 
+@@ -134,6 +192,12 @@ struct CollectiveMma<
+   using GmemTiledCopySFA  = remove_cvref_t<decltype(get<1>(GmemTiledCopyPairA{}))>;
+   using GmemTiledCopyB    = remove_cvref_t<decltype(get<0>(GmemTiledCopyPairB{}))>;
+   using GmemTiledCopySFB  = remove_cvref_t<decltype(get<1>(GmemTiledCopyPairB{}))>;
++  // metaA/metaB TMA copy -- fixed (not threaded through GmemTiledCopyPair), same
++  // SM90_TMA_LOAD atom as everything else in this collective.
++  using GmemTiledCopyMetaA = SM90_TMA_LOAD;
++#if NVFP4_META_ON_B
++  using GmemTiledCopyMetaB = SM90_TMA_LOAD;
++#endif
+ 
+   // Smem copies
+   using SmemLayoutAtomsA = SmemLayoutAtomsA_;
+@@ -214,6 +278,49 @@ struct CollectiveMma<
+     decltype(cute::logical_divide(SmemLayoutSFB_{}, select<1,2>(TileShape{}))),
+     SmemLayoutSFB_>;
+ 
++  // metaA/metaB SMEM layout: plain row-major (CtaM/CtaN, CtaK/GROUP_SIZE) per stage, no
++  // swizzle, no SF-style 128-wide broadcast (metadata is genuinely per-row, unlike the
++  // scale factor's block-shared layout) -- mirrors SmemLayoutSFA's "append Stages" pattern.
++  // Under NVFP4_META_TRANSPOSE, the atom is (CtaK/GROUP_SIZE, CtaM) with CtaM contiguous,
++  // matching the transposed GMEM layout -- a wide (CtaM-byte) row instead of a narrow
++  // (CtaK/GROUP_SIZE-byte) one.
++#if NVFP4_META_TRANSPOSE
++  // Same (CtaM, CtaK/GS) shape/order as the non-transposed atom (so the box shape passed
++  // to make_tma_copy and tensor_metaa's own (M,K/GS,L) shape don't need to change) -- only
++  // the STRIDE flips, making CtaM (not CtaK/GS) the contiguous dimension.
++  using SmemLayoutAtomMetaA = decltype(make_layout(
++    make_shape(shape<0>(TileShape{}), shape<2>(TileShape{}) / Int<NVFP4_META_GROUP_SIZE>{}),
++    make_stride(Int<1>{}, shape<0>(TileShape{}))));
++#if NVFP4_META_ON_B
++  using SmemLayoutAtomMetaB = decltype(make_layout(
++    make_shape(shape<1>(TileShape{}), shape<2>(TileShape{}) / Int<NVFP4_META_GROUP_SIZE>{}),
++    make_stride(Int<1>{}, shape<1>(TileShape{}))));
++#endif
++#else
++  using SmemLayoutAtomMetaA = decltype(make_layout(
++    make_shape(shape<0>(TileShape{}), shape<2>(TileShape{}) / Int<NVFP4_META_GROUP_SIZE>{}),
++    make_stride(shape<2>(TileShape{}) / Int<NVFP4_META_GROUP_SIZE>{}, Int<1>{})));
++#if NVFP4_META_ON_B
++  using SmemLayoutAtomMetaB = decltype(make_layout(
++    make_shape(shape<1>(TileShape{}), shape<2>(TileShape{}) / Int<NVFP4_META_GROUP_SIZE>{}),
++    make_stride(shape<2>(TileShape{}) / Int<NVFP4_META_GROUP_SIZE>{}, Int<1>{})));
++#endif
++#endif
++
++  // Fully pipelined, same as A/B/SFA/SFB -- properly double/multi-buffered across
++  // Stages so genuine pipeline overlap is preserved. This needs extra SMEM headroom
++  // (StageCountAutoCarveout picks Stages from the ORIGINAL per-stage size and has no
++  // way to know about this addition), freed up on the caller side via an inflated
++  // epilogue carveout that drops Stages by exactly one -- see nvfp4_microbench.cu.
++  using SmemLayoutMetaA = decltype(make_layout(
++    append(shape(SmemLayoutAtomMetaA{}), Int<DispatchPolicy::Stages>{}),
++    append(stride(SmemLayoutAtomMetaA{}), size(SmemLayoutAtomMetaA{}))));
++#if NVFP4_META_ON_B
++  using SmemLayoutMetaB = decltype(make_layout(
++    append(shape(SmemLayoutAtomMetaB{}), Int<DispatchPolicy::Stages>{}),
++    append(stride(SmemLayoutAtomMetaB{}), size(SmemLayoutAtomMetaB{}))));
++#endif
++
+   static_assert(rank(SmemLayoutA{}) == 3, "Smem layout must be rank 3.");
+   static_assert(rank(SmemLayoutB{}) == 3, "Smem layout must be rank 3.");
+ 
+@@ -255,11 +362,20 @@ struct CollectiveMma<
+   // Set the bytes transferred in this TMA transaction (may involve multiple issues)
+   static constexpr uint32_t TmaTransactionBytesMK = static_cast<uint32_t>(
+     cutlass::bits_to_bytes(cosize(take<0,2>(SmemLayoutSFA{})) * cute::sizeof_bits_v<ElementSF>) +
+-    cutlass::bits_to_bytes(size(take<0,2>(SmemLayoutA{})) * sizeof_bits<ElementA>::value));
++    cutlass::bits_to_bytes(size(take<0,2>(SmemLayoutA{})) * sizeof_bits<ElementA>::value) +
++    cutlass::bits_to_bytes(cosize(take<0,2>(SmemLayoutMetaA{})) * cute::sizeof_bits_v<ElementMeta>));
+ 
++#if NVFP4_META_ON_B
++  static constexpr uint32_t TmaTransactionBytesNK = static_cast<uint32_t>(
++    cutlass::bits_to_bytes(cosize(take<0,2>(SmemLayoutSFB{})) * cute::sizeof_bits_v<ElementSF>) +
++    cutlass::bits_to_bytes(size(take<0,2>(SmemLayoutB{})) * sizeof_bits<ElementB>::value) +
++    cutlass::bits_to_bytes(cosize(take<0,2>(SmemLayoutMetaB{})) * cute::sizeof_bits_v<ElementMeta>));
++#else
++  // B (weight) is quantized offline -- no selection metadata, no metaB TMA copy.
+   static constexpr uint32_t TmaTransactionBytesNK = static_cast<uint32_t>(
+     cutlass::bits_to_bytes(cosize(take<0,2>(SmemLayoutSFB{})) * cute::sizeof_bits_v<ElementSF>) +
+     cutlass::bits_to_bytes(size(take<0,2>(SmemLayoutB{})) * sizeof_bits<ElementB>::value));
++#endif
+ 
+   static constexpr uint32_t TmaTransactionBytes = TmaTransactionBytesMK + TmaTransactionBytesNK;
+ 
+@@ -269,6 +385,10 @@ struct CollectiveMma<
+       alignas(1024) cute::ArrayEngine<SmemAllocTypeB, cute::cosize_v<SmemLayoutB>> smem_B;
+       alignas(16)   cute::ArrayEngine<ElementSF, cute::cosize_v<SmemLayoutSFA>> smem_SFA;
+       alignas(16)   cute::ArrayEngine<ElementSF, cute::cosize_v<SmemLayoutSFB>> smem_SFB;
++      alignas(16)   cute::ArrayEngine<ElementMeta, cute::cosize_v<SmemLayoutMetaA>> smem_MetaA;
++#if NVFP4_META_ON_B
++      alignas(16)   cute::ArrayEngine<ElementMeta, cute::cosize_v<SmemLayoutMetaB>> smem_MetaB;
++#endif
+     } tensors;
+     using PipelineStorage = typename MainloopPipeline::SharedStorage;
+     alignas(16) PipelineStorage pipeline_storage;
+@@ -287,6 +407,12 @@ struct CollectiveMma<
+     LayoutSFA layout_SFA{};
+     ElementSF const* ptr_SFB{nullptr};
+     LayoutSFB layout_SFB{};
++    ElementMeta const* ptr_MetaA{nullptr};
++    LayoutMetaA layout_MetaA{};
++#if NVFP4_META_ON_B
++    ElementMeta const* ptr_MetaB{nullptr};
++    LayoutMetaB layout_MetaB{};
++#endif
+   };
+ 
+   // Device side kernel params
+@@ -321,10 +447,32 @@ struct CollectiveMma<
+         make_shape(shape<1>(TileShapeSFB{}), shape<2>(TileShapeSFB{})),
+         _1{}));  // No programmatic multicast
+ 
++    // Selection group size = NVFP4_META_GROUP_SIZE elements (2-bit index + 2-bit E2M3
++    // correction when GROUP_SIZE==4, 3-bit index + 2-bit correction when GROUP_SIZE==8;
++    // stored unpacked as 1 byte/group either way).
++    using TMA_MetaA = decltype(make_tma_copy(
++        GmemTiledCopyMetaA{},
++        make_tensor(static_cast<ElementMeta const*>(nullptr), repeat_like(LayoutMetaA{}, int32_t(0)), LayoutMetaA{}),
++        SmemLayoutMetaA{}(_,_,cute::Int<0>{}),
++        make_shape(shape<0>(TileShape{}), shape<2>(TileShape{}) / Int<NVFP4_META_GROUP_SIZE>{}),
++        _1{}));  // No programmatic multicast
++#if NVFP4_META_ON_B
++    using TMA_MetaB = decltype(make_tma_copy(
++        GmemTiledCopyMetaB{},
++        make_tensor(static_cast<ElementMeta const*>(nullptr), repeat_like(LayoutMetaB{}, int32_t(0)), LayoutMetaB{}),
++        SmemLayoutMetaB{}(_,_,cute::Int<0>{}),
++        make_shape(shape<1>(TileShape{}), shape<2>(TileShape{}) / Int<NVFP4_META_GROUP_SIZE>{}),
++        _1{}));  // No programmatic multicast
++#endif
++
+     TMA_A tma_load_a;
+     TMA_B tma_load_b;
+     TMA_SFA tma_load_sfa;
+     TMA_SFB tma_load_sfb;
++    TMA_MetaA tma_load_metaa;
++#if NVFP4_META_ON_B
++    TMA_MetaB tma_load_metab;
++#endif
+     LayoutSFA layout_SFA;
+     LayoutSFB layout_SFB;
+     uint32_t tma_transaction_bytes = TmaTransactionBytes;
+@@ -354,6 +502,11 @@ struct CollectiveMma<
+     Tensor tensor_sfa = make_tensor(args.ptr_SFA, args.layout_SFA);
+     Tensor tensor_sfb = make_tensor(args.ptr_SFB, args.layout_SFB);
+ 
++    Tensor tensor_metaa = make_tensor(args.ptr_MetaA, make_layout(make_shape(M, K / NVFP4_META_GROUP_SIZE, L), args.layout_MetaA));
++#if NVFP4_META_ON_B
++    Tensor tensor_metab = make_tensor(args.ptr_MetaB, make_layout(make_shape(N, K / NVFP4_META_GROUP_SIZE, L), args.layout_MetaB));
++#endif
++
+     typename Params::TMA_A tma_load_a = make_tma_copy(
+         GmemTiledCopyA{},
+         tensor_a,
+@@ -381,11 +534,30 @@ struct CollectiveMma<
+         make_shape(shape<1>(TileShapeSFB{}), shape<2>(TileShapeSFB{})),
+         _1{}); // No programmatic multicast
+ 
++    typename Params::TMA_MetaA tma_load_metaa = make_tma_copy(
++        GmemTiledCopyMetaA{},
++        tensor_metaa,
++        SmemLayoutMetaA{}(_,_,cute::Int<0>{}),
++        make_shape(shape<0>(TileShape{}), shape<2>(TileShape{}) / Int<NVFP4_META_GROUP_SIZE>{}),
++        _1{}); // No programmatic multicast
++#if NVFP4_META_ON_B
++    typename Params::TMA_MetaB tma_load_metab = make_tma_copy(
++        GmemTiledCopyMetaB{},
++        tensor_metab,
++        SmemLayoutMetaB{}(_,_,cute::Int<0>{}),
++        make_shape(shape<1>(TileShape{}), shape<2>(TileShape{}) / Int<NVFP4_META_GROUP_SIZE>{}),
++        _1{}); // No programmatic multicast
++#endif
++
+     return {
+       tma_load_a,
+       tma_load_b,
+       tma_load_sfa,
+       tma_load_sfb,
++      tma_load_metaa,
++#if NVFP4_META_ON_B
++      tma_load_metab,
++#endif
+       args.layout_SFA,
+       args.layout_SFB,
+       TmaTransactionBytes,
+@@ -424,6 +596,10 @@ struct CollectiveMma<
+     cute::prefetch_tma_descriptor(params.tma_load_b.get_tma_descriptor());
+     cute::prefetch_tma_descriptor(params.tma_load_sfa.get_tma_descriptor());
+     cute::prefetch_tma_descriptor(params.tma_load_sfb.get_tma_descriptor());
++    cute::prefetch_tma_descriptor(params.tma_load_metaa.get_tma_descriptor());
++#if NVFP4_META_ON_B
++    cute::prefetch_tma_descriptor(params.tma_load_metab.get_tma_descriptor());
++#endif
+   }
+ 
+   // Temporary adhoc partitioning for scaling factors.
+@@ -586,6 +762,16 @@ struct CollectiveMma<
+     Tensor mSFA_mkl = params.tma_load_sfa.get_tma_tensor(shape(params.layout_SFA));
+     Tensor mSFB_nkl = params.tma_load_sfb.get_tma_tensor(shape(params.layout_SFB));
+ 
++    // metaA/metaB: native (M or N, K/GROUP_SIZE, L) coordinate space (no SF-style config
++    // abstraction), so tile with a matching (M,N,K/GROUP_SIZE) shape rather than
++    // TileShape{} itself (whose K component is the *element* K-tile, GROUP_SIZE-x too
++    // wide here).
++    Tensor mMetaA_mkl = params.tma_load_metaa.get_tma_tensor(make_shape(M, K / NVFP4_META_GROUP_SIZE, L));
++#if NVFP4_META_ON_B
++    Tensor mMetaB_nkl = params.tma_load_metab.get_tma_tensor(make_shape(N, K / NVFP4_META_GROUP_SIZE, L));
++#endif
++    auto TileShapeMeta = make_shape(shape<0>(TileShape{}), shape<1>(TileShape{}), shape<2>(TileShape{}) / Int<NVFP4_META_GROUP_SIZE>{});
++
+     // Make tiled views, defer the slice
+     Tensor gA_mkl = local_tile(mA_mkl, TileShape{}, make_coord(_,_,_), Step<_1, X,_1>{});        // (BLK_M,BLK_K,m,k,l)
+     Tensor gB_nkl = local_tile(mB_nkl, TileShape{}, make_coord(_,_,_), Step< X,_1,_1>{});        // (BLK_N,BLK_K,n,k,l)
+@@ -593,7 +779,13 @@ struct CollectiveMma<
+     Tensor gSFA_mkl = local_tile(mSFA_mkl, TileShape{}, make_coord(_,_,_), Step<_1, X,_1>{});    // (TILE_M,TILE_K,m,k,l)
+     Tensor gSFB_nkl = local_tile(mSFB_nkl, TileShape{}, make_coord(_,_,_), Step< X,_1,_1>{});    // (TILE_N,TILE_K,n,k,l)
+ 
+-    return cute::make_tuple(gA_mkl, gB_nkl, gSFA_mkl, gSFB_nkl);
++    Tensor gMetaA_mkl = local_tile(mMetaA_mkl, TileShapeMeta, make_coord(_,_,_), Step<_1, X,_1>{});  // (BLK_M,BLK_K/GS,m,k,l)
++#if NVFP4_META_ON_B
++    Tensor gMetaB_nkl = local_tile(mMetaB_nkl, TileShapeMeta, make_coord(_,_,_), Step< X,_1,_1>{});  // (BLK_N,BLK_K/GS,n,k,l)
++    return cute::make_tuple(gA_mkl, gB_nkl, gSFA_mkl, gSFB_nkl, gMetaA_mkl, gMetaB_nkl);
++#else
++    return cute::make_tuple(gA_mkl, gB_nkl, gSFA_mkl, gSFB_nkl, gMetaA_mkl);
++#endif
+   }
+ 
+   /// Perform a collective-scoped matrix multiply-accumulate
+@@ -601,6 +793,10 @@ struct CollectiveMma<
+   template <
+     class TensorA, class TensorB,
+     class TensorSFA, class TensorSFB,
++    class TensorMetaA,
++#if NVFP4_META_ON_B
++    class TensorMetaB,
++#endif
+     class KTileIterator, class BlockCoord
+   >
+   CUTLASS_DEVICE void
+@@ -608,7 +804,11 @@ struct CollectiveMma<
+       Params const& params,
+       MainloopPipeline pipeline,
+       PipelineState smem_pipe_write,
+-      cute::tuple<TensorA, TensorB, TensorSFA, TensorSFB> const& load_inputs,
++#if NVFP4_META_ON_B
++      cute::tuple<TensorA, TensorB, TensorSFA, TensorSFB, TensorMetaA, TensorMetaB> const& load_inputs,
++#else
++      cute::tuple<TensorA, TensorB, TensorSFA, TensorSFB, TensorMetaA> const& load_inputs,
++#endif
+       BlockCoord const& blk_coord,
+       KTileIterator k_tile_iter, int k_tile_count,
+       int thread_idx,
+@@ -622,12 +822,20 @@ struct CollectiveMma<
+       Tensor sB = make_tensor(make_smem_ptr(shared_tensors.smem_B.begin()), SmemLayoutB{});        // (BLK_N,BLK_K,PIPE)
+       Tensor sSFA = make_tensor(make_smem_ptr(shared_tensors.smem_SFA.begin()), SmemLayoutSFA{});  // (BLK_M,BLK_K,PIPE)
+       Tensor sSFB = make_tensor(make_smem_ptr(shared_tensors.smem_SFB.begin()), SmemLayoutSFB{});  // (BLK_N,BLK_K,PIPE)
++      Tensor sMetaA = make_tensor(make_smem_ptr(shared_tensors.smem_MetaA.begin()), SmemLayoutMetaA{});  // (BLK_M,BLK_K/GS,PIPE)
++#if NVFP4_META_ON_B
++      Tensor sMetaB = make_tensor(make_smem_ptr(shared_tensors.smem_MetaB.begin()), SmemLayoutMetaB{});  // (BLK_N,BLK_K/GS,PIPE)
++#endif
+ 
+       //
+-      // Prepare the TMA loads for A, B, SFA and SFB
++      // Prepare the TMA loads for A, B, SFA, SFB, metaA(/metaB)
+       //
+ 
+-      auto [gA_mkl, gB_nkl, gSFA_mkl, gSFB_nkl] = load_inputs;
++#if NVFP4_META_ON_B
++      auto [gA_mkl, gB_nkl, gSFA_mkl, gSFB_nkl, gMetaA_mkl, gMetaB_nkl] = load_inputs;
++#else
++      auto [gA_mkl, gB_nkl, gSFA_mkl, gSFB_nkl, gMetaA_mkl] = load_inputs;
++#endif
+ 
+       auto block_tma_a = params.tma_load_a.get_slice(0);
+       auto block_tma_b = params.tma_load_b.get_slice(0);
+@@ -635,6 +843,11 @@ struct CollectiveMma<
+       auto block_tma_sfa = params.tma_load_sfa.get_slice(0);
+       auto block_tma_sfb = params.tma_load_sfb.get_slice(0);
+ 
++      auto block_tma_metaa = params.tma_load_metaa.get_slice(0);
++#if NVFP4_META_ON_B
++      auto block_tma_metab = params.tma_load_metab.get_slice(0);
++#endif
++
+       // Partition the inputs based on the current block coordinates.
+       auto [m_coord, n_coord, k_coord, l_coord] = blk_coord;
+ 
+@@ -646,6 +859,12 @@ struct CollectiveMma<
+       Tensor gB =   gB_nkl(_,_,n_coord,_,l_coord);                                                    // (BLK_N,BLK_K,k)
+       Tensor gSFA = gSFA_mkl(_,_,m_coord,_,l_coord);                                                  // (BLK_M,BLK_K,k)
+       Tensor gSFB = gSFB_nkl(_,_,broadcast_n(n_coord),_,l_coord);                                     // (BLK_N,BLK_K,k)
++      // metaA/metaB have no SF-style broadcast (plain per-row layout) -- index directly,
++      // same as A/B themselves.
++      Tensor gMetaA = gMetaA_mkl(_,_,m_coord,_,l_coord);                                              // (BLK_M,BLK_K/GS,k)
++#if NVFP4_META_ON_B
++      Tensor gMetaB = gMetaB_nkl(_,_,n_coord,_,l_coord);                                              // (BLK_N,BLK_K/GS,k)
++#endif
+ 
+       // Partition source and destination tensors for tma copies
+       Tensor tAgA = block_tma_a.partition_S(gA);                                              // (TMA,TMA_M,TMA_K,k)
+@@ -660,6 +879,13 @@ struct CollectiveMma<
+       Tensor tBgSFB = block_tma_sfb.partition_S(gSFB);                                        // (TMA,TMA_N,TMA_K,k)
+       Tensor tBsSFB = block_tma_sfb.partition_D(sSFB);                                        // (TMA,TMA_N,TMA_K,PIPE)
+ 
++      Tensor tAgMetaA = block_tma_metaa.partition_S(gMetaA);                                  // (TMA,TMA_M,TMA_K/GS,k)
++      Tensor tAsMetaA = block_tma_metaa.partition_D(sMetaA);                                  // (TMA,TMA_M,TMA_K/GS,PIPE)
++#if NVFP4_META_ON_B
++      Tensor tBgMetaB = block_tma_metab.partition_S(gMetaB);                                  // (TMA,TMA_N,TMA_K/GS,k)
++      Tensor tBsMetaB = block_tma_metab.partition_D(sMetaB);                                  // (TMA,TMA_N,TMA_K/GS,PIPE)
++#endif
++
+       // Mainloop
+       CUTLASS_PRAGMA_NO_UNROLL
+       for ( ; k_tile_count > 0; --k_tile_count) {
+@@ -680,6 +906,14 @@ struct CollectiveMma<
+         copy(params.tma_load_sfa.with(*tma_barrier), tAgSFA(_,_,_,*k_tile_iter), tAsSFA(_,_,_,write_stage));
+         copy(params.tma_load_sfb.with(*tma_barrier), tBgSFB(_,_,_,*k_tile_iter), tBsSFB(_,_,_,write_stage));
+ 
++        // metaA(/metaB): extra TMA issue(s), sharing the same mbarrier as A/B/SFA/SFB --
++        // this is the actual thing being measured (marginal cost of these extra bulk
++        // copies in a real, deeply-pipelined GEMM at full problem size).
++        copy(params.tma_load_metaa.with(*tma_barrier), tAgMetaA(_,_,_,*k_tile_iter), tAsMetaA(_,_,_,write_stage));
++#if NVFP4_META_ON_B
++        copy(params.tma_load_metab.with(*tma_barrier), tBgMetaB(_,_,_,*k_tile_iter), tBsMetaB(_,_,_,write_stage));
++#endif
++
+         // Advance k tile
+         ++k_tile_iter;
+         ++smem_pipe_write;
+@@ -818,12 +1052,213 @@ struct CollectiveMma<
+     // Size of the register pipeline
+     auto K_BLOCK_MAX = size<2>(tCrA);
+ 
++#if NVFP4_META_SW_CORRECT == 1
++    //
++    // Software (CUDA-core) application of the 2 extra mantissa bits.
++    //
++    // Data layout written by the activation quantizer:
++    //   * the selected element's FP4 code = top 4 bits of its E2M3 code (sign, exp, m2), so the
++    //     tensor-core MMA already accumulates that element's truncated value;
++    //   * 1 meta byte per GS-group = idx | lo2 << IB | sign << (IB+2) | exp << (IB+3), where lo2
++    //     are the 2 extra mantissa bits and sign/exp duplicate the selected element's FP4 code
++    //     (spare bits of the byte, so decoding needs no extra A-operand load).
++    // Residual of the selected element: delta = (+-) lo2 * 2^(max(exp,1)-1) / 8   (E2M1 units).
++    //   Linear: acc(m,n) += sum_{k in S_A(m)} dA sfa * w4 sfb
++    //   QK^T  : acc(m,n) += sum_{k in S_Q(m)} dQ sfa * (k4 + [k in S_K(n)] dK) sfb
++    //                     + sum_{k in S_K(n)} q4 sfa * dK sfb
++    // Applied per k_block (64 K) right before that k_block's MMA, while its smem stage is live.
++    //
++    constexpr int GS = NVFP4_META_GROUP_SIZE;
++    constexpr int IB = (GS == 8) ? 3 : 2;
++    constexpr int MMA_M = decltype(size<1>(accum))::value;
++    constexpr int MMA_N = decltype(size<2>(accum))::value;
++    constexpr int CR = 2 * MMA_M;                                     // distinct rows per thread
++    constexpr int CC = 2 * MMA_N;                                     // distinct cols per thread
++    constexpr int KB = size<2>(TileShape{}) / decltype(K_BLOCK_MAX)::value;   // K per k_block
++    static_assert(decltype(size<0>(accum))::value == 4, "expects the 16x8 accumulator atom");
++    static_assert(KB % SFVecSize == 0 && SFVecSize % GS == 0, "group/scale-block mismatch");
++
++    Tensor sMetaA = make_tensor(make_smem_ptr(shared_tensors.smem_MetaA.begin()), SmemLayoutMetaA{});  // (BLK_M,BLK_K/GS,PIPE)
++#if NVFP4_META_ON_B
++    Tensor sMetaB = make_tensor(make_smem_ptr(shared_tensors.smem_MetaB.begin()), SmemLayoutMetaB{});  // (BLK_N,BLK_K/GS,PIPE)
++#endif
++    Tensor tCcC = thread_mma.partition_C(make_identity_tensor(take<0,2>(TileShape{})));            // (MMA,MMA_M,MMA_N) -> (m,n)
++    // accum(vc + 2*vr, mm, nn) <-> row r = vr + 2*mm, col c = vc + 2*nn
++    int row_of[CR], col_of[CC];
++    CUTLASS_PRAGMA_UNROLL
++    for (int r = 0; r < CR; ++r) row_of[r] = get<0>(tCcC(2 * (r & 1), r >> 1, 0));
++    CUTLASS_PRAGMA_UNROLL
++    for (int c = 0; c < CC; ++c) col_of[c] = get<1>(tCcC(c & 1, 0, c >> 1));
++
++    auto delta_of = [](uint8_t meta) {
++      float mag = float((meta >> IB) & 3) * __int_as_float((123 + max((meta >> (IB + 3)) & 3, 1)) << 23);  // lo2 * 2^(max(e,1)-4)
++      return ((meta >> (IB + 2)) & 1) ? -mag : mag;
++    };
++    // Raw FP4 access to a K-major 128x128 e2m1 smem stage: 64 B per row, TMA 64B swizzle
++    // (Swizzle<2,4,3> on byte addresses: 16B-chunk bits [4,5] ^= bits [7,8]); even k = low nibble.
++    static_assert(size<2>(TileShape{}) == 128 && cute::sizeof_bits_v<SmemAllocTypeA> == 4 &&
++                  cute::sizeof_bits_v<SmemAllocTypeB> == 4, "raw smem addressing assumes 128-K e2m1 tiles (SW64)");
++    static_assert(SFVecSize == 16, "one 8-byte register pair per 16-element scale block");
++    uint8_t const* smemA_raw = reinterpret_cast<uint8_t const*>(&shared_tensors.smem_A);
++    uint8_t const* smemB_raw = reinterpret_cast<uint8_t const*>(&shared_tensors.smem_B);
++    constexpr int ROWS_A = size<0>(TileShape{});
++    constexpr int ROWS_B = size<1>(TileShape{});
++    // the 16 FP4 codes of (row, 16-block starting at k) as one 8-byte LDS (never crosses a 16B chunk)
++    auto load16 = [](uint8_t const* base, int rows, int row, int k, int stage) {
++      int off = stage * rows * 64 + row * 64 + (k >> 1);
++      off ^= ((off >> 7) & 3) << 4;
++      return *reinterpret_cast<uint2 const*>(base + off);
++    };
++    // FP4 code at position pos (0..15) of a load16() result -> float (E2M1 units)
++    auto e2m1_of = [](uint2 v, int pos) {
++      uint32_t w = (pos & 8) ? v.y : v.x;
++      uint8_t nib = (w >> ((pos & 7) * 4)) & 0xF;
++      return __half2float(__half(__nv_cvt_fp4_to_halfraw(static_cast<__nv_fp4_storage_t>(nib), __NV_E2M1)));
++    };
++    // GS-group metadata bytes of one 16-block (16/GS bytes, contiguous and aligned)
++    auto load_meta16 = [](auto const& sMeta, int row, int kb, int stage) -> uint32_t {
++      uint8_t const* p = &sMeta(row, kb / GS, stage);
++      if constexpr (GS == 4) return *reinterpret_cast<uint32_t const*>(p);
++      else                   return *reinterpret_cast<uint16_t const*>(p);
++    };
++
++    // Columns are processed CH at a time so that accum + cached operands stay in registers.
++    constexpr int CH = (CC >= 8) ? 8 : CC;
++    auto correct_kblock = [&](int k_block, int stage) {
++      CUTLASS_PRAGMA_NO_UNROLL                                        // bounds register live ranges
++      for (int sb = 0; sb < KB / SFVecSize; ++sb) {
++        const int kb = k_block * KB + sb * SFVecSize;                 // first K of this scale block
++        CUTLASS_PRAGMA_UNROLL
++        for (int c0 = 0; c0 < CC; c0 += CH) {
++          uint2 wB[CH];                                               // B operand codes, 16 per col
++          float sfb[CH];
++          CUTLASS_PRAGMA_UNROLL
++          for (int c = 0; c < CH; ++c) {
++            wB[c]  = load16(smemB_raw, ROWS_B, col_of[c0 + c], kb, stage);
++            sfb[c] = float(sSFB(col_of[c0 + c], kb, stage));
++          }
++#if NVFP4_META_ON_B
++          uint32_t mB[CH];                                            // K's metadata bytes (2 per col)
++          CUTLASS_PRAGMA_UNROLL
++          for (int c = 0; c < CH; ++c) mB[c] = load_meta16(sMetaB, col_of[c0 + c], kb, stage);
++#endif
++          CUTLASS_PRAGMA_UNROLL
++          for (int r = 0; r < CR; ++r) {
++            const float sfa = float(sSFA(row_of[r], kb, stage));
++            const uint32_t mA = load_meta16(sMetaA, row_of[r], kb, stage);
++            CUTLASS_PRAGMA_UNROLL
++            for (int g = 0; g < SFVecSize / GS; ++g) {
++              const uint8_t ma  = (mA >> (8 * g)) & 0xFF;
++              const int     pos = g * GS + (ma & (GS - 1));
++              const float   da  = delta_of(ma) * sfa;
++              CUTLASS_PRAGMA_UNROLL
++              for (int c = 0; c < CH; ++c) {
++                float w = e2m1_of(wB[c], pos);
++#if NVFP4_META_ON_B
++                const uint8_t mb = (mB[c] >> (8 * g)) & 0xFF;
++                if ((mb & (GS - 1)) == (ma & (GS - 1))) w += delta_of(mb);   // K promoted at the same k
++#endif
++                const int cc = c0 + c;
++                float& acc = accum(2 * (r & 1) + (cc & 1), r >> 1, cc >> 1);
++                acc = fmaf(da, w * sfb[c], acc);
++              }
++            }
++#if NVFP4_META_ON_B
++            const uint2 qA = load16(smemA_raw, ROWS_A, row_of[r], kb, stage);
++            CUTLASS_PRAGMA_UNROLL
++            for (int c = 0; c < CH; ++c) {
++              CUTLASS_PRAGMA_UNROLL
++              for (int g = 0; g < SFVecSize / GS; ++g) {
++                const uint8_t mb = (mB[c] >> (8 * g)) & 0xFF;
++                float q = e2m1_of(qA, g * GS + (mb & (GS - 1)));
++                const int cc = c0 + c;
++                float& acc = accum(2 * (r & 1) + (cc & 1), r >> 1, cc >> 1);
++                acc = fmaf(q * sfa, delta_of(mb) * sfb[c], acc);
++              }
++            }
++#endif
++          }
++        }
++      }
++    };
++#endif
++
+     int read_stage = smem_pipe_read.index();
+     auto tCsA_stage   = tCsA(_,_,_,read_stage);
+     auto tCsB_stage   = tCsB(_,_,_,read_stage);
+     auto tCsSFA_stage = tCsSFA(_,_,_,read_stage);
+     auto tCsSFB_stage = tCsSFB(_,_,_,read_stage);
+ 
++#if NVFP4_META_SW_CORRECT == 2
++    //
++    // Software (tensor-core) application of the 2 extra mantissa bits.
++    //
++    // x_ext = x4 + d with x4 = truncated E2M3 (already in the A/B fragments) and
++    // d = (+-) lo2 * 2^(max(e,1)-1) / 8 in E2M1 units. 4*d takes values in {0.5,1,1.5,2,3,4,6},
++    // i.e. d is EXACTLY an E2M1 code under scale sf/4. So the residual operand R (zero except at
++    // the selected positions) is a valid NVFP4 operand and A_ext*B = A4*B + R_A*B runs on the FP4
++    // tensor core. R fragments are built per k_block in registers from the smem metadata (no
++    // extra global traffic), reusing the already-loaded B/SFB fragments.
++    //
++    static_assert(NVFP4_META_GROUP_SIZE == 4 || NVFP4_META_GROUP_SIZE == 8, "group size");
++    constexpr int GS = NVFP4_META_GROUP_SIZE;
++    constexpr int IB = (GS == 8) ? 3 : 2;
++    constexpr int BLK_K_META = size<2>(TileShape{}) / GS;              // meta bytes per row per stage
++    // 4*d -> E2M1 code, indexed by lo2*3 + (max(e,1)-1)
++    constexpr uint64_t kDeltaCodeLut =
++        (0ull << 0)  | (0ull << 3)  | (0ull << 6)  |
++        (1ull << 9)  | (2ull << 12) | (4ull << 15) |
++        (2ull << 18) | (4ull << 21) | (6ull << 24) |
++        (3ull << 27) | (5ull << 30) | (7ull << 33);
++#if NVFP4_META_DCODE
++    // Quantizer already stored the residual's E2M1 code: meta = idx | dcode << IB.
++    auto delta_code = [](uint32_t meta) -> uint32_t { return (meta >> IB) & 0xF; };
++#else
++    auto delta_code = [](uint32_t meta) -> uint32_t {
++      uint32_t lo = (meta >> IB) & 3, e = (meta >> (IB + 3)) & 3;
++      uint32_t E  = (e > 0 ? e : 1) - 1;
++      uint32_t c  = uint32_t(kDeltaCodeLut >> (3 * (lo * 3 + E))) & 7;
++      return c | (((meta >> (IB + 2)) & 1) << 3);
++    };
++#endif
++    // Residual fragment for one k_block: every 32-bit fragment register holds 8 K-consecutive
++    // codes of one row (k % 8 == 0), so it is assembled from 8/GS metadata bytes.
++    auto build_residual = [&](auto const& coords, auto&& rfrag, uint8_t const* meta, int rows, int stage) {
++      auto r32 = recast<uint32_t>(rfrag);
++      CUTLASS_PRAGMA_UNROLL
++      for (int j = 0; j < size(r32); ++j) {
++        auto mk = coords(8 * j);
++        uint8_t const* mp = meta + (stage * rows + get<0>(mk)) * BLK_K_META + get<1>(mk) / GS;
++        uint32_t r = 0;
++        CUTLASS_PRAGMA_UNROLL
++        for (int g = 0; g < 8 / GS; ++g) {
++          uint32_t mb = mp[g];
++          r |= delta_code(mb) << (4 * (g * GS + (mb & (GS - 1))));
++        }
++        r32(j) = r;
++      }
++    };
++    // sf/4 on the raw UE4M3 bits: exponent field - 2 (exact while the result stays normal);
++    // subnormal results fall back to a float round trip.
++    auto quarter_sf = [](auto const& sf, auto&& out) {
++      CUTLASS_PRAGMA_UNROLL
++      for (int i = 0; i < size(sf); ++i) {
++        uint8_t b = sf(i).raw();
++        out(i) = ((b >> 3) & 0xF) >= 3 ? ElementSF::bitcast(uint8_t(b - 0x10)) : ElementSF(float(sf(i)) * 0.25f);
++      }
++    };
++    uint8_t const* smemMetaA_raw = reinterpret_cast<uint8_t const*>(&shared_tensors.smem_MetaA);
++    Tensor tCcA   = thread_mma.partition_A(make_identity_tensor(select<0,2>(TileShape{})));   // (MMA,MMA_M,MMA_K) -> (m,k)
++    Tensor tCrRA  = make_fragment_like(tCrA);                                                 // residual A
++    Tensor tCrRSFA = make_fragment_like(tCrSFA);                                              // sfa/4
++#if NVFP4_META_ON_B
++    uint8_t const* smemMetaB_raw = reinterpret_cast<uint8_t const*>(&shared_tensors.smem_MetaB);
++    Tensor tCcB   = thread_mma.partition_B(make_identity_tensor(select<1,2>(TileShape{})));   // (MMA,MMA_N,MMA_K) -> (n,k)
++    Tensor tCrRB  = make_fragment_like(tCrB);
++    Tensor tCrRSFB = make_fragment_like(tCrSFB);
++#endif
++#endif
++
+     auto copy_kblock = [&](auto k_block) {
+         // copy smem->rmem for A/B operand
+       copy(smem_tiled_copy_A, tCsA_stage(_,_,k_block), tCrA_copy_view(_,_,k_block));
+@@ -838,11 +1273,26 @@ struct CollectiveMma<
+       // Copy smem->rmem for SFA/SFB operand
+       copy(tCsSFA_stage(_,_,k_block), tCrSFA_copy_view(_,_,k_block));
+       copy(tCsSFB_stage(_,_,k_block), tCrSFB_copy_view(_,_,k_block));
++#if NVFP4_META_SW_CORRECT == 2
++      build_residual(tCcA(_,_,k_block), tCrRA(_,_,k_block), smemMetaA_raw, size<0>(TileShape{}), read_stage);
++      quarter_sf(tCrSFA(_,_,k_block), tCrRSFA(_,_,k_block));
++#if NVFP4_META_ON_B
++      build_residual(tCcB(_,_,k_block), tCrRB(_,_,k_block), smemMetaB_raw, size<1>(TileShape{}), read_stage);
++      quarter_sf(tCrSFB(_,_,k_block), tCrRSFB(_,_,k_block));
++#endif
++#endif
+     };
+ 
+     auto gemm_kblock = [&](auto k_block) {
+       // (V,M) x (V,N) => (V,M,N)
+       cute::gemm(tiled_mma, make_zip_tensor(tCrA(_,_,k_block), tCrSFA(_,_,k_block)), make_zip_tensor(tCrB(_,_,k_block), tCrSFB(_,_,k_block)), accum);
++#if NVFP4_META_SW_CORRECT == 2
++      cute::gemm(tiled_mma, make_zip_tensor(tCrRA(_,_,k_block), tCrRSFA(_,_,k_block)), make_zip_tensor(tCrB(_,_,k_block), tCrSFB(_,_,k_block)), accum);
++#if NVFP4_META_ON_B
++      cute::gemm(tiled_mma, make_zip_tensor(tCrA(_,_,k_block), tCrSFA(_,_,k_block)), make_zip_tensor(tCrRB(_,_,k_block), tCrRSFB(_,_,k_block)), accum);
++      cute::gemm(tiled_mma, make_zip_tensor(tCrRA(_,_,k_block), tCrRSFA(_,_,k_block)), make_zip_tensor(tCrRB(_,_,k_block), tCrRSFB(_,_,k_block)), accum);
++#endif
++#endif
+     };
+ 
+     pipeline.consumer_wait(smem_pipe_read);
+@@ -857,6 +1307,9 @@ struct CollectiveMma<
+ 
+         auto k_block_next = ((k_block + 1) == K_BLOCK_MAX) ? 0 : (k_block + 1);
+ 
++#if NVFP4_META_SW_CORRECT == 1
++        correct_kblock(k_block, read_stage);   // smem stage still live (released just below)
++#endif
+         if (k_block == K_BLOCK_MAX - 1) {
+           cutlass::arch::NamedBarrier::sync(
+           thr_size(tiled_mma), cutlass::arch::ReservedNamedBarriers::Sm120MainloopBarrier);
+@@ -884,6 +1337,9 @@ struct CollectiveMma<
+ 
+       auto k_block_next = ((k_block + 1) == K_BLOCK_MAX) ? 0 : (k_block + 1);
+ 
++#if NVFP4_META_SW_CORRECT == 1
++      correct_kblock(k_block, read_stage);
++#endif
+       if (k_block == K_BLOCK_MAX - 1) {
+         cutlass::arch::NamedBarrier::sync(
+         thr_size(tiled_mma), cutlass::arch::ReservedNamedBarriers::Sm120MainloopBarrier);

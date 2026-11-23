@@ -1,0 +1,40 @@
+### rep1 llama_gateup_M8192 gs_lin8_swc3
+  nvfp4 GEMM       :   2.7907 ms/iter   (344.7 TFLOP/s)
+### rep1 llama_gateup_M8192 gs_lin8pp_swc0
+  nvfp4 GEMM       :   2.6599 ms/iter   (361.7 TFLOP/s)
+### rep1 llama_gateup_M8192 gs_lin8pp_swc3
+  nvfp4 GEMM       :   2.6542 ms/iter   (362.5 TFLOP/s)
+### rep1 llama_gateup_M8192 gs_lin8_swc0
+  nvfp4 GEMM       :   2.7558 ms/iter   (349.1 TFLOP/s)
+### rep2 llama_gateup_M8192 gs_lin8pp_swc0
+  nvfp4 GEMM       :   2.6573 ms/iter   (362.0 TFLOP/s)
+### rep2 llama_gateup_M8192 gs_lin8pp_swc3
+  nvfp4 GEMM       :   2.6782 ms/iter   (359.2 TFLOP/s)
+### rep2 llama_gateup_M8192 gs_lin8_swc0
+  nvfp4 GEMM       :   2.7762 ms/iter   (346.5 TFLOP/s)
+### rep2 llama_gateup_M8192 gs_lin8_swc3
+  nvfp4 GEMM       :   2.8322 ms/iter   (339.7 TFLOP/s)
+### rep3 llama_gateup_M8192 gs_lin8pp_swc3
+  nvfp4 GEMM       :   2.6986 ms/iter   (356.5 TFLOP/s)
+### rep3 llama_gateup_M8192 gs_lin8_swc0
+  nvfp4 GEMM       :   2.7097 ms/iter   (355.0 TFLOP/s)
+### rep3 llama_gateup_M8192 gs_lin8_swc3
+  nvfp4 GEMM       :   2.7699 ms/iter   (347.3 TFLOP/s)
+### rep3 llama_gateup_M8192 gs_lin8pp_swc0
+  nvfp4 GEMM       :   2.6170 ms/iter   (367.6 TFLOP/s)
+### rep4 llama_gateup_M8192 gs_lin8_swc0
+  nvfp4 GEMM       :   2.6820 ms/iter   (358.7 TFLOP/s)
+### rep4 llama_gateup_M8192 gs_lin8_swc3
+  nvfp4 GEMM       :   2.7493 ms/iter   (349.9 TFLOP/s)
+### rep4 llama_gateup_M8192 gs_lin8pp_swc0
+  nvfp4 GEMM       :   2.5794 ms/iter   (373.0 TFLOP/s)
+### rep4 llama_gateup_M8192 gs_lin8pp_swc3
+  nvfp4 GEMM       :   2.5925 ms/iter   (371.1 TFLOP/s)
+### rep5 llama_gateup_M8192 gs_lin8_swc3
+  nvfp4 GEMM       :   2.7687 ms/iter   (347.5 TFLOP/s)
+### rep5 llama_gateup_M8192 gs_lin8pp_swc0
+  nvfp4 GEMM       :   2.5997 ms/iter   (370.1 TFLOP/s)
+### rep5 llama_gateup_M8192 gs_lin8pp_swc3
+  nvfp4 GEMM       :   2.6026 ms/iter   (369.7 TFLOP/s)
+### rep5 llama_gateup_M8192 gs_lin8_swc0
+  nvfp4 GEMM       :   2.6938 ms/iter   (357.1 TFLOP/s)

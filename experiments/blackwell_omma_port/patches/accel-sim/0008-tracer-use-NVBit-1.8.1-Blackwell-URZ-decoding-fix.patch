@@ -1,0 +1,34 @@
+From 0702175cb3d70e92dac7a62e35e0f9c761008211 Mon Sep 17 00:00:00 2001
+From: minseong <minseong7859@gmail.com>
+Date: Thu, 22 Oct 2026 00:30:32 +0900
+Subject: [PATCH] tracer: use NVBit 1.8.1 (Blackwell URZ decoding fix)
+
+With NVBit 1.8, URZ in sm_120 code decodes as UR63, so memory addresses
+of [Rx+URZ] operands include UR63's live value. In the NVFP4 GEMM with
+selection metadata this put mbarrier arrives at 0x4018 instead of 0x418
+(UR63 = 0x3c00) and the simulator aborted on a non-existent mbarrier.
+NVBit 1.8.1 release notes: "Fixed URZ uniform register index decoding on
+Blackwell". The tracer needs no API changes.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ util/tracer_nvbit/install_nvbit.sh | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/util/tracer_nvbit/install_nvbit.sh b/util/tracer_nvbit/install_nvbit.sh
+index 0b489a5..eb720e2 100755
+--- a/util/tracer_nvbit/install_nvbit.sh
++++ b/util/tracer_nvbit/install_nvbit.sh
+@@ -3,6 +3,6 @@ export BASH_ROOT="$( cd "$( dirname "$BASH_SOURCE" )" && pwd )"
+ 
+ rm -rf $BASH_ROOT/nvbit_release
+ mkdir -p "$BASH_ROOT/nvbit_release"
+-wget https://github.com/NVlabs/NVBit/releases/download/v1.8/nvbit-Linux-x86_64-1.8.tar.bz2
+-tar -xf nvbit-Linux-x86_64-1.8.tar.bz2 -C "$BASH_ROOT/nvbit_release" --strip-components=1
+-rm nvbit-Linux-x86_64-1.8.tar.bz2
++wget https://github.com/NVlabs/NVBit/releases/download/v1.8.1/nvbit-Linux-x86_64-1.8.1.tar.bz2
++tar -xf nvbit-Linux-x86_64-1.8.1.tar.bz2 -C "$BASH_ROOT/nvbit_release" --strip-components=1
++rm nvbit-Linux-x86_64-1.8.1.tar.bz2
+-- 
+2.43.0
+

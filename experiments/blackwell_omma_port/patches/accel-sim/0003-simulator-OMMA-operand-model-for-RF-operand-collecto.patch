@@ -1,0 +1,172 @@
+From 5444be28f6b0084de123f8389aa188346c867272 Mon Sep 17 00:00:00 2001
+From: minseong <minseong7859@gmail.com>
+Date: Wed, 21 Oct 2026 01:25:06 +0900
+Subject: [PATCH 3/7] simulator: OMMA operand model for RF/operand-collector
+ timing
+
+OMMA.SF sources in trace order are A, B, C, SFA, SFB, UR (scale
+byte/thread-id selectors). set_omma_operands() rebuilds in[]/out[]
+(scoreboard) and arch_reg.src/dst (operand collector, RF banks):
+
+- The UR selector is not a vector-RF read and RZ is not a register;
+  the generic path maps a UREG source to register 0, which the
+  operand collector would read, so OMMA excludes both.
+- -trace_omma_reg_groups 0: base register of each operand only
+  (Accel-Sim convention, as traced: 5 RF reads, 1 write).
+  -trace_omma_reg_groups 1: expand the register groups of
+  m16n8k64/E2M1: A 4, B 2, C 4 (F32), SFA 1, SFB 1 -> 12 RF reads;
+  D 4 registers.
+- Sources after the six OMMA sources become one 32-bit GPR each, so an
+  added correction-data register in the trace goes through the normal
+  scoreboard / operand collector / RF bank path.
+- Timing comes from the tensor unit (SPECIALIZED_UNIT_3) config.
+- TEMPORARY: ACCELSIM_DEBUG_OPCODE=OMMA prints the first decoded OMMAs.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ gpu-simulator/trace-driven/trace_driven.cc | 86 ++++++++++++++++++++++
+ gpu-simulator/trace-driven/trace_driven.h  |  6 ++
+ 2 files changed, 92 insertions(+)
+
+diff --git a/gpu-simulator/trace-driven/trace_driven.cc b/gpu-simulator/trace-driven/trace_driven.cc
+index f01000c..ca84322 100644
+--- a/gpu-simulator/trace-driven/trace_driven.cc
++++ b/gpu-simulator/trace-driven/trace_driven.cc
+@@ -674,6 +674,9 @@ bool trace_warp_inst_t::parse_from_trace_struct(
+       // Set m_is_gmma_commit_group here
+       m_is_gmma_commit_group = trace.is_gmma_commit_group;
+     } break;
++    case OP_OMMA:
++      set_omma_operands(opcode_tokens, trace, tconfig->get_omma_reg_groups());
++      break;
+     case OP_WARPGROUP:
+       // Here we handle Hopper's WARPGROUP instructions
+       // For now, we just convert WARPGROUP.DEPBAR into a DEPBAR instruction
+@@ -895,6 +898,12 @@ void trace_config::reg_options(option_parser_t opp) {
+                          "driven mode <latency,initiation>",
+                          "4,1");
+ 
++  option_parser_register(
++      opp, "-trace_omma_reg_groups", OPT_UINT32, &omma_reg_groups,
++      "Blackwell OMMA register operands: 0 = base register of each operand "
++      "only (as traced), 1 = expand A/B/C/D register groups to all registers",
++      "0");
++
+   for (unsigned j = 0; j < SPECIALIZED_UNIT_NUM; ++j) {
+     std::stringstream ss;
+     ss << "-trace_opcode_latency_initiation_spec_op_" << j + 1;
+@@ -1171,3 +1180,80 @@ void trace_shader_core_ctx::issue_warp(register_set &warp,
+   // after issue
+   delete pI;
+ }
++
++// Blackwell warp-level block-scaled MMA, e.g.
++//   OMMA.SF.16864.F32.E2M1.E2M1.UE4M3.4X Rd, Ra, Rb, Rc, Rsfa, Rsfb, URsel
++// Trace sources (same order as SASS): A, B, C, SFA, SFB, UR scale selectors.
++// The trace only names the first register of each group (Accel-Sim
++// convention). Any source after these six is treated as one extra 32-bit GPR
++// operand (hook for an added correction-data register).
++// Register-file reads are generated from arch_reg.src (operand collector) and
++// dependencies from in[]/out[] (scoreboard), so both are rebuilt here:
++//  - the UR selector is read by the uniform datapath, not the vector RF, and
++//    RZ is not an RF read, so neither becomes an RF operand (the generic path
++//    above maps UREGs to register 0, which the collector would read);
++//  - reg_groups=1 expands every group to all its registers.
++void trace_warp_inst_t::set_omma_operands(
++    const std::vector<std::string> &opcode_tokens, const inst_trace_t &trace,
++    unsigned reg_groups) {
++  // Register-group widths for m16n8k64 with 4-bit (E2M1) A/B, per thread:
++  // A 16x64x4b/32 = 4 regs, B 8x64x4b/32 = 2 regs, C/D 16x8 f32/32 = 4 regs.
++  assert(opcode_tokens.size() > 4 && opcode_tokens[2] == "16864" &&
++         opcode_tokens[4] == "E2M1" && "unsupported OMMA variant");
++  const unsigned cd_regs = opcode_tokens[3] == "F32" ? 4 : 2;
++  const unsigned src_regs[6] = {4, 2, cd_regs, 1, 1, 1};
++  assert(trace.reg_srcs_num >= 6 && trace.reg_dsts_num == 1);
++
++  for (unsigned i = 0; i < MAX_INPUT_VALUES; i++) in[i] = 0;
++  for (unsigned i = 0; i < MAX_OUTPUT_VALUES; i++) out[i] = 0;
++  for (unsigned i = 0; i < MAX_REG_OPERANDS; i++)
++    arch_reg.src[i] = arch_reg.dst[i] = -1;
++
++  auto is_rf_reg = [](const trace_reg_t &r) {
++    return r.type == REG && r.num != 255;  // not UR*, not RZ
++  };
++  unsigned nin = 0;
++  for (unsigned s = 0; s < trace.reg_srcs_num; s++) {
++    const trace_reg_t &r = trace.reg_src[s];
++    if (!is_rf_reg(r)) continue;
++    unsigned width = (reg_groups && s < 6) ? src_regs[s] : 1;
++    for (unsigned w = 0; w < width; w++) {
++      assert(nin < MAX_INPUT_VALUES);
++      in[nin] = arch_reg.src[nin] = r.num + w + 1;  // GPGPU-Sim regs are +1
++      nin++;
++    }
++  }
++  unsigned nout = 0;
++  if (is_rf_reg(trace.reg_dest[0])) {
++    unsigned width = reg_groups ? cd_regs : 1;
++    for (unsigned w = 0; w < width; w++) {
++      out[nout] = arch_reg.dst[nout] = trace.reg_dest[0].num + w + 1;
++      nout++;
++    }
++  }
++  incount = nin;
++  outcount = nout;
++  num_regs = num_operands = nin + nout;
++
++  // TEMPORARY debug: ACCELSIM_DEBUG_OPCODE=OMMA prints the first few decoded
++  // OMMA instructions.
++  static int debug_left = 4;
++  const char *dbg = std::getenv("ACCELSIM_DEBUG_OPCODE");
++  if (dbg && trace.opcode.rfind(dbg, 0) == 0 && debug_left > 0) {
++    debug_left--;
++    printf("[OMMA_DEBUG] pc=0x%x %s reg_groups=%u\n", trace.m_pc,
++           trace.opcode.c_str(), reg_groups);
++    printf("[OMMA_DEBUG]   trace srcs(%u):", trace.reg_srcs_num);
++    for (unsigned s = 0; s < trace.reg_srcs_num; s++)
++      printf(" %s%u", trace.reg_src[s].type == UREG ? "UR" : "R",
++             trace.reg_src[s].num);
++    printf("\n[OMMA_DEBUG]   RF src regs(%u, SASS numbering):", nin);
++    for (unsigned i = 0; i < nin; i++) printf(" R%u", in[i] - 1);
++    printf("\n[OMMA_DEBUG]   dst regs(%u):", nout);
++    for (unsigned i = 0; i < nout; i++) printf(" R%u", out[i] - 1);
++    printf("\n[OMMA_DEBUG]   unit op=%d (SPECIALIZED_UNIT_%d) latency=%u "
++           "initiation_interval=%u\n",
++           (int)op, (int)op - SPEC_UNIT_START_ID + 1, latency,
++           initiation_interval);
++  }
++}
+diff --git a/gpu-simulator/trace-driven/trace_driven.h b/gpu-simulator/trace-driven/trace_driven.h
+index b340e08..0ba9753 100644
+--- a/gpu-simulator/trace-driven/trace_driven.h
++++ b/gpu-simulator/trace-driven/trace_driven.h
+@@ -79,6 +79,8 @@ class trace_warp_inst_t : public warp_inst_t {
+       const std::unordered_map<std::string, OpcodeChar> *OpcodeMap,
+       const class trace_config *tconfig,
+       const class kernel_trace_t *kernel_trace_info);
++  void set_omma_operands(const std::vector<std::string> &opcode_tokens,
++                         const inst_trace_t &trace, unsigned reg_groups);
+ 
+  private:
+   unsigned m_opcode;
+@@ -132,6 +134,7 @@ class trace_config {
+   void parse_config();
+   void reg_options(option_parser_t opp);
+   char *get_traces_filename() { return g_traces_filename; }
++  unsigned get_omma_reg_groups() const { return omma_reg_groups; }
+ 
+  private:
+   unsigned int_latency, fp_latency, dp_latency, sfu_latency, tensor_latency;
+@@ -146,6 +149,9 @@ class trace_config {
+   char *trace_opcode_latency_initiation_sfu;
+   char *trace_opcode_latency_initiation_tensor;
+   char *trace_opcode_latency_initiation_specialized_op[SPECIALIZED_UNIT_NUM];
++  // OMMA operand model: 0 = base register of each operand only (Accel-Sim
++  // convention, as traced), 1 = every register of each register group.
++  unsigned omma_reg_groups;
+ };
+ 
+ class trace_shd_warp_t : public shd_warp_t {
+-- 
+2.43.0
+

@@ -1,0 +1,2 @@
+format,model,k,boost_mant_bits,ppl,elapsed_sec
+mxfp4,qwen3_moe,4,3,8.011075157583422,910.907
