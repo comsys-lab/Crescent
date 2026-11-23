@@ -22,9 +22,8 @@ import time
 import torch
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-HYP_ROOT = os.path.join(HERE, "..", "..", "2_hypothesis")
-sys.path.insert(0, os.path.join(HYP_ROOT, "common"))
-sys.path.insert(0, os.path.join(HYP_ROOT, "evaluation"))
+REPO_ROOT = os.path.join(HERE, "..", "..")
+sys.path.insert(0, os.path.join(REPO_ROOT, "common"))
 from eval_utils import same_seeds, cleanup_cuda  # noqa: E402
 import ppl_w4a4 as W  # noqa: E402
 
@@ -143,7 +142,7 @@ def main():
                   f"meaningful at the native 32-wide MX block (fmt=mxfp4), not nvfp4's 16-wide block", flush=True)
             continue
         if arm == "fullrot" and model_key == "qwen3_moe":
-            sys.path.insert(0, os.path.join(HYP_ROOT, "weight_quantization"))
+            sys.path.insert(0, os.path.join(REPO_ROOT, "weight_quantization"))
             from fullrot_cache import cache_path as _fullrot_cache_path
             if not os.path.exists(_fullrot_cache_path(fmt, model_key)):
                 print(f"[zeroshot][{fmt}][{model_key}] skipping {label}: Qwen fullrot GPTQ cache build needs ~118GB "

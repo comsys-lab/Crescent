@@ -23,8 +23,8 @@ import torch
 import torch.nn as nn
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-HYP_ROOT = os.path.join(HERE, "..", "..", "2_hypothesis")
-sys.path.insert(0, os.path.join(HYP_ROOT, "common"))
+REPO_ROOT = os.path.join(HERE, "..", "..")
+sys.path.insert(0, os.path.join(REPO_ROOT, "common"))
 sys.path.insert(0, HERE)
 from eval_utils import same_seeds, load_wikitext2_text, load_tokenizer_and_encodings  # noqa: E402
 from formats import quantize_tensor_config, quantize_tensor_grouped_boost  # noqa: E402
