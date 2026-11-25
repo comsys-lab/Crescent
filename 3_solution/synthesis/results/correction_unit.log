@@ -1,0 +1,573 @@
+
+ /----------------------------------------------------------------------------\
+ |  yosys -- Yosys Open SYnthesis Suite                                       |
+ |  Copyright (C) 2012 - 2026  Claire Xenia Wolf <claire@yosyshq.com>         |
+ |  Distributed under an ISC-like license, type "license" to see terms        |
+ \----------------------------------------------------------------------------/
+ Yosys 0.68 (git sha1 38e001a6f, Release, Clang /workspace/YoWASP/yosys/wasi-sdk-33.0-x86_64-linux/share/cmake/../..//bin/clang++ 22.1.0)
+
+-- Running command `
+    read_verilog -sv cu.v;
+    hierarchy -top correction_unit ;
+    proc; opt; flatten; opt;
+    techmap; opt;
+    abc -liberty nangate45_typ.lib;
+    opt_clean;
+    read_liberty -lib -ignore_miss_dir nangate45_typ.lib;
+    stat -liberty nangate45_typ.lib;
+    write_json results/correction_unit.json
+  ' --
+
+1. Executing Verilog-2005 frontend: cu.v
+Parsing SystemVerilog input from `cu.v' to AST representation.
+Generating RTLIL representation for module `\fp4_decode8'.
+Generating RTLIL representation for module `\csa'.
+Generating RTLIL representation for module `\products16'.
+Generating RTLIL representation for module `\tree16'.
+Generating RTLIL representation for module `\main_path'.
+Generating RTLIL representation for module `\scale_acc'.
+Generating RTLIL representation for module `\dpe_plain'.
+Generating RTLIL representation for module `\sel16'.
+Generating RTLIL representation for module `\e2m3_delta'.
+Generating RTLIL representation for module `\correction_arith'.
+Generating RTLIL representation for module `\correction_unit'.
+Generating RTLIL representation for module `\tree18'.
+Generating RTLIL representation for module `\dpe_corrected'.
+Successfully finished Verilog frontend.
+
+2. Executing HIERARCHY pass (managing design hierarchy).
+
+2.1. Analyzing design hierarchy..
+Top module:  \correction_unit
+Used module:     \correction_arith
+Used module:         \fp4_decode8
+Used module:         \e2m3_delta
+Used module:     \sel16
+
+2.2. Analyzing design hierarchy..
+Top module:  \correction_unit
+Used module:     \correction_arith
+Used module:         \fp4_decode8
+Used module:         \e2m3_delta
+Used module:     \sel16
+Removing unused module `\dpe_corrected'.
+Removing unused module `\tree18'.
+Removing unused module `\dpe_plain'.
+Removing unused module `\scale_acc'.
+Removing unused module `\main_path'.
+Removing unused module `\tree16'.
+Removing unused module `\products16'.
+Removing unused module `\csa'.
+Removed 8 unused modules.
+
+3. Executing PROC pass (convert processes to netlists).
+
+3.1. Executing PROC_CLEAN pass (remove empty switches from decision trees).
+Cleaned up 0 empty switches.
+
+3.2. Executing PROC_RMDEAD pass (remove dead branches from decision trees).
+Removed 1 dead cases from process $proc$cu.v:30$1 in module fp4_decode8.
+Marked 1 switch rules as full_case in process $proc$cu.v:30$1 in module fp4_decode8.
+Removed a total of 1 dead cases.
+
+3.3. Executing PROC_PRUNE pass (remove redundant assignments in processes).
+Removed 0 redundant assignments.
+Promoted 1 assignment to connection.
+
+3.4. Executing PROC_INIT pass (extract init attributes).
+
+3.5. Executing PROC_ARST pass (detect async resets in processes).
+
+3.6. Executing PROC_ROM pass (convert switches to ROMs).
+Converted 0 switches.
+<suppressed ~1 debug messages>
+
+3.7. Executing PROC_MUX pass (convert decision trees to multiplexers).
+Creating decoders for process `\fp4_decode8.$proc$cu.v:30$1'.
+     1/1: $1\mag[5:0]
+
+3.8. Executing PROC_DLATCH pass (convert process syncs to latches).
+No latch inferred for signal `\fp4_decode8.\mag' from process `\fp4_decode8.$proc$cu.v:30$1'.
+
+3.9. Executing PROC_DFF pass (convert process syncs to FFs).
+
+3.10. Executing PROC_MEMWR pass (convert process memory writes to cells).
+
+3.11. Executing PROC_CLEAN pass (remove empty switches from decision trees).
+Found and cleaned up 1 empty switch in `\fp4_decode8.$proc$cu.v:30$1'.
+Removing empty process `fp4_decode8.$proc$cu.v:30$1'.
+Cleaned up 1 empty switch.
+
+3.12. Executing OPT_EXPR pass (perform const folding).
+Optimizing module e2m3_delta.
+<suppressed ~1 debug messages>
+Optimizing module sel16.
+Optimizing module correction_unit.
+Optimizing module correction_arith.
+Optimizing module fp4_decode8.
+<suppressed ~1 debug messages>
+
+4. Executing OPT pass (performing simple optimizations).
+
+4.1. Executing OPT_EXPR pass (perform const folding).
+Optimizing module e2m3_delta.
+Optimizing module sel16.
+<suppressed ~3 debug messages>
+Optimizing module correction_unit.
+Optimizing module correction_arith.
+Optimizing module fp4_decode8.
+
+4.2. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\e2m3_delta'.
+Computing hashes of 6 cells of `\e2m3_delta'.
+Finding duplicate cells in `\e2m3_delta'.
+Finding identical cells in module `\sel16'.
+Computing hashes of 2 cells of `\sel16'.
+Finding duplicate cells in `\sel16'.
+Finding identical cells in module `\correction_unit'.
+Computing hashes of 5 cells of `\correction_unit'.
+Finding duplicate cells in `\correction_unit'.
+Finding identical cells in module `\correction_arith'.
+Computing hashes of 6 cells of `\correction_arith'.
+Finding duplicate cells in `\correction_arith'.
+Finding identical cells in module `\fp4_decode8'.
+Computing hashes of 11 cells of `\fp4_decode8'.
+Finding duplicate cells in `\fp4_decode8'.
+Removed a total of 0 cells.
+
+4.3. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \e2m3_delta..
+  Creating internal representation of mux trees.
+  Evaluating internal representation of mux trees.
+  Analyzing evaluation results.
+Running muxtree optimizer on module \sel16..
+  Creating internal representation of mux trees.
+  No muxes found in this module.
+Running muxtree optimizer on module \correction_unit..
+  Creating internal representation of mux trees.
+  No muxes found in this module.
+Running muxtree optimizer on module \correction_arith..
+  Creating internal representation of mux trees.
+  No muxes found in this module.
+Running muxtree optimizer on module \fp4_decode8..
+  Creating internal representation of mux trees.
+  Evaluating internal representation of mux trees.
+  Analyzing evaluation results.
+Removed 0 multiplexer ports.
+<suppressed ~12 debug messages>
+
+4.4. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \e2m3_delta.
+  Optimizing cells in module \sel16.
+  Optimizing cells in module \correction_unit.
+  Optimizing cells in module \correction_arith.
+  Optimizing cells in module \fp4_decode8.
+Performed a total of 0 changes.
+
+4.5. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\e2m3_delta'.
+Computing hashes of 6 cells of `\e2m3_delta'.
+Finding duplicate cells in `\e2m3_delta'.
+Finding identical cells in module `\sel16'.
+Computing hashes of 2 cells of `\sel16'.
+Finding duplicate cells in `\sel16'.
+Finding identical cells in module `\correction_unit'.
+Computing hashes of 5 cells of `\correction_unit'.
+Finding duplicate cells in `\correction_unit'.
+Finding identical cells in module `\correction_arith'.
+Computing hashes of 6 cells of `\correction_arith'.
+Finding duplicate cells in `\correction_arith'.
+Finding identical cells in module `\fp4_decode8'.
+Computing hashes of 11 cells of `\fp4_decode8'.
+Finding duplicate cells in `\fp4_decode8'.
+Removed a total of 0 cells.
+
+4.6. Executing OPT_DFF pass (perform DFF optimizations).
+
+4.7. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \e2m3_delta..
+Finding unused cells or wires in module \sel16..
+Finding unused cells or wires in module \correction_unit..
+Finding unused cells or wires in module \correction_arith..
+Finding unused cells or wires in module \fp4_decode8..
+Removed 0 unused cells and 12 unused wires.
+<suppressed ~5 debug messages>
+
+4.8. Executing OPT_EXPR pass (perform const folding).
+Optimizing module e2m3_delta.
+Optimizing module sel16.
+Optimizing module correction_unit.
+Optimizing module correction_arith.
+Optimizing module fp4_decode8.
+
+4.9. Rerunning OPT passes. (Maybe there is more to do..)
+
+4.10. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \e2m3_delta..
+  Creating internal representation of mux trees.
+  Evaluating internal representation of mux trees.
+  Analyzing evaluation results.
+Running muxtree optimizer on module \sel16..
+  Creating internal representation of mux trees.
+  No muxes found in this module.
+Running muxtree optimizer on module \correction_unit..
+  Creating internal representation of mux trees.
+  No muxes found in this module.
+Running muxtree optimizer on module \correction_arith..
+  Creating internal representation of mux trees.
+  No muxes found in this module.
+Running muxtree optimizer on module \fp4_decode8..
+  Creating internal representation of mux trees.
+  Evaluating internal representation of mux trees.
+  Analyzing evaluation results.
+Removed 0 multiplexer ports.
+<suppressed ~12 debug messages>
+
+4.11. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \e2m3_delta.
+  Optimizing cells in module \sel16.
+  Optimizing cells in module \correction_unit.
+  Optimizing cells in module \correction_arith.
+  Optimizing cells in module \fp4_decode8.
+Performed a total of 0 changes.
+
+4.12. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\e2m3_delta'.
+Computing hashes of 6 cells of `\e2m3_delta'.
+Finding duplicate cells in `\e2m3_delta'.
+Finding identical cells in module `\sel16'.
+Computing hashes of 1 cells of `\sel16'.
+Finding duplicate cells in `\sel16'.
+Finding identical cells in module `\correction_unit'.
+Computing hashes of 5 cells of `\correction_unit'.
+Finding duplicate cells in `\correction_unit'.
+Finding identical cells in module `\correction_arith'.
+Computing hashes of 6 cells of `\correction_arith'.
+Finding duplicate cells in `\correction_arith'.
+Finding identical cells in module `\fp4_decode8'.
+Computing hashes of 11 cells of `\fp4_decode8'.
+Finding duplicate cells in `\fp4_decode8'.
+Removed a total of 0 cells.
+
+4.13. Executing OPT_DFF pass (perform DFF optimizations).
+
+4.14. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \e2m3_delta..
+Finding unused cells or wires in module \sel16..
+Finding unused cells or wires in module \correction_unit..
+Finding unused cells or wires in module \correction_arith..
+Finding unused cells or wires in module \fp4_decode8..
+
+4.15. Executing OPT_EXPR pass (perform const folding).
+Optimizing module e2m3_delta.
+Optimizing module sel16.
+Optimizing module correction_unit.
+Optimizing module correction_arith.
+Optimizing module fp4_decode8.
+
+4.16. Finished fast OPT passes. (There is nothing left to do.)
+
+5. Executing FLATTEN pass (flatten design).
+Deleting now unused module e2m3_delta.
+Deleting now unused module sel16.
+Deleting now unused module correction_arith.
+Deleting now unused module fp4_decode8.
+<suppressed ~9 debug messages>
+
+6. Executing OPT pass (performing simple optimizations).
+
+6.1. Executing OPT_EXPR pass (perform const folding).
+Optimizing module correction_unit.
+
+6.2. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\correction_unit'.
+Computing hashes of 49 cells of `\correction_unit'.
+Finding duplicate cells in `\correction_unit'.
+Removed a total of 0 cells.
+
+6.3. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \correction_unit..
+  Creating internal representation of mux trees.
+  Evaluating internal representation of mux trees.
+  Analyzing evaluation results.
+Removed 0 multiplexer ports.
+<suppressed ~24 debug messages>
+
+6.4. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \correction_unit.
+Performed a total of 0 changes.
+
+6.5. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\correction_unit'.
+Computing hashes of 49 cells of `\correction_unit'.
+Finding duplicate cells in `\correction_unit'.
+Removed a total of 0 cells.
+
+6.6. Executing OPT_DFF pass (perform DFF optimizations).
+
+6.7. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \correction_unit..
+
+6.8. Executing OPT_EXPR pass (perform const folding).
+Optimizing module correction_unit.
+
+6.9. Finished fast OPT passes. (There is nothing left to do.)
+
+7. Executing TECHMAP pass (map to technology primitives).
+
+7.1. Executing Verilog-2005 frontend: /share/techmap.v
+Parsing Verilog input from `/share/techmap.v' to AST representation.
+Generating RTLIL representation for module `\_90_simplemap_bool_ops'.
+Generating RTLIL representation for module `\_90_simplemap_reduce_ops'.
+Generating RTLIL representation for module `\_90_simplemap_logic_ops'.
+Generating RTLIL representation for module `\_90_simplemap_compare_ops'.
+Generating RTLIL representation for module `\_90_simplemap_various'.
+Generating RTLIL representation for module `\_90_simplemap_registers'.
+Generating RTLIL representation for module `\_90_shift_ops_shr_shl_sshl_sshr'.
+Generating RTLIL representation for module `\_90_shift_shiftx'.
+Generating RTLIL representation for module `\_90_fa'.
+Generating RTLIL representation for module `\_90_lcu_brent_kung'.
+Generating RTLIL representation for module `\_90_alu'.
+Generating RTLIL representation for module `\_90_macc'.
+Generating RTLIL representation for module `\_90_alumacc'.
+Generating RTLIL representation for module `$__div_mod_u'.
+Generating RTLIL representation for module `$__div_mod_trunc'.
+Generating RTLIL representation for module `\_90_div'.
+Generating RTLIL representation for module `\_90_mod'.
+Generating RTLIL representation for module `$__div_mod_floor'.
+Generating RTLIL representation for module `\_90_divfloor'.
+Generating RTLIL representation for module `\_90_modfloor'.
+Generating RTLIL representation for module `\_90_pow'.
+Generating RTLIL representation for module `\_90_demux'.
+Generating RTLIL representation for module `\_90_lut'.
+Generating RTLIL representation for module `$connect'.
+Generating RTLIL representation for module `$input_port'.
+Successfully finished Verilog frontend.
+
+7.2. Continuing TECHMAP pass.
+Using extmapper simplemap for cells of type $logic_not.
+Using extmapper simplemap for cells of type $mux.
+Running "alumacc" on wrapper $extern:wrap:$mul:Y_WIDTH=13:B_WIDTH=8:A_WIDTH=5:B_SIGNED=1:A_SIGNED=1:394426c56d1a028ba8fdd5469b163e04011def47.
+Using template $extern:wrap:$mul:Y_WIDTH=13:B_WIDTH=8:A_WIDTH=5:B_SIGNED=1:A_SIGNED=1:394426c56d1a028ba8fdd5469b163e04011def47 for cells of type $extern:wrap:$mul:Y_WIDTH=13:B_WIDTH=8:A_WIDTH=5:B_SIGNED=1:A_SIGNED=1:394426c56d1a028ba8fdd5469b163e04011def47.
+Running "alumacc" on wrapper $extern:wrap:$mul:Y_WIDTH=13:B_WIDTH=5:A_WIDTH=8:B_SIGNED=1:A_SIGNED=1:394426c56d1a028ba8fdd5469b163e04011def47.
+Using template $extern:wrap:$mul:Y_WIDTH=13:B_WIDTH=5:A_WIDTH=8:B_SIGNED=1:A_SIGNED=1:394426c56d1a028ba8fdd5469b163e04011def47 for cells of type $extern:wrap:$mul:Y_WIDTH=13:B_WIDTH=5:A_WIDTH=8:B_SIGNED=1:A_SIGNED=1:394426c56d1a028ba8fdd5469b163e04011def47.
+Running "alumacc" on wrapper $extern:wrap:$neg:Y_WIDTH=5:A_WIDTH=5:A_SIGNED=1:394426c56d1a028ba8fdd5469b163e04011def47.
+Using template $extern:wrap:$neg:Y_WIDTH=5:A_WIDTH=5:A_SIGNED=1:394426c56d1a028ba8fdd5469b163e04011def47 for cells of type $extern:wrap:$neg:Y_WIDTH=5:A_WIDTH=5:A_SIGNED=1:394426c56d1a028ba8fdd5469b163e04011def47.
+Using template $paramod$constmap:dfe87c9277a9d7c162977ffdbdecae0116dd14e6$paramod$7b0bb309dce042ecaf2e0bfa495da988fc49fdf1\_90_shift_ops_shr_shl_sshl_sshr for cells of type $shl.
+Running "alumacc" on wrapper $extern:wrap:$sub:Y_WIDTH=2:B_WIDTH=2:A_WIDTH=2:B_SIGNED=0:A_SIGNED=0:394426c56d1a028ba8fdd5469b163e04011def47.
+Using template $extern:wrap:$sub:Y_WIDTH=2:B_WIDTH=2:A_WIDTH=2:B_SIGNED=0:A_SIGNED=0:394426c56d1a028ba8fdd5469b163e04011def47 for cells of type $extern:wrap:$sub:Y_WIDTH=2:B_WIDTH=2:A_WIDTH=2:B_SIGNED=0:A_SIGNED=0:394426c56d1a028ba8fdd5469b163e04011def47.
+Using extmapper simplemap for cells of type $eq.
+Using extmapper simplemap for cells of type $pmux.
+Running "alumacc" on wrapper $extern:wrap:$neg:Y_WIDTH=8:A_WIDTH=8:A_SIGNED=1:394426c56d1a028ba8fdd5469b163e04011def47.
+Using template $extern:wrap:$neg:Y_WIDTH=8:A_WIDTH=8:A_SIGNED=1:394426c56d1a028ba8fdd5469b163e04011def47 for cells of type $extern:wrap:$neg:Y_WIDTH=8:A_WIDTH=8:A_SIGNED=1:394426c56d1a028ba8fdd5469b163e04011def47.
+Using template $paramod$constmap:79be1a7511c9d2620063cc5144cb50b666c0396b$paramod$eab23677420f25e750124d60e7ae52cbbc3d562c\_90_shift_shiftx for cells of type $shiftx.
+Using template $paramod$3e96e356bb68fcbd4f9c12f6d97ec8513d1af8c6\_90_alu for cells of type $alu.
+Using extmapper maccmap for cells of type $macc_v2.
+  add \AR.PA.val * \AR.DB.delta (8x5 bits, signed)
+  add \AR.PW.val * \AR.DA.delta (8x5 bits, signed)
+Using template $paramod$7e708ae28ab761f11d0fb59d3ffc72f6a4baf5d9\_90_alu for cells of type $alu.
+Using template $paramod$fd7bfb1a4f3a7c2ac1a35670d0fa64ccc7b91841\_90_alu for cells of type $alu.
+Using template $paramod\_90_fa\WIDTH=32'00000000000000000000000000001101 for cells of type $fa.
+Using template $paramod$2780480d52179e2db572a6e5133edf36e733d32e\_90_alu for cells of type $alu.
+Using extmapper simplemap for cells of type $and.
+Using extmapper simplemap for cells of type $not.
+Using extmapper simplemap for cells of type $xor.
+Using template $paramod\_90_fa\WIDTH=32'00000000000000000000000000000101 for cells of type $fa.
+Using template $paramod\_90_lcu_brent_kung\WIDTH=32'00000000000000000000000000000101 for cells of type $lcu.
+Using extmapper simplemap for cells of type $pos.
+Using template $paramod\_90_fa\WIDTH=32'00000000000000000000000000000010 for cells of type $fa.
+Using template $paramod\_90_lcu_brent_kung\WIDTH=32'00000000000000000000000000000010 for cells of type $lcu.
+Using template $paramod\_90_fa\WIDTH=32'00000000000000000000000000001000 for cells of type $fa.
+Using template $paramod\_90_lcu_brent_kung\WIDTH=32'00000000000000000000000000001000 for cells of type $lcu.
+Using extmapper simplemap for cells of type $or.
+Using template $paramod\_90_lcu_brent_kung\WIDTH=32'00000000000000000000000000001101 for cells of type $lcu.
+No more expansions possible.
+<suppressed ~1618 debug messages>
+
+8. Executing OPT pass (performing simple optimizations).
+
+8.1. Executing OPT_EXPR pass (perform const folding).
+Optimizing module correction_unit.
+<suppressed ~2808 debug messages>
+
+8.2. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\correction_unit'.
+Computing hashes of 1839 cells of `\correction_unit'.
+Finding duplicate cells in `\correction_unit'.
+Computing hashes of 1797 cells of `\correction_unit'.
+Finding duplicate cells in `\correction_unit'.
+Computing hashes of 1775 cells of `\correction_unit'.
+Finding duplicate cells in `\correction_unit'.
+Computing hashes of 1761 cells of `\correction_unit'.
+Finding duplicate cells in `\correction_unit'.
+Computing hashes of 1751 cells of `\correction_unit'.
+Finding duplicate cells in `\correction_unit'.
+Computing hashes of 1745 cells of `\correction_unit'.
+Finding duplicate cells in `\correction_unit'.
+Computing hashes of 1741 cells of `\correction_unit'.
+Finding duplicate cells in `\correction_unit'.
+Computing hashes of 1739 cells of `\correction_unit'.
+Finding duplicate cells in `\correction_unit'.
+Computing hashes of 1735 cells of `\correction_unit'.
+Finding duplicate cells in `\correction_unit'.
+Computing hashes of 1731 cells of `\correction_unit'.
+Finding duplicate cells in `\correction_unit'.
+Computing hashes of 1729 cells of `\correction_unit'.
+Finding duplicate cells in `\correction_unit'.
+<suppressed ~330 debug messages>
+Removed a total of 110 cells.
+
+8.3. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \correction_unit..
+  Creating internal representation of mux trees.
+  No muxes found in this module.
+Removed 0 multiplexer ports.
+
+8.4. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \correction_unit.
+Performed a total of 0 changes.
+
+8.5. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\correction_unit'.
+Computing hashes of 1729 cells of `\correction_unit'.
+Finding duplicate cells in `\correction_unit'.
+Removed a total of 0 cells.
+
+8.6. Executing OPT_DFF pass (perform DFF optimizations).
+
+8.7. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \correction_unit..
+Removed 854 unused cells and 624 unused wires.
+<suppressed ~855 debug messages>
+
+8.8. Executing OPT_EXPR pass (perform const folding).
+Optimizing module correction_unit.
+<suppressed ~4 debug messages>
+
+8.9. Rerunning OPT passes. (Maybe there is more to do..)
+
+8.10. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \correction_unit..
+  Creating internal representation of mux trees.
+  No muxes found in this module.
+Removed 0 multiplexer ports.
+
+8.11. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \correction_unit.
+Performed a total of 0 changes.
+
+8.12. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\correction_unit'.
+Computing hashes of 871 cells of `\correction_unit'.
+Finding duplicate cells in `\correction_unit'.
+Removed a total of 0 cells.
+
+8.13. Executing OPT_DFF pass (perform DFF optimizations).
+
+8.14. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \correction_unit..
+
+8.15. Executing OPT_EXPR pass (perform const folding).
+Optimizing module correction_unit.
+
+8.16. Finished fast OPT passes. (There is nothing left to do.)
+
+9. Executing ABC pass (technology mapping using ABC).
+
+9.1. Extracting gate netlist of module `\correction_unit' to `<abc-temp-dir>/input.blif'..
+Replacing 10 occurrences of constant undef bits with constant zero bits
+
+9.1.1. Executed ABC.
+Extracted 862 gates and 1004 wires to a netlist network with 140 inputs and 26 outputs.
+Running ABC script: <abc-temp-dir>/abc.script
+
+9.1.2. Re-integrating ABC results.
+ABC RESULTS:           AND2_X1 cells:       19
+ABC RESULTS:           AND3_X1 cells:       10
+ABC RESULTS:           AND4_X1 cells:        2
+ABC RESULTS:         AOI211_X1 cells:       18
+ABC RESULTS:          AOI21_X1 cells:       88
+ABC RESULTS:         AOI221_X1 cells:       26
+ABC RESULTS:          AOI22_X1 cells:        6
+ABC RESULTS:            INV_X1 cells:       28
+ABC RESULTS:           MUX2_X1 cells:       55
+ABC RESULTS:          NAND2_X1 cells:       58
+ABC RESULTS:          NAND3_X1 cells:       21
+ABC RESULTS:          NAND4_X1 cells:        2
+ABC RESULTS:           NOR2_X1 cells:       54
+ABC RESULTS:           NOR3_X1 cells:       12
+ABC RESULTS:           NOR4_X1 cells:        4
+ABC RESULTS:         OAI211_X1 cells:       60
+ABC RESULTS:          OAI21_X1 cells:       39
+ABC RESULTS:          OAI22_X1 cells:        1
+ABC RESULTS:          OAI33_X1 cells:        1
+ABC RESULTS:            OR2_X1 cells:       75
+ABC RESULTS:            OR3_X1 cells:        2
+ABC RESULTS:            OR4_X1 cells:        3
+ABC RESULTS:          XNOR2_X1 cells:       51
+ABC RESULTS:           XOR2_X1 cells:       32
+ABC RESULTS:          _const0_ cells:        4
+ABC RESULTS:        internal signals:      838
+ABC RESULTS:           input signals:      140
+ABC RESULTS:          output signals:       26
+Removing temp directory.
+Removing global temp directory.
+
+10. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \correction_unit..
+Removed 0 unused cells and 388 unused wires.
+<suppressed ~35 debug messages>
+
+11. Executing Liberty frontend: nangate45_typ.lib
+Imported 134 cell types from liberty file.
+
+12. Printing statistics.
+
+=== correction_unit ===
+
+        +----------Local Count, excluding submodules.
+        |        +-Local Area, excluding submodules.
+        |        | 
+      673        - wires
+     1161        - wire bits
+       28        - public wires
+      516        - public wire bits
+        8        - ports
+      166        - port bits
+      676  797.734 cells
+        9        -   $scopeinfo
+       19   20.216   AND2_X1
+       10     13.3   AND3_X1
+        2    3.192   AND4_X1
+       18    23.94   AOI211_X1
+       88   93.632   AOI21_X1
+       26   41.496   AOI221_X1
+        6     7.98   AOI22_X1
+       28   14.896   INV_X1
+       55   102.41   MUX2_X1
+       58   46.284   NAND2_X1
+       21   22.344   NAND3_X1
+        2     2.66   NAND4_X1
+       54   43.092   NOR2_X1
+       12   12.768   NOR3_X1
+        4     5.32   NOR4_X1
+       60     79.8   OAI211_X1
+       39   41.496   OAI21_X1
+        1     1.33   OAI22_X1
+        1    1.862   OAI33_X1
+       75     79.8   OR2_X1
+        2     2.66   OR3_X1
+        3    4.788   OR4_X1
+       51   81.396   XNOR2_X1
+       32   51.072   XOR2_X1
+
+   Area for cell type $scopeinfo is unknown!
+
+   Chip area for module '\correction_unit': 797.734000
+     of which used for sequential elements: 0.000000 (0.00%)
+
+13. Executing JSON backend.
+
+End of script. Logfile hash: e7101d8880, time: 1.30s, user: 1.31s, system: 0.00s
+Yosys 0.68 (git sha1 38e001a6f, Release, Clang /workspace/YoWASP/yosys/wasi-sdk-33.0-x86_64-linux/share/cmake/../..//bin/clang++ 22.1.0)
+Time spent: 52% 1x abc (0 sec), 10% 2x read_liberty (0 sec), ...
