@@ -1,0 +1,369 @@
+
+ /----------------------------------------------------------------------------\
+ |  yosys -- Yosys Open SYnthesis Suite                                       |
+ |  Copyright (C) 2012 - 2026  Claire Xenia Wolf <claire@yosyshq.com>         |
+ |  Distributed under an ISC-like license, type "license" to see terms        |
+ \----------------------------------------------------------------------------/
+ Yosys 0.68 (git sha1 38e001a6f, Release, Clang /workspace/YoWASP/yosys/wasi-sdk-33.0-x86_64-linux/share/cmake/../..//bin/clang++ 22.1.0)
+
+-- Running command `
+    read_verilog -sv cu.v;
+    hierarchy -top sel16 ;
+    proc; opt; flatten; opt;
+    techmap; opt;
+    abc -liberty nangate45_typ.lib;
+    opt_clean;
+    read_liberty -lib -ignore_miss_dir nangate45_typ.lib;
+    stat -liberty nangate45_typ.lib;
+    write_json results/sel16.json
+  ' --
+
+1. Executing Verilog-2005 frontend: cu.v
+Parsing SystemVerilog input from `cu.v' to AST representation.
+Generating RTLIL representation for module `\fp4_decode8'.
+Generating RTLIL representation for module `\csa'.
+Generating RTLIL representation for module `\products16'.
+Generating RTLIL representation for module `\tree16'.
+Generating RTLIL representation for module `\main_path'.
+Generating RTLIL representation for module `\scale_acc'.
+Generating RTLIL representation for module `\dpe_plain'.
+Generating RTLIL representation for module `\sel16'.
+Generating RTLIL representation for module `\e2m3_delta'.
+Generating RTLIL representation for module `\correction_arith'.
+Generating RTLIL representation for module `\correction_unit'.
+Generating RTLIL representation for module `\tree18'.
+Generating RTLIL representation for module `\dpe_corrected'.
+Successfully finished Verilog frontend.
+
+2. Executing HIERARCHY pass (managing design hierarchy).
+
+2.1. Analyzing design hierarchy..
+Top module:  \sel16
+
+2.2. Analyzing design hierarchy..
+Top module:  \sel16
+Removing unused module `\dpe_corrected'.
+Removing unused module `\tree18'.
+Removing unused module `\correction_unit'.
+Removing unused module `\correction_arith'.
+Removing unused module `\e2m3_delta'.
+Removing unused module `\dpe_plain'.
+Removing unused module `\scale_acc'.
+Removing unused module `\main_path'.
+Removing unused module `\tree16'.
+Removing unused module `\products16'.
+Removing unused module `\csa'.
+Removing unused module `\fp4_decode8'.
+Removed 12 unused modules.
+
+3. Executing PROC pass (convert processes to netlists).
+
+3.1. Executing PROC_CLEAN pass (remove empty switches from decision trees).
+Cleaned up 0 empty switches.
+
+3.2. Executing PROC_RMDEAD pass (remove dead branches from decision trees).
+Removed a total of 0 dead cases.
+
+3.3. Executing PROC_PRUNE pass (remove redundant assignments in processes).
+Removed 0 redundant assignments.
+Promoted 0 assignments to connections.
+
+3.4. Executing PROC_INIT pass (extract init attributes).
+
+3.5. Executing PROC_ARST pass (detect async resets in processes).
+
+3.6. Executing PROC_ROM pass (convert switches to ROMs).
+Converted 0 switches.
+
+3.7. Executing PROC_MUX pass (convert decision trees to multiplexers).
+
+3.8. Executing PROC_DLATCH pass (convert process syncs to latches).
+
+3.9. Executing PROC_DFF pass (convert process syncs to FFs).
+
+3.10. Executing PROC_MEMWR pass (convert process memory writes to cells).
+
+3.11. Executing PROC_CLEAN pass (remove empty switches from decision trees).
+Cleaned up 0 empty switches.
+
+3.12. Executing OPT_EXPR pass (perform const folding).
+Optimizing module sel16.
+
+4. Executing OPT pass (performing simple optimizations).
+
+4.1. Executing OPT_EXPR pass (perform const folding).
+Optimizing module sel16.
+<suppressed ~3 debug messages>
+
+4.2. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\sel16'.
+Computing hashes of 2 cells of `\sel16'.
+Finding duplicate cells in `\sel16'.
+Removed a total of 0 cells.
+
+4.3. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \sel16..
+  Creating internal representation of mux trees.
+  No muxes found in this module.
+Removed 0 multiplexer ports.
+
+4.4. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \sel16.
+Performed a total of 0 changes.
+
+4.5. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\sel16'.
+Computing hashes of 2 cells of `\sel16'.
+Finding duplicate cells in `\sel16'.
+Removed a total of 0 cells.
+
+4.6. Executing OPT_DFF pass (perform DFF optimizations).
+
+4.7. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \sel16..
+Removed 0 unused cells and 3 unused wires.
+<suppressed ~2 debug messages>
+
+4.8. Executing OPT_EXPR pass (perform const folding).
+Optimizing module sel16.
+
+4.9. Rerunning OPT passes. (Maybe there is more to do..)
+
+4.10. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \sel16..
+  Creating internal representation of mux trees.
+  No muxes found in this module.
+Removed 0 multiplexer ports.
+
+4.11. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \sel16.
+Performed a total of 0 changes.
+
+4.12. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\sel16'.
+Computing hashes of 1 cells of `\sel16'.
+Finding duplicate cells in `\sel16'.
+Removed a total of 0 cells.
+
+4.13. Executing OPT_DFF pass (perform DFF optimizations).
+
+4.14. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \sel16..
+
+4.15. Executing OPT_EXPR pass (perform const folding).
+Optimizing module sel16.
+
+4.16. Finished fast OPT passes. (There is nothing left to do.)
+
+5. Executing FLATTEN pass (flatten design).
+
+6. Executing OPT pass (performing simple optimizations).
+
+6.1. Executing OPT_EXPR pass (perform const folding).
+Optimizing module sel16.
+
+6.2. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\sel16'.
+Computing hashes of 1 cells of `\sel16'.
+Finding duplicate cells in `\sel16'.
+Removed a total of 0 cells.
+
+6.3. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \sel16..
+  Creating internal representation of mux trees.
+  No muxes found in this module.
+Removed 0 multiplexer ports.
+
+6.4. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \sel16.
+Performed a total of 0 changes.
+
+6.5. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\sel16'.
+Computing hashes of 1 cells of `\sel16'.
+Finding duplicate cells in `\sel16'.
+Removed a total of 0 cells.
+
+6.6. Executing OPT_DFF pass (perform DFF optimizations).
+
+6.7. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \sel16..
+
+6.8. Executing OPT_EXPR pass (perform const folding).
+Optimizing module sel16.
+
+6.9. Finished fast OPT passes. (There is nothing left to do.)
+
+7. Executing TECHMAP pass (map to technology primitives).
+
+7.1. Executing Verilog-2005 frontend: /share/techmap.v
+Parsing Verilog input from `/share/techmap.v' to AST representation.
+Generating RTLIL representation for module `\_90_simplemap_bool_ops'.
+Generating RTLIL representation for module `\_90_simplemap_reduce_ops'.
+Generating RTLIL representation for module `\_90_simplemap_logic_ops'.
+Generating RTLIL representation for module `\_90_simplemap_compare_ops'.
+Generating RTLIL representation for module `\_90_simplemap_various'.
+Generating RTLIL representation for module `\_90_simplemap_registers'.
+Generating RTLIL representation for module `\_90_shift_ops_shr_shl_sshl_sshr'.
+Generating RTLIL representation for module `\_90_shift_shiftx'.
+Generating RTLIL representation for module `\_90_fa'.
+Generating RTLIL representation for module `\_90_lcu_brent_kung'.
+Generating RTLIL representation for module `\_90_alu'.
+Generating RTLIL representation for module `\_90_macc'.
+Generating RTLIL representation for module `\_90_alumacc'.
+Generating RTLIL representation for module `$__div_mod_u'.
+Generating RTLIL representation for module `$__div_mod_trunc'.
+Generating RTLIL representation for module `\_90_div'.
+Generating RTLIL representation for module `\_90_mod'.
+Generating RTLIL representation for module `$__div_mod_floor'.
+Generating RTLIL representation for module `\_90_divfloor'.
+Generating RTLIL representation for module `\_90_modfloor'.
+Generating RTLIL representation for module `\_90_pow'.
+Generating RTLIL representation for module `\_90_demux'.
+Generating RTLIL representation for module `\_90_lut'.
+Generating RTLIL representation for module `$connect'.
+Generating RTLIL representation for module `$input_port'.
+Successfully finished Verilog frontend.
+
+7.2. Continuing TECHMAP pass.
+Using template $paramod$constmap:79be1a7511c9d2620063cc5144cb50b666c0396b$paramod$eab23677420f25e750124d60e7ae52cbbc3d562c\_90_shift_shiftx for cells of type $shiftx.
+Using extmapper simplemap for cells of type $mux.
+No more expansions possible.
+<suppressed ~446 debug messages>
+
+8. Executing OPT pass (performing simple optimizations).
+
+8.1. Executing OPT_EXPR pass (perform const folding).
+Optimizing module sel16.
+<suppressed ~512 debug messages>
+
+8.2. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\sel16'.
+Computing hashes of 256 cells of `\sel16'.
+Finding duplicate cells in `\sel16'.
+Removed a total of 0 cells.
+
+8.3. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \sel16..
+  Creating internal representation of mux trees.
+  No muxes found in this module.
+Removed 0 multiplexer ports.
+
+8.4. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \sel16.
+Performed a total of 0 changes.
+
+8.5. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\sel16'.
+Computing hashes of 256 cells of `\sel16'.
+Finding duplicate cells in `\sel16'.
+Removed a total of 0 cells.
+
+8.6. Executing OPT_DFF pass (perform DFF optimizations).
+
+8.7. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \sel16..
+Removed 196 unused cells and 6 unused wires.
+<suppressed ~197 debug messages>
+
+8.8. Executing OPT_EXPR pass (perform const folding).
+Optimizing module sel16.
+
+8.9. Rerunning OPT passes. (Maybe there is more to do..)
+
+8.10. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \sel16..
+  Creating internal representation of mux trees.
+  No muxes found in this module.
+Removed 0 multiplexer ports.
+
+8.11. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \sel16.
+Performed a total of 0 changes.
+
+8.12. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\sel16'.
+Computing hashes of 60 cells of `\sel16'.
+Finding duplicate cells in `\sel16'.
+Removed a total of 0 cells.
+
+8.13. Executing OPT_DFF pass (perform DFF optimizations).
+
+8.14. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \sel16..
+
+8.15. Executing OPT_EXPR pass (perform const folding).
+Optimizing module sel16.
+
+8.16. Finished fast OPT passes. (There is nothing left to do.)
+
+9. Executing ABC pass (technology mapping using ABC).
+
+9.1. Extracting gate netlist of module `\sel16' to `<abc-temp-dir>/input.blif'..
+
+9.1.1. Executed ABC.
+Extracted 60 gates and 128 wires to a netlist network with 68 inputs and 4 outputs.
+Running ABC script: <abc-temp-dir>/abc.script
+
+9.1.2. Re-integrating ABC results.
+ABC RESULTS:         AOI211_X1 cells:        1
+ABC RESULTS:          AOI21_X1 cells:       14
+ABC RESULTS:          AOI22_X1 cells:        5
+ABC RESULTS:            INV_X1 cells:        7
+ABC RESULTS:           MUX2_X1 cells:       13
+ABC RESULTS:          NAND2_X1 cells:        3
+ABC RESULTS:           NOR2_X1 cells:        9
+ABC RESULTS:         OAI211_X1 cells:        9
+ABC RESULTS:          OAI21_X1 cells:       14
+ABC RESULTS:         OAI221_X1 cells:        2
+ABC RESULTS:          OAI22_X1 cells:        4
+ABC RESULTS:            OR2_X1 cells:        8
+ABC RESULTS:        internal signals:       56
+ABC RESULTS:           input signals:       68
+ABC RESULTS:          output signals:        4
+Removing temp directory.
+Removing global temp directory.
+
+10. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \sel16..
+Removed 0 unused cells and 76 unused wires.
+<suppressed ~1 debug messages>
+
+11. Executing Liberty frontend: nangate45_typ.lib
+Imported 134 cell types from liberty file.
+
+12. Printing statistics.
+
+=== sel16 ===
+
+        +----------Local Count, excluding submodules.
+        |        +-Local Area, excluding submodules.
+        |        | 
+       88        - wires
+      157        - wire bits
+        3        - public wires
+       72        - public wire bits
+        3        - ports
+       72        - port bits
+       89  104.272 cells
+        1     1.33   AOI211_X1
+       14   14.896   AOI21_X1
+        5     6.65   AOI22_X1
+        7    3.724   INV_X1
+       13   24.206   MUX2_X1
+        3    2.394   NAND2_X1
+        9    7.182   NOR2_X1
+        9    11.97   OAI211_X1
+       14   14.896   OAI21_X1
+        2    3.192   OAI221_X1
+        4     5.32   OAI22_X1
+        8    8.512   OR2_X1
+
+   Chip area for module '\sel16': 104.272000
+     of which used for sequential elements: 0.000000 (0.00%)
+
+13. Executing JSON backend.
+
+End of script. Logfile hash: e186056797, time: 0.80s, user: 0.80s, system: 0.00s
+Yosys 0.68 (git sha1 38e001a6f, Release, Clang /workspace/YoWASP/yosys/wasi-sdk-33.0-x86_64-linux/share/cmake/../..//bin/clang++ 22.1.0)
+Time spent: 50% 1x abc (0 sec), 16% 1x stat (0 sec), ...

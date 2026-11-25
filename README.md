@@ -1,8 +1,8 @@
 # Crescent
 
 Code and results for *Crescent: Accurate and Efficient 4-Bit LLM Inference Through Selective Mantissa
-Extension* (ISCA 2027 submission). Crescent extends the mantissa of the activation elements with the
-largest quantization error in each group from E2M1 to E2M3, under NVFP4 and MXFP4.
+Extension*. Crescent extends the mantissa of the activation elements with the largest quantization
+error in each group from E2M1 to E2M3, under NVFP4 and MXFP4.
 
 Settings in Section 4 (code name / CSV label): `bf16` / BF16, `native` / Native, `magnitude` / Magnitude,
 `all_e2m3` / All_E2M3, `crescent` / Crescent. They are defined once, in `common/ppl_w4a4.py`.
@@ -16,6 +16,7 @@ Settings in Section 4 (code name / CSV label): `bf16` / BF16, `native` / Native,
 | `2_motivation/fig4_magnitude_vs_error/` | Figure 4 |
 | `2_motivation/fig5_mantissa_bitwidth/` | Figure 5 |
 | `2_motivation/table1_selective_extension/` | Table 1 |
+| `3_solution/` | Section 3: Correction Unit area and critical path (Yosys, Nangate45) |
 | `4_evaluation/table6_zeroshot/` | Table 6 |
 | `4_evaluation/table7_perplexity/` | Table 7 |
 | `4_evaluation/fig11_gemm_error/` | Figure 11 |
@@ -75,6 +76,17 @@ Table 1 (BF16, Native and Selective (E2M3) rows in one run):
 
 ```bash
 python3 2_motivation/table1_selective_extension/ppl.py nvfp4 llama_base
+```
+
+## Section 3: Correction Unit area and critical path
+
+Synthesizes the baseline and Crescent DPUs with Yosys 0.68 and Nangate45 (CPU only, under a minute).
+See `3_solution/README.md`.
+
+```bash
+pip install yowasp-yosys==0.68.0.0.post1208
+YOSYS=yowasp-yosys 3_solution/synthesis/synth.sh             # -> 3_solution/synthesis/results/summary.csv
+YOSYS=yowasp-yosys python3 3_solution/synthesis/verify.py    # RTL vs Python model
 ```
 
 ## Section 4: Evaluation
