@@ -1,0 +1,545 @@
+
+ /----------------------------------------------------------------------------\
+ |  yosys -- Yosys Open SYnthesis Suite                                       |
+ |  Copyright (C) 2012 - 2026  Claire Xenia Wolf <claire@yosyshq.com>         |
+ |  Distributed under an ISC-like license, type "license" to see terms        |
+ \----------------------------------------------------------------------------/
+ Yosys 0.68 (git sha1 38e001a6f, Release, Clang /workspace/YoWASP/yosys/wasi-sdk-33.0-x86_64-linux/share/cmake/../..//bin/clang++ 22.1.0)
+
+-- Running command `
+    read_verilog -sv cu.v;
+    hierarchy -top tree16 ;
+    proc; opt; flatten; opt;
+    techmap; opt;
+    abc -liberty nangate45_typ.lib;
+    opt_clean;
+    read_liberty -lib -ignore_miss_dir nangate45_typ.lib;
+    stat -liberty nangate45_typ.lib;
+    write_json results/tree16.json
+  ' --
+
+1. Executing Verilog-2005 frontend: cu.v
+Parsing SystemVerilog input from `cu.v' to AST representation.
+Generating RTLIL representation for module `\fp4_decode8'.
+Generating RTLIL representation for module `\csa'.
+Generating RTLIL representation for module `\products16'.
+Generating RTLIL representation for module `\tree16'.
+Generating RTLIL representation for module `\main_path'.
+Generating RTLIL representation for module `\scale_acc'.
+Generating RTLIL representation for module `\dpe_plain'.
+Generating RTLIL representation for module `\sel16'.
+Generating RTLIL representation for module `\e2m3_delta'.
+Generating RTLIL representation for module `\correction_arith'.
+Generating RTLIL representation for module `\correction_unit'.
+Generating RTLIL representation for module `\tree18'.
+Generating RTLIL representation for module `\dpe_corrected'.
+Successfully finished Verilog frontend.
+
+2. Executing HIERARCHY pass (managing design hierarchy).
+
+2.1. Analyzing design hierarchy..
+Top module:  \tree16
+Used module:     \csa
+Parameter 1 (\W) = 20
+
+2.2. Executing AST frontend in derive mode using pre-parsed AST for module `\csa'.
+Parameter 1 (\W) = 20
+Generating RTLIL representation for module `$paramod\csa\W=s32'00000000000000000000000000010100'.
+Parameter 1 (\W) = 20
+Found cached RTLIL representation for module `$paramod\csa\W=s32'00000000000000000000000000010100'.
+Parameter 1 (\W) = 20
+Found cached RTLIL representation for module `$paramod\csa\W=s32'00000000000000000000000000010100'.
+Parameter 1 (\W) = 20
+Found cached RTLIL representation for module `$paramod\csa\W=s32'00000000000000000000000000010100'.
+Parameter 1 (\W) = 20
+Found cached RTLIL representation for module `$paramod\csa\W=s32'00000000000000000000000000010100'.
+Parameter 1 (\W) = 20
+Found cached RTLIL representation for module `$paramod\csa\W=s32'00000000000000000000000000010100'.
+Parameter 1 (\W) = 20
+Found cached RTLIL representation for module `$paramod\csa\W=s32'00000000000000000000000000010100'.
+Parameter 1 (\W) = 20
+Found cached RTLIL representation for module `$paramod\csa\W=s32'00000000000000000000000000010100'.
+Parameter 1 (\W) = 20
+Found cached RTLIL representation for module `$paramod\csa\W=s32'00000000000000000000000000010100'.
+Parameter 1 (\W) = 20
+Found cached RTLIL representation for module `$paramod\csa\W=s32'00000000000000000000000000010100'.
+Parameter 1 (\W) = 20
+Found cached RTLIL representation for module `$paramod\csa\W=s32'00000000000000000000000000010100'.
+Parameter 1 (\W) = 20
+Found cached RTLIL representation for module `$paramod\csa\W=s32'00000000000000000000000000010100'.
+Parameter 1 (\W) = 20
+Found cached RTLIL representation for module `$paramod\csa\W=s32'00000000000000000000000000010100'.
+Parameter 1 (\W) = 20
+Found cached RTLIL representation for module `$paramod\csa\W=s32'00000000000000000000000000010100'.
+Reprocessing module tree16 because instantiated module $paramod\csa\W=s32'00000000000000000000000000010100 has become available.
+Generating RTLIL representation for module `\tree16'.
+
+2.3. Analyzing design hierarchy..
+Top module:  \tree16
+Used module:     \csa
+Parameter 1 (\W) = 20
+Found cached RTLIL representation for module `$paramod\csa\W=s32'00000000000000000000000000010100'.
+Parameter 1 (\W) = 20
+Found cached RTLIL representation for module `$paramod\csa\W=s32'00000000000000000000000000010100'.
+Parameter 1 (\W) = 20
+Found cached RTLIL representation for module `$paramod\csa\W=s32'00000000000000000000000000010100'.
+Parameter 1 (\W) = 20
+Found cached RTLIL representation for module `$paramod\csa\W=s32'00000000000000000000000000010100'.
+Parameter 1 (\W) = 20
+Found cached RTLIL representation for module `$paramod\csa\W=s32'00000000000000000000000000010100'.
+Parameter 1 (\W) = 20
+Found cached RTLIL representation for module `$paramod\csa\W=s32'00000000000000000000000000010100'.
+Parameter 1 (\W) = 20
+Found cached RTLIL representation for module `$paramod\csa\W=s32'00000000000000000000000000010100'.
+Parameter 1 (\W) = 20
+Found cached RTLIL representation for module `$paramod\csa\W=s32'00000000000000000000000000010100'.
+Parameter 1 (\W) = 20
+Found cached RTLIL representation for module `$paramod\csa\W=s32'00000000000000000000000000010100'.
+Parameter 1 (\W) = 20
+Found cached RTLIL representation for module `$paramod\csa\W=s32'00000000000000000000000000010100'.
+Parameter 1 (\W) = 20
+Found cached RTLIL representation for module `$paramod\csa\W=s32'00000000000000000000000000010100'.
+Parameter 1 (\W) = 20
+Found cached RTLIL representation for module `$paramod\csa\W=s32'00000000000000000000000000010100'.
+Parameter 1 (\W) = 20
+Found cached RTLIL representation for module `$paramod\csa\W=s32'00000000000000000000000000010100'.
+Parameter 1 (\W) = 20
+Found cached RTLIL representation for module `$paramod\csa\W=s32'00000000000000000000000000010100'.
+
+2.4. Analyzing design hierarchy..
+Top module:  \tree16
+Used module:     $paramod\csa\W=s32'00000000000000000000000000010100
+
+2.5. Analyzing design hierarchy..
+Top module:  \tree16
+Used module:     $paramod\csa\W=s32'00000000000000000000000000010100
+Removing unused module `\dpe_corrected'.
+Removing unused module `\tree18'.
+Removing unused module `\correction_unit'.
+Removing unused module `\correction_arith'.
+Removing unused module `\e2m3_delta'.
+Removing unused module `\sel16'.
+Removing unused module `\dpe_plain'.
+Removing unused module `\scale_acc'.
+Removing unused module `\main_path'.
+Removing unused module `\products16'.
+Removing unused module `\csa'.
+Removing unused module `\fp4_decode8'.
+Removed 12 unused modules.
+
+3. Executing PROC pass (convert processes to netlists).
+
+3.1. Executing PROC_CLEAN pass (remove empty switches from decision trees).
+Cleaned up 0 empty switches.
+
+3.2. Executing PROC_RMDEAD pass (remove dead branches from decision trees).
+Removed a total of 0 dead cases.
+
+3.3. Executing PROC_PRUNE pass (remove redundant assignments in processes).
+Removed 0 redundant assignments.
+Promoted 16 assignments to connections.
+
+3.4. Executing PROC_INIT pass (extract init attributes).
+
+3.5. Executing PROC_ARST pass (detect async resets in processes).
+
+3.6. Executing PROC_ROM pass (convert switches to ROMs).
+Converted 0 switches.
+
+3.7. Executing PROC_MUX pass (convert decision trees to multiplexers).
+Creating decoders for process `\tree16.$proc$cu.v:72$120'.
+Creating decoders for process `\tree16.$proc$cu.v:72$119'.
+Creating decoders for process `\tree16.$proc$cu.v:72$118'.
+Creating decoders for process `\tree16.$proc$cu.v:72$117'.
+Creating decoders for process `\tree16.$proc$cu.v:72$116'.
+Creating decoders for process `\tree16.$proc$cu.v:72$115'.
+Creating decoders for process `\tree16.$proc$cu.v:72$114'.
+Creating decoders for process `\tree16.$proc$cu.v:72$113'.
+Creating decoders for process `\tree16.$proc$cu.v:72$112'.
+Creating decoders for process `\tree16.$proc$cu.v:72$111'.
+Creating decoders for process `\tree16.$proc$cu.v:72$110'.
+Creating decoders for process `\tree16.$proc$cu.v:72$109'.
+Creating decoders for process `\tree16.$proc$cu.v:72$108'.
+Creating decoders for process `\tree16.$proc$cu.v:72$107'.
+Creating decoders for process `\tree16.$proc$cu.v:72$106'.
+Creating decoders for process `\tree16.$proc$cu.v:72$105'.
+
+3.8. Executing PROC_DLATCH pass (convert process syncs to latches).
+No latch inferred for signal `\tree16.\x[15]' from process `\tree16.$proc$cu.v:72$120'.
+No latch inferred for signal `\tree16.\x[14]' from process `\tree16.$proc$cu.v:72$119'.
+No latch inferred for signal `\tree16.\x[13]' from process `\tree16.$proc$cu.v:72$118'.
+No latch inferred for signal `\tree16.\x[12]' from process `\tree16.$proc$cu.v:72$117'.
+No latch inferred for signal `\tree16.\x[11]' from process `\tree16.$proc$cu.v:72$116'.
+No latch inferred for signal `\tree16.\x[10]' from process `\tree16.$proc$cu.v:72$115'.
+No latch inferred for signal `\tree16.\x[9]' from process `\tree16.$proc$cu.v:72$114'.
+No latch inferred for signal `\tree16.\x[8]' from process `\tree16.$proc$cu.v:72$113'.
+No latch inferred for signal `\tree16.\x[7]' from process `\tree16.$proc$cu.v:72$112'.
+No latch inferred for signal `\tree16.\x[6]' from process `\tree16.$proc$cu.v:72$111'.
+No latch inferred for signal `\tree16.\x[5]' from process `\tree16.$proc$cu.v:72$110'.
+No latch inferred for signal `\tree16.\x[4]' from process `\tree16.$proc$cu.v:72$109'.
+No latch inferred for signal `\tree16.\x[3]' from process `\tree16.$proc$cu.v:72$108'.
+No latch inferred for signal `\tree16.\x[2]' from process `\tree16.$proc$cu.v:72$107'.
+No latch inferred for signal `\tree16.\x[1]' from process `\tree16.$proc$cu.v:72$106'.
+No latch inferred for signal `\tree16.\x[0]' from process `\tree16.$proc$cu.v:72$105'.
+
+3.9. Executing PROC_DFF pass (convert process syncs to FFs).
+
+3.10. Executing PROC_MEMWR pass (convert process memory writes to cells).
+
+3.11. Executing PROC_CLEAN pass (remove empty switches from decision trees).
+Removing empty process `tree16.$proc$cu.v:72$120'.
+Removing empty process `tree16.$proc$cu.v:72$119'.
+Removing empty process `tree16.$proc$cu.v:72$118'.
+Removing empty process `tree16.$proc$cu.v:72$117'.
+Removing empty process `tree16.$proc$cu.v:72$116'.
+Removing empty process `tree16.$proc$cu.v:72$115'.
+Removing empty process `tree16.$proc$cu.v:72$114'.
+Removing empty process `tree16.$proc$cu.v:72$113'.
+Removing empty process `tree16.$proc$cu.v:72$112'.
+Removing empty process `tree16.$proc$cu.v:72$111'.
+Removing empty process `tree16.$proc$cu.v:72$110'.
+Removing empty process `tree16.$proc$cu.v:72$109'.
+Removing empty process `tree16.$proc$cu.v:72$108'.
+Removing empty process `tree16.$proc$cu.v:72$107'.
+Removing empty process `tree16.$proc$cu.v:72$106'.
+Removing empty process `tree16.$proc$cu.v:72$105'.
+Cleaned up 0 empty switches.
+
+3.12. Executing OPT_EXPR pass (perform const folding).
+Optimizing module $paramod\csa\W=s32'00000000000000000000000000010100.
+<suppressed ~1 debug messages>
+Optimizing module tree16.
+
+4. Executing OPT pass (performing simple optimizations).
+
+4.1. Executing OPT_EXPR pass (perform const folding).
+Optimizing module $paramod\csa\W=s32'00000000000000000000000000010100.
+Optimizing module tree16.
+
+4.2. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `$paramod\csa\W=s32'00000000000000000000000000010100'.
+Computing hashes of 7 cells of `$paramod\csa\W=s32'00000000000000000000000000010100'.
+Finding duplicate cells in `$paramod\csa\W=s32'00000000000000000000000000010100'.
+Finding identical cells in module `\tree16'.
+Computing hashes of 15 cells of `\tree16'.
+Finding duplicate cells in `\tree16'.
+Removed a total of 0 cells.
+
+4.3. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module $paramod\csa\W=s32'00000000000000000000000000010100..
+  Creating internal representation of mux trees.
+  No muxes found in this module.
+Running muxtree optimizer on module \tree16..
+  Creating internal representation of mux trees.
+  No muxes found in this module.
+Removed 0 multiplexer ports.
+
+4.4. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module $paramod\csa\W=s32'00000000000000000000000000010100.
+  Optimizing cells in module \tree16.
+Performed a total of 0 changes.
+
+4.5. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `$paramod\csa\W=s32'00000000000000000000000000010100'.
+Computing hashes of 7 cells of `$paramod\csa\W=s32'00000000000000000000000000010100'.
+Finding duplicate cells in `$paramod\csa\W=s32'00000000000000000000000000010100'.
+Finding identical cells in module `\tree16'.
+Computing hashes of 15 cells of `\tree16'.
+Finding duplicate cells in `\tree16'.
+Removed a total of 0 cells.
+
+4.6. Executing OPT_DFF pass (perform DFF optimizations).
+
+4.7. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module $paramod\csa\W=s32'00000000000000000000000000010100..
+Finding unused cells or wires in module \tree16..
+Removed 0 unused cells and 35 unused wires.
+<suppressed ~2 debug messages>
+
+4.8. Executing OPT_EXPR pass (perform const folding).
+Optimizing module $paramod\csa\W=s32'00000000000000000000000000010100.
+Optimizing module tree16.
+
+4.9. Rerunning OPT passes. (Maybe there is more to do..)
+
+4.10. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module $paramod\csa\W=s32'00000000000000000000000000010100..
+  Creating internal representation of mux trees.
+  No muxes found in this module.
+Running muxtree optimizer on module \tree16..
+  Creating internal representation of mux trees.
+  No muxes found in this module.
+Removed 0 multiplexer ports.
+
+4.11. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module $paramod\csa\W=s32'00000000000000000000000000010100.
+  Optimizing cells in module \tree16.
+Performed a total of 0 changes.
+
+4.12. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `$paramod\csa\W=s32'00000000000000000000000000010100'.
+Computing hashes of 7 cells of `$paramod\csa\W=s32'00000000000000000000000000010100'.
+Finding duplicate cells in `$paramod\csa\W=s32'00000000000000000000000000010100'.
+Finding identical cells in module `\tree16'.
+Computing hashes of 15 cells of `\tree16'.
+Finding duplicate cells in `\tree16'.
+Removed a total of 0 cells.
+
+4.13. Executing OPT_DFF pass (perform DFF optimizations).
+
+4.14. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module $paramod\csa\W=s32'00000000000000000000000000010100..
+Finding unused cells or wires in module \tree16..
+
+4.15. Executing OPT_EXPR pass (perform const folding).
+Optimizing module $paramod\csa\W=s32'00000000000000000000000000010100.
+Optimizing module tree16.
+
+4.16. Finished fast OPT passes. (There is nothing left to do.)
+
+5. Executing FLATTEN pass (flatten design).
+Deleting now unused module $paramod\csa\W=s32'00000000000000000000000000010100.
+<suppressed ~14 debug messages>
+
+6. Executing OPT pass (performing simple optimizations).
+
+6.1. Executing OPT_EXPR pass (perform const folding).
+Optimizing module tree16.
+
+6.2. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\tree16'.
+Computing hashes of 113 cells of `\tree16'.
+Finding duplicate cells in `\tree16'.
+Removed a total of 0 cells.
+
+6.3. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \tree16..
+  Creating internal representation of mux trees.
+  No muxes found in this module.
+Removed 0 multiplexer ports.
+
+6.4. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \tree16.
+Performed a total of 0 changes.
+
+6.5. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\tree16'.
+Computing hashes of 113 cells of `\tree16'.
+Finding duplicate cells in `\tree16'.
+Removed a total of 0 cells.
+
+6.6. Executing OPT_DFF pass (perform DFF optimizations).
+
+6.7. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \tree16..
+
+6.8. Executing OPT_EXPR pass (perform const folding).
+Optimizing module tree16.
+
+6.9. Finished fast OPT passes. (There is nothing left to do.)
+
+7. Executing TECHMAP pass (map to technology primitives).
+
+7.1. Executing Verilog-2005 frontend: /share/techmap.v
+Parsing Verilog input from `/share/techmap.v' to AST representation.
+Generating RTLIL representation for module `\_90_simplemap_bool_ops'.
+Generating RTLIL representation for module `\_90_simplemap_reduce_ops'.
+Generating RTLIL representation for module `\_90_simplemap_logic_ops'.
+Generating RTLIL representation for module `\_90_simplemap_compare_ops'.
+Generating RTLIL representation for module `\_90_simplemap_various'.
+Generating RTLIL representation for module `\_90_simplemap_registers'.
+Generating RTLIL representation for module `\_90_shift_ops_shr_shl_sshl_sshr'.
+Generating RTLIL representation for module `\_90_shift_shiftx'.
+Generating RTLIL representation for module `\_90_fa'.
+Generating RTLIL representation for module `\_90_lcu_brent_kung'.
+Generating RTLIL representation for module `\_90_alu'.
+Generating RTLIL representation for module `\_90_macc'.
+Generating RTLIL representation for module `\_90_alumacc'.
+Generating RTLIL representation for module `$__div_mod_u'.
+Generating RTLIL representation for module `$__div_mod_trunc'.
+Generating RTLIL representation for module `\_90_div'.
+Generating RTLIL representation for module `\_90_mod'.
+Generating RTLIL representation for module `$__div_mod_floor'.
+Generating RTLIL representation for module `\_90_divfloor'.
+Generating RTLIL representation for module `\_90_modfloor'.
+Generating RTLIL representation for module `\_90_pow'.
+Generating RTLIL representation for module `\_90_demux'.
+Generating RTLIL representation for module `\_90_lut'.
+Generating RTLIL representation for module `$connect'.
+Generating RTLIL representation for module `$input_port'.
+Successfully finished Verilog frontend.
+
+7.2. Continuing TECHMAP pass.
+Using extmapper simplemap for cells of type $xor.
+Using extmapper simplemap for cells of type $and.
+Using extmapper simplemap for cells of type $or.
+Running "alumacc" on wrapper $extern:wrap:$add:Y_WIDTH=20:B_WIDTH=20:A_WIDTH=20:B_SIGNED=0:A_SIGNED=0:394426c56d1a028ba8fdd5469b163e04011def47.
+Using template $extern:wrap:$add:Y_WIDTH=20:B_WIDTH=20:A_WIDTH=20:B_SIGNED=0:A_SIGNED=0:394426c56d1a028ba8fdd5469b163e04011def47 for cells of type $extern:wrap:$add:Y_WIDTH=20:B_WIDTH=20:A_WIDTH=20:B_SIGNED=0:A_SIGNED=0:394426c56d1a028ba8fdd5469b163e04011def47.
+Using template $paramod$6fc37af1c109ae54e8aed83fcd995c12d378ce93\_90_alu for cells of type $alu.
+Using template $paramod\_90_fa\WIDTH=32'00000000000000000000000000010100 for cells of type $fa.
+Using template $paramod\_90_lcu_brent_kung\WIDTH=32'00000000000000000000000000010100 for cells of type $lcu.
+Using extmapper simplemap for cells of type $pos.
+Using extmapper simplemap for cells of type $mux.
+Using extmapper simplemap for cells of type $not.
+No more expansions possible.
+<suppressed ~443 debug messages>
+
+8. Executing OPT pass (performing simple optimizations).
+
+8.1. Executing OPT_EXPR pass (perform const folding).
+Optimizing module tree16.
+<suppressed ~166 debug messages>
+
+8.2. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\tree16'.
+Computing hashes of 2051 cells of `\tree16'.
+Finding duplicate cells in `\tree16'.
+Removed a total of 0 cells.
+
+8.3. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \tree16..
+  Creating internal representation of mux trees.
+  No muxes found in this module.
+Removed 0 multiplexer ports.
+
+8.4. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \tree16.
+Performed a total of 0 changes.
+
+8.5. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\tree16'.
+Computing hashes of 2051 cells of `\tree16'.
+Finding duplicate cells in `\tree16'.
+Removed a total of 0 cells.
+
+8.6. Executing OPT_DFF pass (perform DFF optimizations).
+
+8.7. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \tree16..
+Removed 98 unused cells and 68 unused wires.
+<suppressed ~99 debug messages>
+
+8.8. Executing OPT_EXPR pass (perform const folding).
+Optimizing module tree16.
+
+8.9. Rerunning OPT passes. (Maybe there is more to do..)
+
+8.10. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \tree16..
+  Creating internal representation of mux trees.
+  No muxes found in this module.
+Removed 0 multiplexer ports.
+
+8.11. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \tree16.
+Performed a total of 0 changes.
+
+8.12. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\tree16'.
+Computing hashes of 1953 cells of `\tree16'.
+Finding duplicate cells in `\tree16'.
+Removed a total of 0 cells.
+
+8.13. Executing OPT_DFF pass (perform DFF optimizations).
+
+8.14. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \tree16..
+
+8.15. Executing OPT_EXPR pass (perform const folding).
+Optimizing module tree16.
+
+8.16. Finished fast OPT passes. (There is nothing left to do.)
+
+9. Executing ABC pass (technology mapping using ABC).
+
+9.1. Extracting gate netlist of module `\tree16' to `<abc-temp-dir>/input.blif'..
+
+9.1.1. Executed ABC.
+Extracted 1939 gates and 2259 wires to a netlist network with 320 inputs and 20 outputs.
+Running ABC script: <abc-temp-dir>/abc.script
+
+9.1.2. Re-integrating ABC results.
+ABC RESULTS:           AND2_X1 cells:       72
+ABC RESULTS:           AND3_X1 cells:       26
+ABC RESULTS:           AND4_X1 cells:        2
+ABC RESULTS:         AOI211_X1 cells:        1
+ABC RESULTS:          AOI21_X1 cells:      151
+ABC RESULTS:         AOI221_X1 cells:        1
+ABC RESULTS:          AOI22_X1 cells:       14
+ABC RESULTS:            INV_X1 cells:       98
+ABC RESULTS:          NAND2_X1 cells:      188
+ABC RESULTS:          NAND3_X1 cells:       11
+ABC RESULTS:          NAND4_X1 cells:        2
+ABC RESULTS:           NOR2_X1 cells:      189
+ABC RESULTS:           NOR3_X1 cells:       14
+ABC RESULTS:         OAI211_X1 cells:        1
+ABC RESULTS:          OAI21_X1 cells:      166
+ABC RESULTS:         OAI221_X1 cells:        1
+ABC RESULTS:          OAI22_X1 cells:        1
+ABC RESULTS:          OAI33_X1 cells:        1
+ABC RESULTS:            OR2_X1 cells:       80
+ABC RESULTS:            OR3_X1 cells:       27
+ABC RESULTS:          XNOR2_X1 cells:      250
+ABC RESULTS:           XOR2_X1 cells:      187
+ABC RESULTS:        internal signals:     1919
+ABC RESULTS:           input signals:      320
+ABC RESULTS:          output signals:       20
+Removing temp directory.
+Removing global temp directory.
+
+10. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \tree16..
+Removed 0 unused cells and 495 unused wires.
+<suppressed ~34 debug messages>
+
+11. Executing Liberty frontend: nangate45_typ.lib
+Imported 134 cell types from liberty file.
+
+12. Printing statistics.
+
+=== tree16 ===
+
+        +----------Local Count, excluding submodules.
+        |        +-Local Area, excluding submodules.
+        |        | 
+     1546        - wires
+     3423        - wire bits
+       83        - public wires
+     1960        - public wire bits
+        2        - ports
+      340        - port bits
+     1497 1.68E+03 cells
+       14        -   $scopeinfo
+       72   76.608   AND2_X1
+       26    34.58   AND3_X1
+        2    3.192   AND4_X1
+        1     1.33   AOI211_X1
+      151  160.664   AOI21_X1
+        1    1.596   AOI221_X1
+       14    18.62   AOI22_X1
+       98   52.136   INV_X1
+      188  150.024   NAND2_X1
+       11   11.704   NAND3_X1
+        2     2.66   NAND4_X1
+      189  150.822   NOR2_X1
+       14   14.896   NOR3_X1
+        1     1.33   OAI211_X1
+      166  176.624   OAI21_X1
+        1    1.596   OAI221_X1
+        1     1.33   OAI22_X1
+        1    1.862   OAI33_X1
+       80    85.12   OR2_X1
+       27    35.91   OR3_X1
+      250      399   XNOR2_X1
+      187  298.452   XOR2_X1
+
+   Area for cell type $scopeinfo is unknown!
+
+   Chip area for module '\tree16': 1680.056000
+     of which used for sequential elements: 0.000000 (0.00%)
+
+13. Executing JSON backend.
+
+End of script. Logfile hash: 1c10c081f4, time: 2.54s, user: 2.54s, system: 0.00s
+Yosys 0.68 (git sha1 38e001a6f, Release, Clang /workspace/YoWASP/yosys/wasi-sdk-33.0-x86_64-linux/share/cmake/../..//bin/clang++ 22.1.0)
+Time spent: 31% 1x abc (0 sec), 28% 2x read_liberty (0 sec), ...

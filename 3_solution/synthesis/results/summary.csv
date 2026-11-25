@@ -1,0 +1,5 @@
+module,area_um2,critical_path_ps,cells_on_path
+dpe_plain,8603.238000,3084.11,62
+dpe_corrected,9755.816000,3023.71,62
+main_path,4613.770000,1565.30,30
+correction_unit,797.734000,872.08,17

@@ -1,0 +1,6 @@
+part,area_um2,pct_of_baseline
+baseline_dpu,10253.502,100.00
+multiplexers,417.088,4.07
+correction_multipliers,439.432,4.29
+adder_tree,432.250,4.22
+total,1288.770,12.57

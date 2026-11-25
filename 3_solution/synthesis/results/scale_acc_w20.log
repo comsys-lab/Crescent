@@ -1,0 +1,444 @@
+
+ /----------------------------------------------------------------------------\
+ |  yosys -- Yosys Open SYnthesis Suite                                       |
+ |  Copyright (C) 2012 - 2026  Claire Xenia Wolf <claire@yosyshq.com>         |
+ |  Distributed under an ISC-like license, type "license" to see terms        |
+ \----------------------------------------------------------------------------/
+ Yosys 0.68 (git sha1 38e001a6f, Release, Clang /workspace/YoWASP/yosys/wasi-sdk-33.0-x86_64-linux/share/cmake/../..//bin/clang++ 22.1.0)
+
+-- Running command `
+    read_verilog -sv cu.v;
+    hierarchy -top scale_acc -chparam W 20;
+    proc; opt; flatten; opt;
+    techmap; opt;
+    abc -liberty nangate45_typ.lib;
+    opt_clean;
+    read_liberty -lib -ignore_miss_dir nangate45_typ.lib;
+    stat -liberty nangate45_typ.lib;
+    write_json results/scale_acc_w20.json
+  ' --
+
+1. Executing Verilog-2005 frontend: cu.v
+Parsing SystemVerilog input from `cu.v' to AST representation.
+Generating RTLIL representation for module `\fp4_decode8'.
+Generating RTLIL representation for module `\csa'.
+Generating RTLIL representation for module `\products16'.
+Generating RTLIL representation for module `\tree16'.
+Generating RTLIL representation for module `\main_path'.
+Generating RTLIL representation for module `\scale_acc'.
+Generating RTLIL representation for module `\dpe_plain'.
+Generating RTLIL representation for module `\sel16'.
+Generating RTLIL representation for module `\e2m3_delta'.
+Generating RTLIL representation for module `\correction_arith'.
+Generating RTLIL representation for module `\correction_unit'.
+Generating RTLIL representation for module `\tree18'.
+Generating RTLIL representation for module `\dpe_corrected'.
+Successfully finished Verilog frontend.
+
+2. Executing HIERARCHY pass (managing design hierarchy).
+Parameter \W = 20
+
+3. Executing AST frontend in derive mode using pre-parsed AST for module `\scale_acc'.
+Parameter \W = 20
+Generating RTLIL representation for module `$paramod\scale_acc\W=s32'00000000000000000000000000010100'.
+
+3.1. Analyzing design hierarchy..
+Top module:  \scale_acc
+
+3.2. Analyzing design hierarchy..
+Top module:  \scale_acc
+Removing unused module `\dpe_corrected'.
+Removing unused module `\tree18'.
+Removing unused module `\correction_unit'.
+Removing unused module `\correction_arith'.
+Removing unused module `\e2m3_delta'.
+Removing unused module `\sel16'.
+Removing unused module `\dpe_plain'.
+Removing unused module `$paramod\scale_acc\W=s32'00000000000000000000000000010100'.
+Removing unused module `\main_path'.
+Removing unused module `\tree16'.
+Removing unused module `\products16'.
+Removing unused module `\csa'.
+Removing unused module `\fp4_decode8'.
+Removed 13 unused modules.
+
+4. Executing PROC pass (convert processes to netlists).
+
+4.1. Executing PROC_CLEAN pass (remove empty switches from decision trees).
+Cleaned up 0 empty switches.
+
+4.2. Executing PROC_RMDEAD pass (remove dead branches from decision trees).
+Removed a total of 0 dead cases.
+
+4.3. Executing PROC_PRUNE pass (remove redundant assignments in processes).
+Removed 0 redundant assignments.
+Promoted 0 assignments to connections.
+
+4.4. Executing PROC_INIT pass (extract init attributes).
+
+4.5. Executing PROC_ARST pass (detect async resets in processes).
+
+4.6. Executing PROC_ROM pass (convert switches to ROMs).
+Converted 0 switches.
+
+4.7. Executing PROC_MUX pass (convert decision trees to multiplexers).
+
+4.8. Executing PROC_DLATCH pass (convert process syncs to latches).
+
+4.9. Executing PROC_DFF pass (convert process syncs to FFs).
+
+4.10. Executing PROC_MEMWR pass (convert process memory writes to cells).
+
+4.11. Executing PROC_CLEAN pass (remove empty switches from decision trees).
+Cleaned up 0 empty switches.
+
+4.12. Executing OPT_EXPR pass (perform const folding).
+Optimizing module scale_acc.
+
+5. Executing OPT pass (performing simple optimizations).
+
+5.1. Executing OPT_EXPR pass (perform const folding).
+Optimizing module scale_acc.
+
+5.2. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\scale_acc'.
+Computing hashes of 3 cells of `\scale_acc'.
+Finding duplicate cells in `\scale_acc'.
+Removed a total of 0 cells.
+
+5.3. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \scale_acc..
+  Creating internal representation of mux trees.
+  No muxes found in this module.
+Removed 0 multiplexer ports.
+
+5.4. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \scale_acc.
+Performed a total of 0 changes.
+
+5.5. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\scale_acc'.
+Computing hashes of 3 cells of `\scale_acc'.
+Finding duplicate cells in `\scale_acc'.
+Removed a total of 0 cells.
+
+5.6. Executing OPT_DFF pass (perform DFF optimizations).
+
+5.7. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \scale_acc..
+Removed 0 unused cells and 3 unused wires.
+<suppressed ~1 debug messages>
+
+5.8. Executing OPT_EXPR pass (perform const folding).
+Optimizing module scale_acc.
+
+5.9. Rerunning OPT passes. (Maybe there is more to do..)
+
+5.10. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \scale_acc..
+  Creating internal representation of mux trees.
+  No muxes found in this module.
+Removed 0 multiplexer ports.
+
+5.11. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \scale_acc.
+Performed a total of 0 changes.
+
+5.12. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\scale_acc'.
+Computing hashes of 3 cells of `\scale_acc'.
+Finding duplicate cells in `\scale_acc'.
+Removed a total of 0 cells.
+
+5.13. Executing OPT_DFF pass (perform DFF optimizations).
+
+5.14. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \scale_acc..
+
+5.15. Executing OPT_EXPR pass (perform const folding).
+Optimizing module scale_acc.
+
+5.16. Finished fast OPT passes. (There is nothing left to do.)
+
+6. Executing FLATTEN pass (flatten design).
+
+7. Executing OPT pass (performing simple optimizations).
+
+7.1. Executing OPT_EXPR pass (perform const folding).
+Optimizing module scale_acc.
+
+7.2. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\scale_acc'.
+Computing hashes of 3 cells of `\scale_acc'.
+Finding duplicate cells in `\scale_acc'.
+Removed a total of 0 cells.
+
+7.3. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \scale_acc..
+  Creating internal representation of mux trees.
+  No muxes found in this module.
+Removed 0 multiplexer ports.
+
+7.4. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \scale_acc.
+Performed a total of 0 changes.
+
+7.5. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\scale_acc'.
+Computing hashes of 3 cells of `\scale_acc'.
+Finding duplicate cells in `\scale_acc'.
+Removed a total of 0 cells.
+
+7.6. Executing OPT_DFF pass (perform DFF optimizations).
+
+7.7. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \scale_acc..
+
+7.8. Executing OPT_EXPR pass (perform const folding).
+Optimizing module scale_acc.
+
+7.9. Finished fast OPT passes. (There is nothing left to do.)
+
+8. Executing TECHMAP pass (map to technology primitives).
+
+8.1. Executing Verilog-2005 frontend: /share/techmap.v
+Parsing Verilog input from `/share/techmap.v' to AST representation.
+Generating RTLIL representation for module `\_90_simplemap_bool_ops'.
+Generating RTLIL representation for module `\_90_simplemap_reduce_ops'.
+Generating RTLIL representation for module `\_90_simplemap_logic_ops'.
+Generating RTLIL representation for module `\_90_simplemap_compare_ops'.
+Generating RTLIL representation for module `\_90_simplemap_various'.
+Generating RTLIL representation for module `\_90_simplemap_registers'.
+Generating RTLIL representation for module `\_90_shift_ops_shr_shl_sshl_sshr'.
+Generating RTLIL representation for module `\_90_shift_shiftx'.
+Generating RTLIL representation for module `\_90_fa'.
+Generating RTLIL representation for module `\_90_lcu_brent_kung'.
+Generating RTLIL representation for module `\_90_alu'.
+Generating RTLIL representation for module `\_90_macc'.
+Generating RTLIL representation for module `\_90_alumacc'.
+Generating RTLIL representation for module `$__div_mod_u'.
+Generating RTLIL representation for module `$__div_mod_trunc'.
+Generating RTLIL representation for module `\_90_div'.
+Generating RTLIL representation for module `\_90_mod'.
+Generating RTLIL representation for module `$__div_mod_floor'.
+Generating RTLIL representation for module `\_90_divfloor'.
+Generating RTLIL representation for module `\_90_modfloor'.
+Generating RTLIL representation for module `\_90_pow'.
+Generating RTLIL representation for module `\_90_demux'.
+Generating RTLIL representation for module `\_90_lut'.
+Generating RTLIL representation for module `$connect'.
+Generating RTLIL representation for module `$input_port'.
+Successfully finished Verilog frontend.
+
+8.2. Continuing TECHMAP pass.
+Running "alumacc" on wrapper $extern:wrap:$mul:Y_WIDTH=32:B_WIDTH=16:A_WIDTH=16:B_SIGNED=1:A_SIGNED=1:394426c56d1a028ba8fdd5469b163e04011def47.
+Using template $extern:wrap:$mul:Y_WIDTH=32:B_WIDTH=16:A_WIDTH=16:B_SIGNED=1:A_SIGNED=1:394426c56d1a028ba8fdd5469b163e04011def47 for cells of type $extern:wrap:$mul:Y_WIDTH=32:B_WIDTH=16:A_WIDTH=16:B_SIGNED=1:A_SIGNED=1:394426c56d1a028ba8fdd5469b163e04011def47.
+Running "alumacc" on wrapper $extern:wrap:$mul:Y_WIDTH=52:B_WIDTH=32:A_WIDTH=20:B_SIGNED=1:A_SIGNED=1:394426c56d1a028ba8fdd5469b163e04011def47.
+Using template $extern:wrap:$mul:Y_WIDTH=52:B_WIDTH=32:A_WIDTH=20:B_SIGNED=1:A_SIGNED=1:394426c56d1a028ba8fdd5469b163e04011def47 for cells of type $extern:wrap:$mul:Y_WIDTH=52:B_WIDTH=32:A_WIDTH=20:B_SIGNED=1:A_SIGNED=1:394426c56d1a028ba8fdd5469b163e04011def47.
+Running "alumacc" on wrapper $extern:wrap:$add:Y_WIDTH=32:B_WIDTH=32:A_WIDTH=32:B_SIGNED=0:A_SIGNED=0:394426c56d1a028ba8fdd5469b163e04011def47.
+Using template $extern:wrap:$add:Y_WIDTH=32:B_WIDTH=32:A_WIDTH=32:B_SIGNED=0:A_SIGNED=0:394426c56d1a028ba8fdd5469b163e04011def47 for cells of type $extern:wrap:$add:Y_WIDTH=32:B_WIDTH=32:A_WIDTH=32:B_SIGNED=0:A_SIGNED=0:394426c56d1a028ba8fdd5469b163e04011def47.
+Using template $paramod$fbc7873bff55778c0b3173955b7e4bce1d9d6834\_90_alu for cells of type $alu.
+Using extmapper maccmap for cells of type $macc_v2.
+  add \scale * \sum (32x20 bits, signed)
+  add \s_a * \s_b (16x16 bits, signed)
+Using template $paramod\_90_fa\WIDTH=32'00000000000000000000000000100000 for cells of type $fa.
+Using extmapper simplemap for cells of type $and.
+Using extmapper simplemap for cells of type $not.
+Using template $paramod\_90_fa\WIDTH=32'00000000000000000000000000110100 for cells of type $fa.
+Using template $paramod$cc23faa4302ed2a717f4fd0b175ca8ec4dc7bbd3\_90_alu for cells of type $alu.
+Using extmapper simplemap for cells of type $mux.
+Using extmapper simplemap for cells of type $pos.
+Using template $paramod\_90_lcu_brent_kung\WIDTH=32'00000000000000000000000000100000 for cells of type $lcu.
+Using extmapper simplemap for cells of type $xor.
+Using extmapper simplemap for cells of type $or.
+Using template $paramod\_90_lcu_brent_kung\WIDTH=32'00000000000000000000000000110100 for cells of type $lcu.
+No more expansions possible.
+<suppressed ~1280 debug messages>
+
+9. Executing OPT pass (performing simple optimizations).
+
+9.1. Executing OPT_EXPR pass (perform const folding).
+Optimizing module scale_acc.
+<suppressed ~2594 debug messages>
+
+9.2. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\scale_acc'.
+Computing hashes of 7799 cells of `\scale_acc'.
+Finding duplicate cells in `\scale_acc'.
+Computing hashes of 7453 cells of `\scale_acc'.
+Finding duplicate cells in `\scale_acc'.
+Computing hashes of 7245 cells of `\scale_acc'.
+Finding duplicate cells in `\scale_acc'.
+Computing hashes of 7073 cells of `\scale_acc'.
+Finding duplicate cells in `\scale_acc'.
+Computing hashes of 6985 cells of `\scale_acc'.
+Finding duplicate cells in `\scale_acc'.
+Computing hashes of 6887 cells of `\scale_acc'.
+Finding duplicate cells in `\scale_acc'.
+Computing hashes of 6815 cells of `\scale_acc'.
+Finding duplicate cells in `\scale_acc'.
+Computing hashes of 6779 cells of `\scale_acc'.
+Finding duplicate cells in `\scale_acc'.
+Computing hashes of 6749 cells of `\scale_acc'.
+Finding duplicate cells in `\scale_acc'.
+Computing hashes of 6719 cells of `\scale_acc'.
+Finding duplicate cells in `\scale_acc'.
+Computing hashes of 6704 cells of `\scale_acc'.
+Finding duplicate cells in `\scale_acc'.
+Computing hashes of 6700 cells of `\scale_acc'.
+Finding duplicate cells in `\scale_acc'.
+Computing hashes of 6696 cells of `\scale_acc'.
+Finding duplicate cells in `\scale_acc'.
+Computing hashes of 6694 cells of `\scale_acc'.
+Finding duplicate cells in `\scale_acc'.
+<suppressed ~3315 debug messages>
+Removed a total of 1105 cells.
+
+9.3. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \scale_acc..
+  Creating internal representation of mux trees.
+  No muxes found in this module.
+Removed 0 multiplexer ports.
+
+9.4. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \scale_acc.
+Performed a total of 0 changes.
+
+9.5. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\scale_acc'.
+Computing hashes of 6694 cells of `\scale_acc'.
+Finding duplicate cells in `\scale_acc'.
+Removed a total of 0 cells.
+
+9.6. Executing OPT_DFF pass (perform DFF optimizations).
+
+9.7. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \scale_acc..
+Removed 1947 unused cells and 593 unused wires.
+<suppressed ~1948 debug messages>
+
+9.8. Executing OPT_EXPR pass (perform const folding).
+Optimizing module scale_acc.
+
+9.9. Rerunning OPT passes. (Maybe there is more to do..)
+
+9.10. Executing OPT_MUXTREE pass (detect dead branches in mux trees).
+Running muxtree optimizer on module \scale_acc..
+  Creating internal representation of mux trees.
+  No muxes found in this module.
+Removed 0 multiplexer ports.
+
+9.11. Executing OPT_REDUCE pass (consolidate $*mux and $reduce_* inputs).
+  Optimizing cells in module \scale_acc.
+Performed a total of 0 changes.
+
+9.12. Executing OPT_MERGE pass (detect identical cells).
+Finding identical cells in module `\scale_acc'.
+Computing hashes of 4747 cells of `\scale_acc'.
+Finding duplicate cells in `\scale_acc'.
+Removed a total of 0 cells.
+
+9.13. Executing OPT_DFF pass (perform DFF optimizations).
+
+9.14. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \scale_acc..
+
+9.15. Executing OPT_EXPR pass (perform const folding).
+Optimizing module scale_acc.
+
+9.16. Finished fast OPT passes. (There is nothing left to do.)
+
+10. Executing ABC pass (technology mapping using ABC).
+
+10.1. Extracting gate netlist of module `\scale_acc' to `<abc-temp-dir>/input.blif'..
+
+10.1.1. Executed ABC.
+Extracted 4747 gates and 4831 wires to a netlist network with 84 inputs and 32 outputs.
+Running ABC script: <abc-temp-dir>/abc.script
+
+10.1.2. Re-integrating ABC results.
+ABC RESULTS:           AND2_X1 cells:      181
+ABC RESULTS:           AND3_X1 cells:      162
+ABC RESULTS:           AND4_X1 cells:       13
+ABC RESULTS:         AOI211_X1 cells:       17
+ABC RESULTS:          AOI21_X1 cells:      383
+ABC RESULTS:         AOI221_X1 cells:        1
+ABC RESULTS:          AOI22_X1 cells:       76
+ABC RESULTS:            INV_X1 cells:      266
+ABC RESULTS:           MUX2_X1 cells:        1
+ABC RESULTS:          NAND2_X1 cells:      763
+ABC RESULTS:          NAND3_X1 cells:      196
+ABC RESULTS:          NAND4_X1 cells:       28
+ABC RESULTS:           NOR2_X1 cells:      540
+ABC RESULTS:           NOR3_X1 cells:       99
+ABC RESULTS:           NOR4_X1 cells:       15
+ABC RESULTS:         OAI211_X1 cells:       26
+ABC RESULTS:          OAI21_X1 cells:      381
+ABC RESULTS:          OAI22_X1 cells:       36
+ABC RESULTS:          OAI33_X1 cells:        5
+ABC RESULTS:            OR2_X1 cells:      133
+ABC RESULTS:            OR3_X1 cells:      152
+ABC RESULTS:            OR4_X1 cells:        6
+ABC RESULTS:          XNOR2_X1 cells:      654
+ABC RESULTS:           XOR2_X1 cells:      469
+ABC RESULTS:        internal signals:     4715
+ABC RESULTS:           input signals:       84
+ABC RESULTS:          output signals:       32
+Removing temp directory.
+Removing global temp directory.
+
+11. Executing OPT_CLEAN pass (remove unused cells and wires).
+Finding unused cells or wires in module \scale_acc..
+Removed 0 unused cells and 611 unused wires.
+<suppressed ~3 debug messages>
+
+12. Executing Liberty frontend: nangate45_typ.lib
+Imported 134 cell types from liberty file.
+
+13. Printing statistics.
+
+=== scale_acc ===
+
+        +----------Local Count, excluding submodules.
+        |        +-Local Area, excluding submodules.
+        |        | 
+     4576        - wires
+     4687        - wire bits
+        5        - public wires
+      116        - public wire bits
+        5        - ports
+      116        - port bits
+     4603 5.16E+03 cells
+      181  192.584   AND2_X1
+      162   215.46   AND3_X1
+       13   20.748   AND4_X1
+       17    22.61   AOI211_X1
+      383  407.512   AOI21_X1
+        1    1.596   AOI221_X1
+       76   101.08   AOI22_X1
+      266  141.512   INV_X1
+        1    1.862   MUX2_X1
+      763  608.874   NAND2_X1
+      196  208.544   NAND3_X1
+       28    37.24   NAND4_X1
+      540   430.92   NOR2_X1
+       99  105.336   NOR3_X1
+       15    19.95   NOR4_X1
+       26    34.58   OAI211_X1
+      381  405.384   OAI21_X1
+       36    47.88   OAI22_X1
+        5     9.31   OAI33_X1
+      133  141.512   OR2_X1
+      152   202.16   OR3_X1
+        6    9.576   OR4_X1
+      654 1.04E+03   XNOR2_X1
+      469  748.524   XOR2_X1
+
+   Chip area for module '\scale_acc': 5158.538000
+     of which used for sequential elements: 0.000000 (0.00%)
+
+14. Executing JSON backend.
+
+End of script. Logfile hash: b9fa1b6557, time: 2.39s, user: 2.40s, system: 0.00s
+Yosys 0.68 (git sha1 38e001a6f, Release, Clang /workspace/YoWASP/yosys/wasi-sdk-33.0-x86_64-linux/share/cmake/../..//bin/clang++ 22.1.0)
+Time spent: 62% 1x abc (1 sec), 6% 13x opt_expr (0 sec), ...

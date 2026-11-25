@@ -8,3 +8,6 @@ __pycache__/
 4_evaluation/fig12_speedup/blackwell_omma_port/cutlass_mode3/
 !4_evaluation/fig12_speedup/log/*.log
 !4_evaluation/fig12_speedup/runpod_5090_results/log/*_5rep.log
+3_solution/synthesis/nangate45_typ.lib
+3_solution/synthesis/results/*.json
+!3_solution/synthesis/results/*.log
